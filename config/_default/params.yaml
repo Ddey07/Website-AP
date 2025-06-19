@@ -5,7 +5,7 @@
 
 # Appearance
 appearance:
-  mode: system
+  mode: light
   color: emerald
 
 # SEO
@@ -14,10 +14,10 @@ marketing:
     site_type: Person
     local_business_type: ''
     org_name: ''
-    description: 'The highly-customizable Hugo Academic theme powered by Hugo Blox Builder. Easily create your personal academic website.'
-    twitter: 'GetResearchDev'
+    description: 'Debangan Dey is an assistant professor in statistics intereasted in wearables, digital health and spatial statistics'
+    twitter: 'debangan07'
   analytics:
-    google_analytics: ''
+    google_analytics: 'CXHH8ELK0W'
     baidu_tongji: ''
     plausible: ''
     fathom: ''
@@ -35,7 +35,7 @@ header:
     show_search: true
     show_theme_chooser: true
     logo:
-      text: "Your Name"
+      text: "Debangan Dey"
 
 # Site footer
 footer:
@@ -55,6 +55,6 @@ locale:
 # Site features
 features:
   math:
-    enable: false
+    enable: true
   privacy_pack:
     enable: false
