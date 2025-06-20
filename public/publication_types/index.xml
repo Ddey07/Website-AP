@@ -2,14 +2,14 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Publication_types | Debangan Dey</title>
-    <link>debangandey.rbind.io/publication_types/</link>
-      <atom:link href="debangandey.rbind.io/publication_types/index.xml" rel="self" type="application/rss+xml" />
+    <link>//localhost:1313/publication_types/</link>
+      <atom:link href="//localhost:1313/publication_types/index.xml" rel="self" type="application/rss+xml" />
     <description>Publication_types</description>
     <generator>Hugo Blox Builder (https://hugoblox.com)</generator><language>en-us</language>
     <image>
-      <url>debangandey.rbind.io/media/icon_hu7729264130191091259.png</url>
+      <url>//localhost:1313/media/icon_hu_5bc096a61c6971a2.png</url>
       <title>Publication_types</title>
-      <link>debangandey.rbind.io/publication_types/</link>
+      <link>//localhost:1313/publication_types/</link>
     </image>
     
   </channel>

@@ -1,6 +1,7 @@
 ---
+title:
 cms_exclude: true
-#url: courses
+url: courses
 
 # View
 view: card
@@ -10,7 +11,5 @@ image:
   caption: ''
   filename: ''
 ---
-
-# Courses
 
 - **Fall 2025** - STAT 641: The Methods of Statistics I
