@@ -57,6 +57,7 @@
       "container",
       "cursor-pointer",
       "dark:[&.active]:text-white",
+      "dark:bg-gray-20000",
       "dark:bg-gray-800",
       "dark:bg-hb-dark",
       "dark:bg-zinc-900",
