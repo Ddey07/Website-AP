@@ -2,23 +2,23 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>//localhost:1313/</loc>
+    <loc>debangandey.rbind.io/</loc>
     <lastmod>2022-10-24T00:00:00+00:00</lastmod>
     <changefreq>weekly</changefreq>
   </url><url>
-    <loc>//localhost:1313/courses/</loc>
+    <loc>debangandey.rbind.io/courses/</loc>
     <changefreq>weekly</changefreq>
   </url><url>
-    <loc>//localhost:1313/publication_types/</loc>
+    <loc>debangandey.rbind.io/publication_types/</loc>
     <changefreq>weekly</changefreq>
   </url><url>
-    <loc>//localhost:1313/publication/</loc>
+    <loc>debangandey.rbind.io/publication/</loc>
     <changefreq>weekly</changefreq>
   </url><url>
-    <loc>//localhost:1313/talk/</loc>
+    <loc>debangandey.rbind.io/talk/</loc>
     <changefreq>weekly</changefreq>
   </url><url>
-    <loc>//localhost:1313/tags/</loc>
+    <loc>debangandey.rbind.io/tags/</loc>
     <changefreq>weekly</changefreq>
   </url>
 </urlset>
