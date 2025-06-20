@@ -28,7 +28,9 @@ banner:
 
 #### Digital Health Technologies (DHTs)
 
-- Lateef TM, **Dey D**, Leroux A, Cui L, Xiao M, Zipunnikov V, Merikangas KR. 2024. Association between electronic diary–rated sleep, mood, energy, and stress with incident headache in a community-based sample. *Neurology.* 102(4):e208102. https://www.cnn.com/2024/01/24/health/migraine-predict-study-wellness/index.html  
+- Merikangas KR, Kang S, Lamers F, Leroux A, **Dey D**, Husky M, Preisig M, Hickie I, Zipunnikov V. 2024. Harmonizing real time multi-domain assessments of mood disorder spectrum: Motor activity research consortium for health (mMARCH). *BIPOLAR DISORDERS.* 26:34–34. WILEY.
+- Kang SJ, Leroux A, Guo W, **Dey D**, Strippoli M-PF, Di J, Vaucher J, Marques-Vidal P, Vollenweider P, Preisig M, Merikangas KR, Zipunnikov V. 2024. Integrative modeling of accelerometry-derived sleep, physical activity, and circadian rhythm domains with current or remitted major depression. *JAMA Psychiatry.* 81(9):911–918.
+- Lateef TM, **Dey D**, Leroux A, Cui L, Xiao M, Zipunnikov V, Merikangas KR. 2024. Association between electronic diary–rated sleep, mood, energy, and stress with incident headache in a community-based sample. *Neurology.* 102(4):e208102. https://www.cnn.com/2024/01/24/health/migraine-predict-study-wellness/index.html 
 - Stapp EK, Zipunnikov V, Leroux A, Cui L, Husky MM, **Dey D**, Merikangas KR. 2023. Specificity of affective dynamics of bipolar and major depressive disorder. *Brain and Behavior.* e3134.  
 - Varma VR, **Dey D**, Leroux A, Di J, Urbanek J, Xiao L, Zipunnikov V. 2017. Re-evaluating the effect of age on physical activity over the lifespan. *Preventive Medicine.* 101:102–108. https://time.com/4821963/teens-sedentary-lifestyle-exercise/  
 - Zipunnikov V, **Dey D**, Leroux A, Di J, Urbanek J, Schrack J, Crainiceanu C. 2017. Total physical activity and its circadian allocation are independent predictors of mortality. *Innovation in Aging.* 1(Suppl 1):1239.  
