@@ -34,10 +34,17 @@ profiles:
   - icon: academicons/google-scholar
     url: https://scholar.google.co.in/citations?user=-GMPEDQAAAAJ&hl=en
 
-interests:
+applications:
   - Digital Health Technologies (DHTs)
   - Ecological Momentary Assessment
   - Environmental Health
+  - Soccer Analytics
+interests:
+  - Multivariate Stochastic Processes
+  - Spatial Statistics
+  - Functional Data Analysis
+  - Graphical Models
+  - Mixed-type Data
 ---
 
 ## About Me

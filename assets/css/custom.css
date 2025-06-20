@@ -1,0 +1,18 @@
+/* Make the content wider */
+.prose, .prose-slate {
+  max-width: 90% !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  text-align: left !important;
+}
+
+/* Override unnecessary center alignment */
+.resume-biography,
+.bio-text,
+.markdown-section,
+.main-container {
+  text-align: left !important;
+  max-width: 90% !important;
+  margin-left: auto;
+  margin-right: auto;
+}

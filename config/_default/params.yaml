@@ -7,6 +7,9 @@
 appearance:
   mode: light
   color: emerald
+  
+stylesheets:
+  - css/custom.css
 
 # SEO
 marketing:
