@@ -49,4 +49,4 @@ interests:
 
 ## About Me
 
-Debangan Dey is an incoming Assistant Professor in the Department of Statistics at Texas A&M University. His research develops statistical methods for **multivariate stochastic processes**, with a focus on integrating **Digital Health Technologies data (DHTs)** (capturing changes over time) and **environmental factors** (varying across space). This includes modeling data from wearables and smartphones alongside contextual spatial exposures like temperature, light, and greenspace to understand **individual-level mental and physical health dynamics in space and time**.
+Debangan Dey is an incoming Assistant Professor in the Department of Statistics at Texas A&M University. His research develops statistical and ML methods for **multivariate stochastic processes**, with a focus on integrating **Digital Health Technologies data (DHTs)** (capturing changes over time) and **environmental factors** (varying across space). This includes modeling data from wearables and smartphones alongside contextual spatial exposures like temperature, light, and greenspace etc. to understand **individual-level mental health dynamics**.

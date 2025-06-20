@@ -35,6 +35,7 @@ sections:
     content:
       title: News
       text: |
+        - **🚨 Looking for motivated students to work on statistical and machine learning methods for analyzing data from wearables ⌚️, smartphones 📱, and location (GPS) data 📍!**
         - 📘 **2025**: Will be teaching **STAT 641: The Methods of Statistics I** in Fall 2025. 
         - 🎓 **2025**: Joining **Texas A&M University** as an *Assistant Professor* in the Department of Statistics.
 
