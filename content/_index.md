@@ -70,8 +70,8 @@ sections:
             - Graphical Models
           - Applications
             - Mental & Physical Health Dynamics
-            - Personalized Prediction
-            - Early Intervention
+            - Personalized Prediction 
+            - Early Intervention of Mood Disorders
             - Global Mental Health
         </script>
         </div>
