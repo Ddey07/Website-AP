@@ -1,12 +1,12 @@
 ---
 # Leave the homepage title empty to use the site title
 title: ""
-date: 2022-10-24
+date: 2025-06-21
 type: landing
 
 design:
   # Default section spacing
-  spacing: "6rem"
+  spacing: "2rem"
 
 sections:
   - block: resume-biography-4
@@ -17,7 +17,7 @@ sections:
       # Show a call-to-action button under your biography? (optional)
       button:
         text: Download CV
-        url: uploads/resume.pdf
+        url: uploads/cv_dd_0625.pdf
     design:
       css_class: light
       background:
@@ -31,11 +31,59 @@ sections:
           position: center
           parallax: false
   - block: markdown-wide
+    id: markmap
+    content:
+      title:
+      text: |
+       <style>
+        .markmap{
+            position: relative;
+            user-select: none; /* Disable text selection */
+        }
+        .markmap > svg {
+        width: 100%;
+        height: 400px;
+        }
+        .markmap text {
+          font-size: 30px !important;
+        }
+        </style>
+
+        <div class="markmap" data-options='{"zoom": false, "pan": false}'>
+        <script type="text/template">
+        - My Research
+          - Motivation
+            - Digital Health Technologies
+              - Objective Data
+                - Physical Activity ⌚
+                - Headband EEG 🎧
+                - Continuous Glucose Monitor 🩸
+                - Heart Rate ❤️
+              - Subjective Data 
+                - Ecological Momentary Assessment📱
+            - Environmental Data
+              - Temperature, Light, Greenspace etc. 📍
+          - Theorey and Methods
+            - Multivariate Stochastic Processes (Space & Time)
+            - Dynamic Structural Equation Modeling
+            - Joint Framework for Mixed-type Data (Ordinal/Binary/Truncated)
+            - Graphical Models
+          - Applications
+            - Mental & Physical Health Dynamics
+            - Personalized Prediction
+            - Early Intervention
+            - Global Mental Health
+        </script>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/markmap-autoloader@latest"></script>
+
+  - block: markdown-wide
     id: recent-updates
     content:
       title: News
       text: |
-        - **🚨 Looking for motivated students to work on statistical and machine learning methods for analyzing data from wearables ⌚️, smartphones 📱, and location (GPS) data 📍!**
+        - **🚨 Looking for motivated students to work on statistical and machine learning methods for analyzing data from wearables ⌚️, smartphones 📱, with contextual location information📍!**
         - 📘 **2025**: Will be teaching **STAT 641: The Methods of Statistics I** in Fall 2025. 
         - 🎓 **2025**: Joining **Texas A&M University** as an *Assistant Professor* in the Department of Statistics.
 
@@ -49,5 +97,4 @@ sections:
          - 🎤 **2023**: Organized and chaired a session at **JSM 2023** titled *Recent Developments in Methods for Digital Brain Health Data*.
          - 📰 **2017**: Published *Re-evaluating the effect of age on physical activity over the lifespan* in *Preventive Medicine* with V. Varma, A. Leroux, J. Di, J. Urbanek, L. Xiao, and V. Zipunnikov.  
                         → Featured by: [TIME](https://time.com/4821963/teens-sedentary-lifestyle-exercise/)
-
 ---
