@@ -63,7 +63,7 @@ sections:
                 - Ecological Momentary Assessment📱
             - Environmental Data
               - Temperature, Light, Greenspace etc. 📍
-          - Theorey and Methods
+          - Theory and Methods
             - Multivariate Stochastic Processes (Space & Time)
             - Dynamic Structural Equation Modeling
             - Joint Framework for Mixed-type Data (Ordinal/Binary/Truncated)
