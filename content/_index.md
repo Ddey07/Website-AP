@@ -86,6 +86,7 @@ sections:
         - **🚨 Looking for motivated students to work on statistical and machine learning methods for analyzing data from wearables ⌚️, smartphones 📱, with contextual location information📍!**
         - 📘 **2026**: Will be teaching **STAT 632: Statistical Methodology II-Bayesian Modeling and Inference** in Spring 2026. 
         - 🎤 **2026**: Will be presenting in the invited session, *Data-driven Advances in Mental Health Statistics: Novel Methods for mHealth, Neuroimaging, and Causal Discovery* at IBC 2026, Seoul, Korea.
+        **2025**: New publication 🚨 *[Associations between daily outdoor temperature and subjective real-time ratings of emotional states and sleep in mood disorder subtypes](https://www.sciencedirect.com/science/article/pii/S0165032725023602)*, **Journal of Affective Disorders** — shows that daily temperature influences mood, energy, and sleep, with stronger effects in mood disorders.
         - 📘 **2025**: Will be teaching **STAT 641: The Methods of Statistics I** in Fall 2025. 
         - 🎓 **2025**: Joining **Texas A&M University** as an *Assistant Professor* in the Department of Statistics.
 
