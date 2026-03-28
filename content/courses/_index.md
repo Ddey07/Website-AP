@@ -12,4 +12,5 @@ image:
   filename: ''
 ---
 
+- **Spring 2026** - STAT 632: Statistical Methodology II — Bayesian Modeling and Inference
 - **Fall 2025** - STAT 641: The Methods of Statistics I

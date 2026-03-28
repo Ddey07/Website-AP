@@ -48,13 +48,3 @@ image:
   _ENAR Spring Meeting, 2019_  
   [Slides (PDF)](/uploads/slides/ENAR_2019_DD.pdf)
 
-**Debangan Dey** is an incoming *Assistant Professor* in the **Department of Statistics** at **Texas A&M University**. He develops statistical and machine learning methods to analyze complex data streams arising from digital health technologies and environmental scinces. These data are often high-frequency, mixed, and multimodal and can be generalized as **multivariate stochastic processes that evolve over both space and time**.
-
-```mermaid
-graph TD;
-  A-->B;
-  A-->C;
-  B-->D;
-  C-->D;
-```
-
