@@ -14,11 +14,13 @@ banner:
 
 ### Theory and Methods
 
-- **Dey D**, Banerjee S, Lindquist MA, Datta A. 2025. Graph-constrained analysis for multivariate functional data. *Journal of Multivariate Analysis.* https://doi.org/10.1016/j.jmva.2025.105428  
+- **Dey D**, Burman A, Choudhury S. 2026. Doubly-Unlinked Regression for Dependent Data. *arXiv:2603.19506* https://arxiv.org/abs/2603.19506
+- **Dey D**, Ghosal R, Merikangas KR, Zipunnikov V. 2026. Multivariate Functional Principal Component Analysis for Mixed-Type mHealth Data: An Application to Mood Disorders. *arXiv:2603.11385* https://arxiv.org/abs/2603.11385
+- **Dey D**, Zipunnikov V. 2026. Regression and Dimension Reduction for Multivariate Mixed-Type Data via Semiparametric Gaussian Copula. *arXiv:2205.06868* https://arxiv.org/abs/2205.06868
+- **Dey D**, Banerjee S, Lindquist MA, Datta A. 2025. Graph-constrained analysis for multivariate functional data. *Journal of Multivariate Analysis.* https://doi.org/10.1016/j.jmva.2025.105428
 - **Dey D**, Ghosal R, Merikangas KR, Zipunnikov V. 2024. Functional principal component analysis for continuous non-Gaussian, truncated, and discrete functional data: A semiparametric Gaussian copula approach. *Statistics in Medicine.* 43(12):2489–2508. https://onlinelibrary.wiley.com/doi/full/10.1002/sim.10240
 - **Dey D**, Datta A, Banerjee S. 2022. Graphical Gaussian process models for highly multivariate spatial data. *Biometrika.* 109(4):993–1014. https://doi.org/10.1093/biomet/asab061
-- **Dey D**, Zipunnikov V. 2022. Semiparametric Gaussian copula regression modeling for mixed data types (SGCRM). *arXiv:2205.06868* https://arxiv.org/abs/2205.06868  
-- **Dey D**, Zipunnikov V. 2019. Connecting population-level AUC and latent scale-invariant R² via semiparametric Gaussian copula and rank correlations. *arXiv:1910.14233* https://arxiv.org/abs/1910.14233  
+- **Dey D**, Zipunnikov V. 2019. Connecting population-level AUC and latent scale-invariant R² via semiparametric Gaussian copula and rank correlations. *arXiv:1910.14233* https://arxiv.org/abs/1910.14233
 
 ### Software Packages
 
@@ -28,6 +30,7 @@ banner:
 
 #### Digital Health Technologies (DHTs)
 
+- **Dey D**, Lateef HA, Leroux A, Zipunnikov V, Merikangas KR. 2025. Associations between daily outdoor temperature and subjective real-time ratings of emotional states and sleep in mood disorder subtypes. *Journal of Affective Disorders.* 120918. https://www.sciencedirect.com/science/article/pii/S0165032725023602
 - Merikangas KR, Kang S, Lamers F, Leroux A, **Dey D**, Husky M, Preisig M, Hickie I, Zipunnikov V. 2024. Harmonizing real time multi-domain assessments of mood disorder spectrum: Motor activity research consortium for health (mMARCH). *BIPOLAR DISORDERS.* 26:34–34. WILEY.
 - Kang SJ, Leroux A, Guo W, **Dey D**, Strippoli M-PF, Di J, Vaucher J, Marques-Vidal P, Vollenweider P, Preisig M, Merikangas KR, Zipunnikov V. 2024. Integrative modeling of accelerometry-derived sleep, physical activity, and circadian rhythm domains with current or remitted major depression. *JAMA Psychiatry.* 81(9):911–918.
 - Lateef TM, **Dey D**, Leroux A, Cui L, Xiao M, Zipunnikov V, Merikangas KR. 2024. Association between electronic diary–rated sleep, mood, energy, and stress with incident headache in a community-based sample. *Neurology.* 102(4):e208102. https://www.cnn.com/2024/01/24/health/migraine-predict-study-wellness/index.html 

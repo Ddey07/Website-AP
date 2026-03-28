@@ -84,20 +84,15 @@ sections:
       title: News
       text: |
         - **🚨 Looking for motivated students to work on statistical and machine learning methods for analyzing data from wearables ⌚️, smartphones 📱, with contextual location information📍!**
-        - 📘 **2026**: Will be teaching **STAT 632: Statistical Methodology II-Bayesian Modeling and Inference** in Spring 2026. 
+        - 📰 **2026**: Published *[Associations between daily outdoor temperature and subjective real-time ratings of emotional states and sleep in mood disorder subtypes](https://www.sciencedirect.com/science/article/pii/S0165032725023602)* in **Journal of Affective Disorders** — shows that daily temperature influences mood, energy, and sleep, with stronger effects in mood disorders. [Featured by Texas A&M College of Arts & Sciences](https://artsci.tamu.edu/news/2026/03/warmer-days-better-moods-its-complicated.html).
+        - 📄 **2026**: New preprint — *[Doubly-Unlinked Regression for Dependent Data](https://arxiv.org/abs/2603.19506)* with A. Burman and S. Choudhury.
+        - 📄 **2026**: New preprint — *[Multivariate Functional Principal Component Analysis for Mixed-Type mHealth Data: An Application to Mood Disorders](https://arxiv.org/abs/2603.11385)* with R. Ghosal, K. Merikangas, and V. Zipunnikov.
+        - 📄 **2026**: Major revision of preprint — *[Regression and Dimension Reduction for Multivariate Mixed-Type Data via Semiparametric Gaussian Copula](https://arxiv.org/abs/2205.06868)* with V. Zipunnikov.
+        - 📘 **2026**: Will be teaching **STAT 632: Statistical Methodology II-Bayesian Modeling and Inference** in Spring 2026.
         - 🎤 **2026**: Will be presenting in the invited session, *Data-driven Advances in Mental Health Statistics: Novel Methods for mHealth, Neuroimaging, and Causal Discovery* at IBC 2026, Seoul, Korea.
-        - **2025**: New publication 🚨 *[Associations between daily outdoor temperature and subjective real-time ratings of emotional states and sleep in mood disorder subtypes](https://www.sciencedirect.com/science/article/pii/S0165032725023602)*, **Journal of Affective Disorders** — shows that daily temperature influences mood, energy, and sleep, with stronger effects in mood disorders.
-        - 📘 **2025**: Will be teaching **STAT 641: The Methods of Statistics I** in Fall 2025. 
-        - 🎓 **2025**: Joining **Texas A&M University** as an *Assistant Professor* in the Department of Statistics.
 
         - 📄 **2025**: Published *Graph-constrained analysis for multivariate functional data* in **Journal of Multivariate Analysis** with S. Banerjee, M. A. Lindquist, and A. Datta.
 
-        - 📄 **2024**: Published *Functional principal component analysis for continuous non-Gaussian, truncated, and discrete functional data* in **Statistics in Medicine** with R. Ghosal, K. Merikangas, and V. Zipunnikov
-
-        - 📰 **2024**: Published *Association Between Electronic Diary–Rated Sleep, Mood, Energy, and Stress With Incident Headache in a Community-Based Sample* in **Neurology** with T. Lateef, A. Leroux, L. Cui, M. Xiao, V. Zipunnikov, and K. Merikangas.  
+        - 📰 **2024**: Published *Association Between Electronic Diary–Rated Sleep, Mood, Energy, and Stress With Incident Headache in a Community-Based Sample* in **Neurology** with T. Lateef, A. Leroux, L. Cui, M. Xiao, V. Zipunnikov, and K. Merikangas.
                       → Featured by: [CNN](https://www.cnn.com/2024/01/24/health/migraine-predict-study-wellness/index.html), [National Geographic](https://www.nationalgeographic.com/premium/article/migraine-prediction-mood-energy-sleep-stress)
-        
-         - 🎤 **2023**: Organized and chaired a session at **JSM 2023** titled *Recent Developments in Methods for Digital Brain Health Data*.
-         - 📰 **2017**: Published *Re-evaluating the effect of age on physical activity over the lifespan* in **Preventive Medicine** with V. Varma, A. Leroux, J. Di, J. Urbanek, L. Xiao, and V. Zipunnikov.  
-                        → Featured by: [TIME](https://time.com/4821963/teens-sedentary-lifestyle-exercise/)
 ---
