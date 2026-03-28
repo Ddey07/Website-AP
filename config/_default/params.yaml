@@ -6,7 +6,7 @@
 # Appearance
 appearance:
   mode: light
-  color: emerald
+  color: indigo
   
 stylesheets:
   - css/custom.css
