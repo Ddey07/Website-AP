@@ -30,6 +30,7 @@ banner:
 
 #### Digital Health Technologies (DHTs)
 
+- Husky MM, Hunt L, Leroux A, **Dey D**, Conway K, Vetter C, Zipunnikov V, Choudhari R, Kass M, Leyden M, Kotani Y, Lateef T, Salum G, Swaminathan A, Xiao Y, Klein A, Milham M, Merikangas KR. 2025. Real-time Ecological Assessment of the Context of mental and physical Health (REACH) on Curious. *Research Square* [Preprint]. https://doi.org/10.21203/rs.3.rs-8171682/v1 PMID: 41472691.
 - **Dey D**, Lateef HA, Leroux A, Zipunnikov V, Merikangas KR. 2025. Associations between daily outdoor temperature and subjective real-time ratings of emotional states and sleep in mood disorder subtypes. *Journal of Affective Disorders.* 120918. https://www.sciencedirect.com/science/article/pii/S0165032725023602
 - Merikangas KR, Kang S, Lamers F, Leroux A, **Dey D**, Husky M, Preisig M, Hickie I, Zipunnikov V. 2024. Harmonizing real time multi-domain assessments of mood disorder spectrum: Motor activity research consortium for health (mMARCH). *BIPOLAR DISORDERS.* 26:34–34. WILEY.
 - Kang SJ, Leroux A, Guo W, **Dey D**, Strippoli M-PF, Di J, Vaucher J, Marques-Vidal P, Vollenweider P, Preisig M, Merikangas KR, Zipunnikov V. 2024. Integrative modeling of accelerometry-derived sleep, physical activity, and circadian rhythm domains with current or remitted major depression. *JAMA Psychiatry.* 81(9):911–918.
