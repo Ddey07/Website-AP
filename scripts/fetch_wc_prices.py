@@ -2,28 +2,29 @@
 FIFA World Cup 2026 — Price Fetcher
 =====================================
 Fetches:
-  1. Ticket resale prices — tries sources in order:
-       a) VividSeats via Apify (free tier, ~$0.05/run) ← active now
-       b) SeatGeek API (free, pending approval)
-       c) Placeholder estimates
+  1. Ticket resale prices via Apify hoholabs/vividseats-scraper
+       Primary:  queryType=venue, one call per stadium ID (rows=200)
+                 Filters to WC-only events; extracts official match numbers.
+       Fallback: queryType=performer, single run (~25 matches)
+       Last resort: SeatGeek → placeholder if Apify unavailable.
   2. Hotel nightly rates via SerpAPI (Google Hotels) → prices.json["hotels"]
-     Hotels are fetched per venue × round (~44 queries/run).
+     Hotels are fetched per venue × round (~44 queries/run), cached 10 hours.
 
 SETUP — add these to your .env file in the project root:
-  APIFY_TOKEN=your_apify_token       # apify.com → Settings → Integrations
-  SERPAPI_KEY=your_serpapi_key       # serpapi.com → Dashboard
-  SEATGEEK_CLIENT_ID=your_id        # optional, fallback once approved
+  APIFY_TOKEN=your_token      # apify.com → Settings → Integrations
+  SERPAPI_KEY=your_key        # serpapi.com → Dashboard
+  SEATGEEK_CLIENT_ID=your_id  # optional, last fallback
+
+FIRST RUN — install Apify client:
+  pip install apify-client
 
 RUN:
   python scripts/fetch_wc_prices.py
-
-SCHEDULE (Cowork):
-  Prompt: "Run the Python script at scripts/fetch_wc_prices.py
-           to update World Cup ticket and hotel prices"
 """
 
 import json
 import os
+import sys
 import time
 import urllib.request
 import urllib.parse
@@ -40,18 +41,19 @@ if _env_path.exists():
             os.environ.setdefault(_k.strip(), _v.strip())
 
 # ── CONFIG ─────────────────────────────────────────────────────────────────────
-APIFY_TOKEN        = os.environ.get("APIFY_TOKEN",        "YOUR_APIFY_TOKEN")
-APIFY_ACTOR_ID     = "hoholabs~vividseats-scraper"   # VividSeats scraper
+APIFY_TOKEN        = os.environ.get("APIFY_TOKEN",        "")
 SEATGEEK_CLIENT_ID = os.environ.get("SEATGEEK_CLIENT_ID", "YOUR_SEATGEEK_CLIENT_ID")
 SERPAPI_KEY        = os.environ.get("SERPAPI_KEY",        "YOUR_SERPAPI_KEY")
 
-OUTPUT_PATH = Path(__file__).parent.parent / "static" / "wc2026" / "prices.json"
+_ROOT       = Path(__file__).parent.parent
+OUTPUT_PATH    = _ROOT / "static" / "wc2026" / "prices.json"
+OUTPUT_PATH_JS = _ROOT / "static" / "wc2026" / "prices.js"
+# Also mirror to public/ so Hugo-built sites pick it up without a rebuild
+OUTPUT_PATH_PUBLIC    = _ROOT / "public" / "wc2026" / "prices.json"
+OUTPUT_PATH_PUBLIC_JS = _ROOT / "public" / "wc2026" / "prices.js"
 
-APIFY_API         = "https://api.apify.com/v2"
 SEATGEEK_API      = "https://api.seatgeek.com/2"
 SERPAPI_URL       = "https://serpapi.com/search.json"
-VIVIDSEATS_API    = "https://www.vividseats.com/api/v3"
-WC_PERFORMER_ID   = "944"   # /performer/944 on VividSeats
 WC_PERFORMER_SLUG = "fifa-world-cup"
 
 # Date ranges for each round (inclusive).
@@ -62,7 +64,7 @@ ROUND_DATE_RANGES = {
     "r16":   ("2026-07-04", "2026-07-07"),
     "qf":    ("2026-07-09", "2026-07-11"),
     "sf":    ("2026-07-14", "2026-07-15"),
-    "final": ("2026-07-19", "2026-07-19"),
+    "final": ("2026-07-18", "2026-07-19"),  # Jul 18 = M103 third place, Jul 19 = M104 final
 }
 
 ROUND_KEYWORDS = {
@@ -104,7 +106,9 @@ VENUE_ROUND_DATES = {
     },
     "Miami (Hard Rock)": {
         "group": ("Miami FL",        "2026-06-15"),
+        "r32":   ("Miami FL",        "2026-07-03"),
         "qf":    ("Miami FL",        "2026-07-11"),
+        "final": ("Miami FL",        "2026-07-18"),
     },
     "Dallas (AT&T)": {
         "group": ("Dallas TX",       "2026-06-17"),
@@ -159,14 +163,65 @@ VENUE_ROUND_DATES = {
     },
 }
 
+# ── VIVID SEATS VENUE ID MAP ─────────────────────────────────────────────────
+# VividSeats numeric venue IDs → internal venue keys used in prices.json.
+# These IDs are used with queryType=venue to fetch per-venue event listings.
+# NOTE: Mexican / Canadian venues (Azteca, Akron, BBVA) are not in VividSeats
+# as US-accessible venue IDs, so they are omitted here and fall back to the
+# performer-based or direct-Hermes fetches.
+VIVID_VENUE_IDS: dict[int, str] = {
+    4906:  "Toronto (BMO Field)",
+    21877: "Inglewood (SoFi)",
+    2429:  "Foxborough (Gillette)",
+    2739:  "Vancouver (BC Place)",
+    8136:  "East Rutherford (MetLife)",
+    11464: "Santa Clara (Levi's)",
+    2766:  "Philadelphia (Lincoln Financial)",
+    2411:  "Houston (NRG)",
+    6409:  "Dallas (AT&T)",
+    1366:  "Miami (Hard Rock)",
+    14188: "Atlanta (Mercedes-Benz)",
+    2440:  "Seattle (Lumen Field)",
+    92:    "Kansas City (Arrowhead)",
+}
+
+# World Cup 2026 date window (inclusive) — used to filter non-WC events
+WC_START_DATE = "2026-06-11"
+WC_END_DATE   = "2026-07-19"
+
+# ── VENUE NAME MAP ────────────────────────────────────────────────────────────
+# Maps VividSeats venue.name strings → internal venue keys used in prices.json
+VENUE_NAME_MAP = {
+    "BMO Field":                        "Toronto (BMO Field)",
+    "SoFi Stadium":                     "Inglewood (SoFi)",
+    "Gillette Stadium":                 "Foxborough (Gillette)",
+    "MetLife Stadium":                  "East Rutherford (MetLife)",
+    "Lincoln Financial Field":          "Philadelphia (Lincoln Financial)",
+    "Mercedes-Benz Stadium":            "Atlanta (Mercedes-Benz)",
+    "Hard Rock Stadium":                "Miami (Hard Rock)",
+    "AT&T Stadium":                     "Dallas (AT&T)",
+    "NRG Stadium":                      "Houston (NRG)",
+    "GEHA Field at Arrowhead Stadium":  "Kansas City (Arrowhead)",
+    "Arrowhead Stadium":                "Kansas City (Arrowhead)",
+    "Lumen Field":                      "Seattle (Lumen Field)",
+    "Levi's Stadium":                   "Santa Clara (Levi's)",
+    "Levis Stadium":                    "Santa Clara (Levi's)",
+    "BC Place Stadium":                 "Vancouver (BC Place)",
+    "BC Place":                         "Vancouver (BC Place)",
+    "Estadio Azteca":                   "Mexico City (Azteca)",
+    "Estadio AKRON":                    "Guadalajara (Akron)",
+    "Estadio Akron":                    "Guadalajara (Akron)",
+    "Estadio BBVA":                     "Monterrey (BBVA)",
+}
+
 # Fallback ticket prices
 FALLBACK_TIERS = {
-    "group": {"low":   95, "median":  185, "high":   420},
-    "r32":   {"low":  150, "median":  280, "high":   620},
-    "r16":   {"low":  220, "median":  420, "high":   900},
-    "qf":    {"low":  380, "median":  700, "high":  1800},
-    "sf":    {"low":  600, "median": 1200, "high":  3500},
-    "final": {"low": 1200, "median": 3500, "high": 12000},
+    "group": {"low":   95, "high":   420},
+    "r32":   {"low":  150, "high":   620},
+    "r16":   {"low":  220, "high":   900},
+    "qf":    {"low":  380, "high":  1800},
+    "sf":    {"low":  600, "high":  3500},
+    "final": {"low": 1200, "high": 12000},
 }
 
 # Fallback hotel prices per venue per round
@@ -195,7 +250,9 @@ FALLBACK_HOTELS = {
     },
     "Miami (Hard Rock)": {
         "group": {"low": 190, "high": 520},
+        "r32":   {"low": 240, "high": 640},
         "qf":    {"low": 300, "high": 820},
+        "final": {"low": 420, "high": 1100},
     },
     "Dallas (AT&T)": {
         "group": {"low": 120, "high": 330},
@@ -261,19 +318,6 @@ def api_get(url, params):
         return json.loads(resp.read())
 
 
-def api_post(url, params, body):
-    full_url = f"{url}?{urllib.parse.urlencode(params)}"
-    data = json.dumps(body).encode("utf-8")
-    req = urllib.request.Request(
-        full_url, data=data,
-        headers={"User-Agent": "wc2026-price-fetcher/1.0",
-                 "Content-Type": "application/json"},
-        method="POST",
-    )
-    with urllib.request.urlopen(req, timeout=30) as resp:
-        return json.loads(resp.read())
-
-
 def classify_round(title: str) -> str | None:
     t = title.lower()
     for tier, kws in ROUND_KEYWORDS.items():
@@ -282,46 +326,29 @@ def classify_round(title: str) -> str | None:
     return None
 
 
-# ── TICKET PRICES (VividSeats via Apify) ─────────────────────────────────────
-
-def _extract_price(item) -> tuple[float | None, float | None, float | None]:
-    """Return (low, median, high) from a VividSeats item. Any value may be None."""
-    def _f(key):
-        val = item.get(key)
-        if val is None:
-            return None
-        try:
-            return float(str(val).replace("$", "").replace(",", "").strip())
-        except (ValueError, TypeError):
-            return None
-
-    # VividSeats scraper returns these directly on each event item
-    low    = _f("minPrice") or _f("lowestPrice") or _f("startingPrice") or _f("price")
-    high   = _f("maxPrice") or _f("highestPrice")
-    median = _f("medianPrice") or _f("avgPrice") or _f("averagePrice")
-    return low, median, high
+# ── TICKET PRICES (VividSeats via Apify hoholabs/vividseats-scraper) ──────────
+# Install once: pip install apify-client
 
 
-def _extract_title(item) -> str:
-    for key in ("name", "title", "eventName", "productionTitle", "event", "event_name"):
-        val = item.get(key)
-        if val and isinstance(val, str):
-            return val
-    return ""
-
-
-def _extract_date(item) -> str:
-    """Return YYYY-MM-DD string from localDate / utcDate, or ''."""
-    for key in ("localDate", "utcDate", "date", "eventDate", "startDate"):
-        val = item.get(key)
-        if val and isinstance(val, str):
-            # Handle ISO strings like "2026-06-14T19:00:00" or plain "2026-06-14"
-            return val[:10]
-    return ""
+def _ensure_apify_client():
+    """Import apify_client, auto-installing if missing."""
+    try:
+        from apify_client import ApifyClient
+        return ApifyClient
+    except ImportError:
+        print("   Installing apify-client…")
+        import subprocess
+        subprocess.check_call(
+            [sys.executable, "-m", "pip", "install",
+             "apify-client", "--break-system-packages", "-q"],
+            stdout=subprocess.DEVNULL,
+        )
+        from apify_client import ApifyClient
+        return ApifyClient
 
 
 def classify_round_by_date(date_str: str) -> str | None:
-    """Map a YYYY-MM-DD date string to a round key using the official schedule."""
+    """Map YYYY-MM-DD to a round key using the official schedule."""
     if not date_str:
         return None
     for rnd, (start, end) in ROUND_DATE_RANGES.items():
@@ -339,104 +366,237 @@ def classify_round_by_name(title: str) -> str | None:
     return None
 
 
-def fetch_vividseats_prices() -> tuple[dict | None, str]:
+def _is_wc_event(name: str, local_date_str: str) -> bool:
+    """Return True only for FIFA World Cup 2026 matches (not NFL, concerts, etc.)."""
+    if "world cup" not in name.lower():
+        return False
+    date_part = local_date_str[:10]  # keep YYYY-MM-DD prefix
+    return WC_START_DATE <= date_part <= WC_END_DATE
+
+
+def _extract_match_number(name: str) -> int | None:
     """
-    Call VividSeats internal API directly (no Apify, no key needed).
-    Tries multiple known endpoint patterns; returns (tiers, source) or (None, reason).
+    Pull the official match number out of a VividSeats event name.
+    Examples:
+      "Argentina vs Algeria - World Cup - Match 19 (Group J)" → 19
+      "2026 World Cup - Match 87"                             → 87
+      "2026 World Cup - Match 100 (Quarter-Final)"            → 100
     """
-    print("🎟️  Fetching VividSeats prices (direct API)…")
+    import re
+    m = re.search(r"[Mm]atch\s+(\d+)", name)
+    return int(m.group(1)) if m else None
 
-    # VividSeats uses different internal API paths across app versions.
-    # We try them in order until one returns WC productions.
-    ENDPOINTS = [
-        f"{VIVIDSEATS_API}/productions?performerIds={WC_PERFORMER_ID}&pageSize=200",
-        f"{VIVIDSEATS_API}/productions?performerId={WC_PERFORMER_ID}&pageSize=200",
-        f"https://www.vividseats.com/api/v2/productions?performerId={WC_PERFORMER_ID}&rows=200",
-        f"https://www.vividseats.com/api/productions?performerId={WC_PERFORMER_ID}&pageSize=200",
-    ]
 
-    HEADERS = {
-        "User-Agent": (
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
-            "AppleWebKit/537.36 (KHTML, like Gecko) "
-            "Chrome/124.0.0.0 Safari/537.36"
-        ),
-        "Accept": "application/json",
-        "Referer": "https://www.vividseats.com/",
-    }
+def _fetch_apify_by_venues() -> list | None:
+    """
+    Primary Apify strategy: query each venue individually with queryType=venue.
 
-    raw_productions = None
-    used_endpoint   = None
+    Input per call:
+      {"queryType": "venue", "rows": 200, "venueId": "<id>", "start": 0}
 
-    for endpoint in ENDPOINTS:
+    Each response includes all upcoming events at that venue (WC games, NFL,
+    concerts, etc.). We keep only events whose name contains 'World Cup' and
+    whose date falls within the WC 2026 window (Jun 11 – Jul 19, 2026).
+
+    Each retained event gets two extra fields injected:
+      _venue_key    – our internal venue label (e.g. "Kansas City (Arrowhead)")
+      _match_number – official match number parsed from the event name, or None
+
+    Returns a flat list of all WC events across all venues, or None on failure.
+    """
+    if not APIFY_TOKEN:
+        return None
+    ApifyClient = _ensure_apify_client()
+    client = ApifyClient(APIFY_TOKEN)
+
+    all_wc_events: list = []
+    errors = 0
+
+    print("   Apify venue-by-venue fetch…")
+    for venue_id, venue_key in VIVID_VENUE_IDS.items():
+        print(f"     [{venue_id}] {venue_key[:35]:35s} …", end=" ", flush=True)
         try:
-            req = urllib.request.Request(endpoint, headers=HEADERS)
-            with urllib.request.urlopen(req, timeout=20) as resp:
-                data = json.loads(resp.read())
-            # Response may be a list or {"productions": [...]} or {"data": [...]}
-            prods = (
-                data if isinstance(data, list)
-                else data.get("productions") or data.get("data") or data.get("events") or []
+            run = client.actor("hoholabs/vividseats-scraper").call(
+                run_input={
+                    "queryType": "venue",
+                    "venueId":   str(venue_id),
+                    "rows":      200,
+                    "start":     0,
+                },
+                timeout_secs=240,
             )
-            if prods:
-                raw_productions = prods
-                used_endpoint   = endpoint
-                print(f"   ✅ Got {len(prods)} productions from {endpoint.split('?')[0]}")
-                break
-            else:
-                print(f"   ⚠️  {endpoint.split('?')[0]} → empty list, trying next…")
+            items = list(client.dataset(run["defaultDatasetId"]).iterate_items())
+
+            wc_items = []
+            for item in items:
+                local_date = item.get("localDate") or ""
+                name       = item.get("name")       or ""
+                if _is_wc_event(name, local_date):
+                    item["_venue_key"]    = venue_key
+                    item["_match_number"] = _extract_match_number(name)
+                    wc_items.append(item)
+
+            print(f"{len(wc_items)} WC / {len(items)} total")
+            all_wc_events.extend(wc_items)
+
         except Exception as exc:
-            print(f"   ⚠️  {endpoint.split('?')[0]} → {exc}, trying next…")
+            print(f"❌ {exc}")
+            errors += 1
 
-    if not raw_productions:
-        print("   ❌ All VividSeats endpoints failed.")
-        return None, "vividseats-unreachable"
+    if not all_wc_events:
+        return None
 
-    # Debug: show first item's keys and a few sample items
-    if raw_productions:
-        print(f"   Sample keys: {list(raw_productions[0].keys())[:12]}")
-        print("   ── First 3 productions ──")
-        for p in raw_productions[:3]:
-            date = _extract_date(p)
-            low, median, high = _extract_price(p)
-            print(f"     {_extract_title(p)!r:55s}  date={date}  "
-                  f"low={low}  high={high}")
-        print("   ────────────────────────")
+    # Deduplicate by (date, venue_key) — keep entry with lower minPrice
+    deduped: dict[str, dict] = {}
+    for ev in all_wc_events:
+        date_part = (ev.get("localDate") or "")[:10]
+        key       = f"{date_part}|{ev['_venue_key']}"
+        if key not in deduped or (ev.get("minPrice") or 0) < (deduped[key].get("minPrice") or 0):
+            deduped[key] = ev
 
-    # Bucket by round using date ranges
-    buckets: dict[str, list] = {k: [] for k in ROUND_DATE_RANGES}
-    skipped = 0
-    for prod in raw_productions:
-        date = _extract_date(prod)
-        tier = classify_round_by_date(date) or classify_round_by_name(_extract_title(prod))
-        if not tier:
-            skipped += 1
+    result = list(deduped.values())
+    print(f"   ✅ {len(result)} unique WC matches across {len(VIVID_VENUE_IDS)} venues"
+          f"  ({errors} venue errors)")
+    return result
+
+
+def _fetch_apify_single() -> list | None:
+    """
+    Last-resort Apify fallback: single performer-based run (first 25 matches only).
+    The actor ignores start/page/dateFrom so coverage is limited to ~25 events.
+    """
+    if not APIFY_TOKEN:
+        return None
+    ApifyClient = _ensure_apify_client()
+    client = ApifyClient(APIFY_TOKEN)
+    print("   Apify single performer run (first 25 matches)…", end=" ", flush=True)
+    try:
+        run = client.actor("hoholabs/vividseats-scraper").call(
+            run_input={
+                "performerId": "944",
+                "queryType":   "performer",
+                "rows":        25,
+            },
+            timeout_secs=180,
+        )
+        items = list(client.dataset(run["defaultDatasetId"]).iterate_items())
+        print(f"{len(items)} matches")
+        return items or None
+    except Exception as exc:
+        print(f"❌ {exc}")
+        return None
+
+
+def fetch_vividseats_prices() -> tuple[dict | None, dict | None, str]:
+    """
+    Collect all WC 2026 VividSeats match prices via Apify.
+
+    Strategy 1 – Apify hoholabs/vividseats-scraper, venue-by-venue
+                 (queryType=venue, one call per stadium ID → precise WC filtering,
+                  match numbers extracted from event names).
+    Strategy 2 – Apify single performer run (first ~25 matches only, last resort).
+
+    Returns: tiers, match_prices, source_label
+    """
+    print("🎟️  Fetching VividSeats prices via Apify…")
+
+    all_prods = _fetch_apify_by_venues()
+    source_tag = "VividSeats via Apify (venue-by-venue)"
+
+    if not all_prods:
+        print("   Venue-by-venue failed — falling back to Apify performer run…")
+        all_prods = _fetch_apify_single()
+        source_tag = "VividSeats via Apify (25 matches)"
+
+    if not all_prods:
+        return None, None, "vividseats-unavailable"
+
+    print(f"\n   ✅ Total WC productions to process: {len(all_prods)}")
+
+    # ── Bucket by round + build per-match prices ─────────────────────────────
+    # round_buckets: round → list of {low, high}   (for global tier aggregation)
+    # match_prices:  "YYYY-MM-DD|venue_key" → {low, high, name, sample, [matchNum]}
+    round_buckets: dict[str, list] = {k: [] for k in ROUND_DATE_RANGES}
+    match_prices: dict[str, dict] = {}
+
+    for prod in all_prods:
+        date_str = (prod.get("localDate") or "")[:10]
+        rnd = classify_round_by_date(date_str)
+        if not rnd:
+            rnd = classify_round_by_name(prod.get("name", ""))
+        if not rnd:
             continue
-        low, median, high = _extract_price(prod)
-        if low and low > 0:
-            buckets[tier].append({"low": low, "median": median, "high": high})
 
-    print(f"   {skipped} productions outside WC date range (skipped)")
+        min_p = prod.get("minPrice")
+        max_p = prod.get("maxPrice")
+        if min_p is None:
+            continue
 
-    tiers = {}
-    for tier, rows in buckets.items():
-        if rows:
-            lows    = sorted(r["low"]    for r in rows if r["low"])
-            medians = [r["median"] for r in rows if r["median"]]
-            highs   = [r["high"]   for r in rows if r["high"]]
-            tiers[tier] = {
-                "low":    int(lows[0]),
-                "median": int(sum(medians) / len(medians)) if medians else int(lows[len(lows)//2]),
-                "high":   int(max(highs)) if highs else int(lows[-1]),
-                "sample": len(rows),
+        min_p = float(min_p)
+        max_p = float(max_p) if max_p else min_p * 5
+
+        # Venue key: pre-tagged by venue-based fetch takes priority;
+        # otherwise fall back to venue name → key lookup (Hermes / performer path).
+        venue_key = prod.get("_venue_key")
+        if not venue_key:
+            raw_venue = ""
+            if isinstance(prod.get("venue"), dict):
+                raw_venue = prod["venue"].get("name", "")
+            elif isinstance(prod.get("venue"), str):
+                raw_venue = prod["venue"]
+            venue_key = VENUE_NAME_MAP.get(raw_venue)
+
+        entry = {"low": min_p, "high": max_p}
+        round_buckets[rnd].append(entry)
+
+        if venue_key and date_str:
+            match_key = f"{date_str}|{venue_key}"
+            match_entry: dict = {
+                "low":  int(min_p),
+                "high": int(max_p),
+                "name":   prod.get("name", ""),
+                "sample": int(prod.get("listingCount") or 0),
             }
-            print(f"   {tier:6s}: ${tiers[tier]['low']}–${tiers[tier]['median']}–"
-                  f"${tiers[tier]['high']}  ({len(rows)} events)")
-        else:
-            tiers[tier] = FALLBACK_TIERS[tier]
-            print(f"   {tier:6s}: no data — using placeholder")
+            # Include official match number when available (from venue-based fetch)
+            match_num = prod.get("_match_number")
+            if match_num:
+                match_entry["matchNum"] = match_num
+            match_prices[match_key] = match_entry
 
-    return tiers, "VividSeats (direct)"
+        print(f"   {rnd:6s}  ${min_p:.0f}–${max_p:.0f}  "
+              f"{(venue_key or '?')[:32]}  [{date_str}]"
+              + (f"  M{prod['_match_number']}" if prod.get("_match_number") else ""))
+
+    fetched = sum(len(v) for v in round_buckets.values())
+    if fetched == 0:
+        return None, None, "vividseats-apify-no-prices"
+
+    # ── Aggregate global tiers (fallback when match not yet listed) ───────────
+    def _aggregate(rows: list, fallback: dict) -> dict:
+        if not rows:
+            return fallback
+        lows  = sorted(r["low"]  for r in rows)
+        highs = sorted(r["high"] for r in rows)
+        return {
+            "low":    int(lows[0]),
+            "high":   int(highs[-1]),
+            "sample": len(rows),
+        }
+
+    tiers: dict = {}
+    print("\n── Global tiers ─────────────────────────────────────")
+    for rnd in ROUND_DATE_RANGES:
+        rows = round_buckets[rnd]
+        tiers[rnd] = _aggregate(rows, FALLBACK_TIERS[rnd])
+        t = tiers[rnd]
+        src = f"{t['sample']} matches" if rows else "fallback"
+        print(f"   {rnd:6s}: ${t['low']}–${t['high']}  ({src})")
+
+    print(f"\n── Per-match prices ─────────────────────────────────")
+    for mk, mv in sorted(match_prices.items()):
+        print(f"   {mk:45s}  ${mv['low']}–${mv['high']}")
+
+    return tiers, match_prices, "VividSeats"
 
 
 # ── TICKET PRICES (SeatGeek) ──────────────────────────────────────────────────
@@ -481,12 +641,11 @@ def fetch_ticket_prices() -> tuple[dict, str]:
             avgs  = [r["avg"]  for r in rows if r["avg"]  is not None]
             highs = [r["high"] for r in rows if r["high"] is not None]
             tiers[tier] = {
-                "low":    int(min(lows))           if lows  else FALLBACK_TIERS[tier]["low"],
-                "median": int(sum(avgs)/len(avgs)) if avgs  else FALLBACK_TIERS[tier]["median"],
-                "high":   int(max(highs))          if highs else FALLBACK_TIERS[tier]["high"],
+                "low":  int(min(lows))  if lows  else FALLBACK_TIERS[tier]["low"],
+                "high": int(max(highs)) if highs else FALLBACK_TIERS[tier]["high"],
                 "sample": len(rows),
             }
-            print(f"   {tier:6s}: ${tiers[tier]['low']}–${tiers[tier]['median']}–${tiers[tier]['high']}  ({len(rows)} events)")
+            print(f"   {tier:6s}: ${tiers[tier]['low']}–${tiers[tier]['high']}  ({len(rows)} events)")
         else:
             tiers[tier] = FALLBACK_TIERS[tier]
             print(f"   {tier:6s}: no events — using placeholder")
@@ -602,15 +761,16 @@ def hotels_are_fresh(existing: dict) -> bool:
 def main():
     existing = load_existing_prices()
 
-    # Try VividSeats via Apify first; fall back to SeatGeek if unavailable
-    tiers, ticket_source = fetch_vividseats_prices()
+    # Ticket prices: VividSeats via Apify → SeatGeek → placeholder
+    tiers, match_prices, ticket_source = fetch_vividseats_prices()
     if tiers is None:
-        print(f"   ⚠️  VividSeats unavailable ({ticket_source}) — trying SeatGeek…")
+        print(f"\n   ⚠️  VividSeats unavailable ({ticket_source}) — trying SeatGeek…")
         tiers, ticket_source = fetch_ticket_prices()
+        match_prices = None
 
     # Hotel prices: reuse cached data if fresh enough
     if hotels_are_fresh(existing):
-        hotels      = existing.get("hotels", {})
+        hotels       = existing.get("hotels", {})
         hotel_source = existing.get("hotel_source", "cached")
         fetched_at   = existing["hotels_fetched_at"]
         age_minutes  = int((datetime.now(timezone.utc) -
@@ -622,17 +782,43 @@ def main():
         fetched_at = datetime.now(timezone.utc).isoformat()
 
     output = {
-        "last_updated":    datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+        "last_updated":      datetime.now(timezone.utc).strftime("%Y-%m-%d"),
         "hotels_fetched_at": fetched_at,
-        "ticket_source":   ticket_source,
-        "hotel_source":    hotel_source,
-        "tiers":           tiers,
-        "hotels":          hotels,
+        "ticket_source":     ticket_source,
+        "hotel_source":      hotel_source,
+        "tiers":             tiers,
+        "hotels":            hotels,
     }
+    # Per-match ticket prices (present only when VividSeats data available)
+    # Primary index  — "YYYY-MM-DD|venue_key" e.g. "2026-06-16|Kansas City (Arrowhead)"
+    # Secondary index — matchById[<int>]       e.g. matchById[87]  (KO match numbers)
+    if match_prices:
+        output["matches"] = match_prices
+        # Build integer-keyed secondary index for KO match number lookups
+        match_by_id: dict[int, dict] = {}
+        for mv in match_prices.values():
+            num = mv.get("matchNum")
+            if num:
+                match_by_id[num] = mv
+        if match_by_id:
+            output["matchById"] = match_by_id
 
-    OUTPUT_PATH.write_text(json.dumps(output, indent=2))
-    print(f"\n✅ Wrote prices to {OUTPUT_PATH}")
+    payload    = json.dumps(output, indent=2)
+    payload_js = f"window.WC_PRICES={json.dumps(output)};"
+
+    OUTPUT_PATH.write_text(payload)
+    OUTPUT_PATH_JS.write_text(payload_js)
+    print(f"\n✅ Wrote {OUTPUT_PATH}")
+    print(f"   Wrote {OUTPUT_PATH_JS}")
+
+    # Mirror to public/ so Hugo-built sites pick it up without a rebuild
+    for src, dst in [(payload, OUTPUT_PATH_PUBLIC), (payload_js, OUTPUT_PATH_PUBLIC_JS)]:
+        if dst.parent.exists():
+            dst.write_text(src)
+            print(f"   Mirrored  → {dst}")
     print(f"   Tickets: {ticket_source}")
+    if match_prices:
+        print(f"   Per-match ticket data: {len(match_prices)} matches")
     print(f"   Hotels:  {hotel_source}")
     print(f"   Updated: {output['last_updated']}")
 
