@@ -549,9 +549,10 @@
       );
     }
 
-    function PriceBadge({tier, venue, prices}){
-      // Prefer per-venue per-round prices if available, fall back to global tiers
-      const p=(venue&&prices?.tickets?.[venue]?.[tier])
+    function PriceBadge({tier, venue, prices, matchNum}){
+      // Prefer exact match price → per-venue/round → global tier
+      const p=(matchNum&&prices?.matchById?.[matchNum])
+              ||(venue&&prices?.tickets?.[venue]?.[tier])
               ||prices?.tiers?.[tier];
       const updated=prices?.last_updated;
       const isPlaceholder=prices?.source?.includes("Placeholder");
@@ -594,6 +595,7 @@
 
     function SlotCard({slot,rows,N,tier,prices}){
       const isTexas=slot.texas;
+      const matchNum=slot.m?parseInt(slot.m.replace(/^M/,""),10):null;
       return (
         <div style={{
           background:"#061228",
@@ -621,7 +623,7 @@
           )):(
             <div style={{color:"#475569",fontSize:12,textAlign:"center",padding:"12px 0"}}>No simulation data yet</div>
           )}
-          <PriceBadge tier={tier||"r32"} venue={slot.venue} prices={prices}/>
+          <PriceBadge tier={tier||"r32"} venue={slot.venue} prices={prices} matchNum={matchNum}/>
         </div>
       );
     }
