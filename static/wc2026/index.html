@@ -1,0 +1,1860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WC 2026 Bracket Predictor | Debangan Dey</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #040d1c;
+      color: #e2e8f0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      min-height: 100vh;
+      line-height: 1.5;
+    }
+    #root { min-height: 100vh; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0d1f3c; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+    #wc-map { height: 400px; width: 100%; background: #040d1c; }
+    .leaflet-container { background: #040d1c !important; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect, useMemo, useCallback, useRef } = React;
+
+    /* ===================== DATA CONSTANTS ===================== */
+    const ELO = {
+      France:1877,Spain:1876,Argentina:1875,England:1826,
+      Portugal:1764,Brazil:1761,Netherlands:1758,Morocco:1757,
+      Belgium:1735,Germany:1730,Croatia:1717,Colombia:1693,
+      Senegal:1692,Mexico:1680,USA:1665,Uruguay:1650,
+      Japan:1637,Switzerland:1625,Iran:1598,Turkey:1585,
+      Ecuador:1572,Austria:1558,"South Korea":1545,Australia:1519,
+      Algeria:1506,Egypt:1492,Canada:1479,Norway:1466,
+      Panama:1440,"Ivory Coast":1427,Sweden:1388,Paraguay:1362,
+      Czechia:1348,Scotland:1320,Tunisia:1307,"DR Congo":1280,
+      Uzbekistan:1236,Qatar:1188,Iraq:1174,"South Africa":1153,
+      "Saudi Arabia":1145,Jordan:1131,"Bosnia-Herz.":1117,
+      "Cape Verde":1090,Ghana:1058,Curacao:1010,Haiti:1005,"New Zealand":995,
+    };
+    const FORM = {
+      France:+7.32,Spain:-0.78,Argentina:+1.49,England:-8.15,
+      Portugal:+3.45,Brazil:+0.70,Netherlands:+1.60,Morocco:+20.23,
+      Belgium:+4.01,Germany:+6.22,Croatia:+0.18,Colombia:-8.21,
+      Senegal:-14.86,Mexico:+2.0,USA:-12.0,Uruguay:+1.0,
+      Japan:+5.0,Switzerland:+1.0,Iran:-2.0,Turkey:+3.0,
+      Ecuador:-1.0,Austria:+1.0,"South Korea":-1.0,Australia:+1.0,
+      Algeria:+2.0,Egypt:+1.0,Canada:-3.0,Norway:+1.0,
+      "Ivory Coast":+3.0,Sweden:+2.0,Paraguay:+1.0,Panama:-1.0,
+      Czechia:+1.0,Scotland:-3.0,Tunisia:0,"DR Congo":-1.0,
+      Uzbekistan:+1.0,Qatar:-1.0,Iraq:+1.0,"South Africa":0,
+      "Saudi Arabia":-1.0,Jordan:0,"Bosnia-Herz.":+2.0,
+      "Cape Verde":+1.0,Ghana:0,Curacao:0,Haiti:+1.0,"New Zealand":0,
+    };
+    const FLAGS = {
+      France:"🇫🇷",Spain:"🇪🇸",Argentina:"🇦🇷",England:"🏴󠁧󠁢󠁥󠁮󠁧󠁿",Portugal:"🇵🇹",
+      Brazil:"🇧🇷",Netherlands:"🇳🇱",Morocco:"🇲🇦",Belgium:"🇧🇪",Germany:"🇩🇪",
+      Croatia:"🇭🇷",Colombia:"🇨🇴",Senegal:"🇸🇳",Mexico:"🇲🇽",USA:"🇺🇸",
+      Uruguay:"🇺🇾",Japan:"🇯🇵",Switzerland:"🇨🇭",Iran:"🇮🇷",Turkey:"🇹🇷",
+      Ecuador:"🇪🇨",Austria:"🇦🇹","South Korea":"🇰🇷",Australia:"🇦🇺",
+      Algeria:"🇩🇿",Egypt:"🇪🇬",Canada:"🇨🇦",Norway:"🇳🇴",Panama:"🇵🇦",
+      "Ivory Coast":"🇨🇮",Sweden:"🇸🇪",Paraguay:"🇵🇾",Czechia:"🇨🇿",
+      Scotland:"🏴󠁧󠁢󠁳󠁣󠁴󠁿",Tunisia:"🇹🇳","DR Congo":"🇨🇩",Uzbekistan:"🇺🇿",
+      Qatar:"🇶🇦",Iraq:"🇮🇶","South Africa":"🇿🇦","Saudi Arabia":"🇸🇦",
+      Jordan:"🇯🇴","Bosnia-Herz.":"🇧🇦","Cape Verde":"🇨🇻",Ghana:"🇬🇭",
+      Curacao:"🇨🇼",Haiti:"🇭🇹","New Zealand":"🇳🇿",
+    };
+    const COLORS = {
+      France:"#1565C0",Spain:"#C62828",Argentina:"#0277BD",England:"#1B5E20",
+      Portugal:"#880E4F",Brazil:"#F9A825",Netherlands:"#E65100",Morocco:"#2E7D32",
+      Belgium:"#4E342E",Germany:"#546E7A",Croatia:"#B71C1C",Colombia:"#F57F17",
+      Senegal:"#006400",Mexico:"#1B5E20",USA:"#9B1C1C",Uruguay:"#1A237E",
+    };
+    const GROUPS = {
+      A:{teams:["Mexico","South Africa","South Korea","Czechia"],proj:["Mexico","South Korea"]},
+      B:{teams:["Canada","Bosnia-Herz.","Qatar","Switzerland"],proj:["Switzerland","Canada"]},
+      C:{teams:["Brazil","Morocco","Haiti","Scotland"],proj:["Brazil","Morocco"]},
+      D:{teams:["USA","Paraguay","Australia","Turkey"],proj:["USA","Turkey"]},
+      E:{teams:["Germany","Curacao","Ivory Coast","Ecuador"],proj:["Germany","Ecuador"]},
+      F:{teams:["Netherlands","Japan","Sweden","Tunisia"],proj:["Netherlands","Japan"]},
+      G:{teams:["Belgium","Egypt","Iran","New Zealand"],proj:["Belgium","Iran"]},
+      H:{teams:["Spain","Cape Verde","Saudi Arabia","Uruguay"],proj:["Spain","Uruguay"]},
+      I:{teams:["France","Senegal","Iraq","Norway"],proj:["France","Senegal"]},
+      J:{teams:["Argentina","Algeria","Austria","Jordan"],proj:["Argentina","Austria"]},
+      K:{teams:["Portugal","DR Congo","Uzbekistan","Colombia"],proj:["Portugal","Colombia"]},
+      L:{teams:["England","Croatia","Ghana","Panama"],proj:["England","Croatia"]},
+    };
+    const GS = {
+      A:[
+        {date:"Jun 11",a:"Mexico",b:"South Africa",venue:"Mexico City (Azteca)"},
+        {date:"Jun 11",a:"South Korea",b:"Czechia",venue:"Guadalajara (Akron)"},
+        {date:"Jun 18",a:"Czechia",b:"South Africa",venue:"Atlanta (Mercedes-Benz)"},
+        {date:"Jun 18",a:"Mexico",b:"South Korea",venue:"Guadalajara (Akron)"},
+        {date:"Jun 24",a:"South Africa",b:"South Korea",venue:"Atlanta (Mercedes-Benz)"},
+        {date:"Jun 24",a:"Czechia",b:"Mexico",venue:"Mexico City (Azteca)"},
+      ],
+      B:[
+        {date:"Jun 12",a:"Canada",b:"Bosnia-Herz.",venue:"Toronto (BMO Field)"},
+        {date:"Jun 13",a:"Qatar",b:"Switzerland",venue:"Santa Clara (Levi's)"},
+        {date:"Jun 18",a:"Switzerland",b:"Bosnia-Herz.",venue:"Inglewood (SoFi)"},
+        {date:"Jun 18",a:"Canada",b:"Qatar",venue:"Vancouver (BC Place)"},
+        {date:"Jun 23",a:"Bosnia-Herz.",b:"Qatar",venue:"Vancouver (BC Place)"},
+        {date:"Jun 23",a:"Switzerland",b:"Canada",venue:"Seattle (Lumen Field)"},
+      ],
+      C:[
+        {date:"Jun 13",a:"Brazil",b:"Morocco",venue:"East Rutherford (MetLife)"},
+        {date:"Jun 13",a:"Haiti",b:"Scotland",venue:"Foxborough (Gillette)"},
+        {date:"Jun 19",a:"Scotland",b:"Morocco",venue:"Foxborough (Gillette)"},
+        {date:"Jun 19",a:"Brazil",b:"Haiti",venue:"Kansas City (Arrowhead)"},
+        {date:"Jun 24",a:"Haiti",b:"Morocco",venue:"Miami (Hard Rock)"},
+        {date:"Jun 24",a:"Scotland",b:"Brazil",venue:"Philadelphia (Lincoln Financial)"},
+      ],
+      D:[
+        {date:"Jun 12",a:"USA",b:"Paraguay",venue:"Inglewood (SoFi)"},
+        {date:"Jun 14",a:"Australia",b:"Turkey",venue:"Kansas City (Arrowhead)"},
+        {date:"Jun 19",a:"USA",b:"Australia",venue:"Seattle (Lumen Field)"},
+        {date:"Jun 19",a:"Turkey",b:"Paraguay",venue:"Santa Clara (Levi's)"},
+        {date:"Jun 25",a:"Australia",b:"Paraguay",venue:"Miami (Hard Rock)"},
+        {date:"Jun 25",a:"USA",b:"Turkey",venue:"Inglewood (SoFi)"},
+      ],
+      E:[
+        {date:"Jun 14",a:"Germany",b:"Ivory Coast",venue:"Toronto (BMO Field)"},
+        {date:"Jun 14",a:"Ecuador",b:"Curacao",venue:"Kansas City (Arrowhead)"},
+        {date:"Jun 19",a:"Ivory Coast",b:"Curacao",venue:"Philadelphia (Lincoln Financial)"},
+        {date:"Jun 20",a:"Germany",b:"Ecuador",venue:"Vancouver (BC Place)"},
+        {date:"Jun 25",a:"Curacao",b:"Germany",venue:"Atlanta (Mercedes-Benz)"},
+        {date:"Jun 25",a:"Ivory Coast",b:"Ecuador",venue:"Toronto (BMO Field)"},
+      ],
+      F:[
+        {date:"Jun 14",a:"Netherlands",b:"Japan",venue:"Philadelphia (Lincoln Financial)"},
+        {date:"Jun 14",a:"Sweden",b:"Tunisia",venue:"Monterrey (BBVA)"},
+        {date:"Jun 21",a:"Netherlands",b:"Sweden",venue:"Houston (NRG)",texas:true},
+        {date:"Jun 21",a:"Tunisia",b:"Japan",venue:"Monterrey (BBVA)"},
+        {date:"Jun 26",a:"Japan",b:"Sweden",venue:"Foxborough (Gillette)"},
+        {date:"Jun 26",a:"Tunisia",b:"Netherlands",venue:"Atlanta (Mercedes-Benz)"},
+      ],
+      G:[
+        {date:"Jun 15",a:"Belgium",b:"Egypt",venue:"Seattle (Lumen Field)"},
+        {date:"Jun 15",a:"Iran",b:"New Zealand",venue:"Inglewood (SoFi)"},
+        {date:"Jun 21",a:"Belgium",b:"Iran",venue:"Inglewood (SoFi)"},
+        {date:"Jun 21",a:"New Zealand",b:"Egypt",venue:"Vancouver (BC Place)"},
+        {date:"Jun 26",a:"Egypt",b:"Iran",venue:"Kansas City (Arrowhead)"},
+        {date:"Jun 26",a:"New Zealand",b:"Belgium",venue:"Santa Clara (Levi's)"},
+      ],
+      H:[
+        {date:"Jun 15",a:"Spain",b:"Cape Verde",venue:"Atlanta (Mercedes-Benz)"},
+        {date:"Jun 15",a:"Saudi Arabia",b:"Uruguay",venue:"Miami (Hard Rock)"},
+        {date:"Jun 21",a:"Spain",b:"Saudi Arabia",venue:"Atlanta (Mercedes-Benz)"},
+        {date:"Jun 21",a:"Uruguay",b:"Cape Verde",venue:"Miami (Hard Rock)"},
+        {date:"Jun 26",a:"Cape Verde",b:"Saudi Arabia",venue:"Miami (Hard Rock)"},
+        {date:"Jun 26",a:"Uruguay",b:"Spain",venue:"Guadalajara (Akron)"},
+      ],
+      I:[
+        {date:"Jun 16",a:"France",b:"Senegal",venue:"East Rutherford (MetLife)"},
+        {date:"Jun 16",a:"Iraq",b:"Norway",venue:"Foxborough (Gillette)"},
+        {date:"Jun 22",a:"France",b:"Iraq",venue:"Philadelphia (Lincoln Financial)"},
+        {date:"Jun 22",a:"Norway",b:"Senegal",venue:"Seattle (Lumen Field)"},
+        {date:"Jun 26",a:"Senegal",b:"Iraq",venue:"Seattle (Lumen Field)"},
+        {date:"Jun 26",a:"Norway",b:"France",venue:"Vancouver (BC Place)"},
+      ],
+      J:[
+        {date:"Jun 16",a:"Argentina",b:"Algeria",venue:"Kansas City (Arrowhead)"},
+        {date:"Jun 16",a:"Austria",b:"Jordan",venue:"Santa Clara (Levi's)"},
+        {date:"Jun 22",a:"Argentina",b:"Austria",venue:"Dallas (AT&T)",texas:true},
+        {date:"Jun 22",a:"Jordan",b:"Algeria",venue:"Seattle (Lumen Field)"},
+        {date:"Jun 27",a:"Algeria",b:"Austria",venue:"Miami (Hard Rock)"},
+        {date:"Jun 27",a:"Jordan",b:"Argentina",venue:"Dallas (AT&T)",texas:true},
+      ],
+      K:[
+        {date:"Jun 17",a:"Portugal",b:"DR Congo",venue:"Houston (NRG)",texas:true},
+        {date:"Jun 17",a:"Uzbekistan",b:"Colombia",venue:"Mexico City (Azteca)"},
+        {date:"Jun 23",a:"Portugal",b:"Uzbekistan",venue:"Kansas City (Arrowhead)"},
+        {date:"Jun 23",a:"Colombia",b:"DR Congo",venue:"Philadelphia (Lincoln Financial)"},
+        {date:"Jun 27",a:"DR Congo",b:"Uzbekistan",venue:"Foxborough (Gillette)"},
+        {date:"Jun 27",a:"Colombia",b:"Portugal",venue:"Miami (Hard Rock)"},
+      ],
+      L:[
+        {date:"Jun 17",a:"England",b:"Croatia",venue:"Dallas (AT&T)",texas:true},
+        {date:"Jun 17",a:"Ghana",b:"Panama",venue:"Toronto (BMO Field)"},
+        {date:"Jun 23",a:"England",b:"Ghana",venue:"Philadelphia (Lincoln Financial)"},
+        {date:"Jun 23",a:"Panama",b:"Croatia",venue:"Vancouver (BC Place)"},
+        {date:"Jun 27",a:"Croatia",b:"Ghana",venue:"Atlanta (Mercedes-Benz)"},
+        {date:"Jun 27",a:"Panama",b:"England",venue:"Santa Clara (Levi's)"},
+      ],
+    };
+    const KO = {
+      r32:[
+        {m:"M74",date:"Jun 29",venue:"Foxborough (Gillette)",desc:"W-E vs 3rd A/B/C/D/F"},
+        {m:"M77",date:"Jun 30",venue:"East Rutherford (MetLife)",desc:"W-I vs 3rd C/D/F/G/H"},
+        {m:"M73",date:"Jun 28",venue:"Inglewood (SoFi)",desc:"RU-A vs RU-B"},
+        {m:"M75",date:"Jun 29",venue:"Guadalajara (Akron)",desc:"W-F vs RU-C"},
+        {m:"M83",date:"Jul 2",venue:"Toronto (BMO Field)",desc:"RU-K vs RU-L"},
+        {m:"M84",date:"Jul 2",venue:"Inglewood (SoFi)",desc:"W-H vs RU-J"},
+        {m:"M81",date:"Jul 1",venue:"Santa Clara (Levi's)",desc:"W-D vs 3rd B/E/F/I/J"},
+        {m:"M82",date:"Jul 1",venue:"Seattle (Lumen Field)",desc:"W-G vs 3rd A/E/H/I/J"},
+        {m:"M76",date:"Jun 29",venue:"Houston (NRG)",desc:"W-C vs RU-F",texas:true},
+        {m:"M78",date:"Jun 30",venue:"Dallas (AT&T)",desc:"RU-E vs RU-I",texas:true},
+        {m:"M79",date:"Jun 30",venue:"Mexico City (Azteca)",desc:"W-A vs 3rd C/E/F/H/I"},
+        {m:"M80",date:"Jul 1",venue:"Atlanta (Mercedes-Benz)",desc:"W-L vs 3rd E/H/I/J/K"},
+        {m:"M86",date:"Jul 3",venue:"Atlanta (Mercedes-Benz)",desc:"W-J vs RU-H"},
+        {m:"M88",date:"Jul 3",venue:"Dallas (AT&T)",desc:"RU-D vs RU-G",texas:true},
+        {m:"M85",date:"Jul 2",venue:"Vancouver (BC Place)",desc:"W-B vs 3rd E/F/G/I/J"},
+        {m:"M87",date:"Jul 3",venue:"Kansas City (Arrowhead)",desc:"W-K vs 3rd D/E/I/J/L"},
+      ],
+      r16:[
+        {m:"M89",date:"Jul 4",venue:"Philadelphia (Lincoln Financial)",desc:"W(M74) vs W(M77)"},
+        {m:"M90",date:"Jul 4",venue:"Houston (NRG)",desc:"W(M73) vs W(M75)",texas:true},
+        {m:"M93",date:"Jul 6",venue:"Dallas (AT&T)",desc:"W(M83) vs W(M84)",texas:true},
+        {m:"M94",date:"Jul 6",venue:"Seattle (Lumen Field)",desc:"W(M81) vs W(M82)"},
+        {m:"M91",date:"Jul 5",venue:"East Rutherford (MetLife)",desc:"W(M76) vs W(M78)"},
+        {m:"M92",date:"Jul 5",venue:"Mexico City (Azteca)",desc:"W(M79) vs W(M80)"},
+        {m:"M95",date:"Jul 7",venue:"Atlanta (Mercedes-Benz)",desc:"W(M86) vs W(M88)"},
+        {m:"M96",date:"Jul 7",venue:"Vancouver (BC Place)",desc:"W(M85) vs W(M87)"},
+      ],
+      qf:[
+        {m:"M97",date:"Jul 9",venue:"Foxborough (Gillette)",desc:"W(M89) vs W(M90)"},
+        {m:"M98",date:"Jul 10",venue:"Inglewood (SoFi)",desc:"W(M93) vs W(M94)"},
+        {m:"M99",date:"Jul 11",venue:"Miami (Hard Rock)",desc:"W(M91) vs W(M92)"},
+        {m:"M100",date:"Jul 11",venue:"Kansas City (Arrowhead)",desc:"W(M95) vs W(M96)"},
+      ],
+      sf:[
+        {m:"M101",date:"Jul 14",venue:"Dallas (AT&T)",desc:"W(M97) vs W(M98)",texas:true},
+        {m:"M102",date:"Jul 15",venue:"Atlanta (Mercedes-Benz)",desc:"W(M99) vs W(M100)"},
+      ],
+      final:[
+        {m:"M103",date:"Jul 19",venue:"East Rutherford (MetLife)",desc:"Championship Match"},
+      ],
+    };
+    const SLOT_ALLOW = {
+      M74:["A","B","C","D","F"],M77:["C","D","F","G","H"],
+      M79:["C","E","F","H","I"],M80:["E","H","I","J","K"],
+      M81:["B","E","F","I","J"],M82:["A","E","H","I","J"],
+      M85:["E","F","G","I","J"],M87:["D","E","I","J","L"],
+    };
+
+    /* ===================== NEW DATA CONSTANTS ===================== */
+    const VENUE_COORDS = {
+      "East Rutherford (MetLife)":       {lat:40.8135, lng:-74.0745,  airport:"EWR", city:"New York"},
+      "Philadelphia (Lincoln Financial)":{lat:39.9007, lng:-75.1675,  airport:"PHL", city:"Philadelphia"},
+      "Foxborough (Gillette)":           {lat:42.0909, lng:-71.2643,  airport:"BOS", city:"Boston"},
+      "Atlanta (Mercedes-Benz)":         {lat:33.7554, lng:-84.4008,  airport:"ATL", city:"Atlanta"},
+      "Miami (Hard Rock)":               {lat:25.9580, lng:-80.2389,  airport:"MIA", city:"Miami"},
+      "Dallas (AT&T)":                   {lat:32.7473, lng:-97.0945,  airport:"DFW", city:"Dallas"},
+      "Houston (NRG)":                   {lat:29.6847, lng:-95.4107,  airport:"IAH", city:"Houston"},
+      "Kansas City (Arrowhead)":         {lat:39.0489, lng:-94.4839,  airport:"MCI", city:"Kansas City"},
+      "Seattle (Lumen Field)":           {lat:47.5952, lng:-122.3316, airport:"SEA", city:"Seattle"},
+      "Santa Clara (Levi's)":            {lat:37.4033, lng:-121.9694, airport:"SFO", city:"San Francisco"},
+      "Inglewood (SoFi)":                {lat:33.9535, lng:-118.3392, airport:"LAX", city:"Los Angeles"},
+      "Vancouver (BC Place)":            {lat:49.2768, lng:-123.1118, airport:"YVR", city:"Vancouver"},
+      "Toronto (BMO Field)":             {lat:43.6333, lng:-79.4189,  airport:"YYZ", city:"Toronto"},
+      "Mexico City (Azteca)":            {lat:19.3028, lng:-99.1508,  airport:"MEX", city:"Mexico City"},
+      "Guadalajara (Akron)":             {lat:20.6847, lng:-103.4669, airport:"GDL", city:"Guadalajara"},
+      "Monterrey (BBVA)":                {lat:25.6694, lng:-100.2900, airport:"MTY", city:"Monterrey"},
+    };
+
+    const HOTEL_COST = {
+      "East Rutherford (MetLife)": {low:220, high:580},
+      "Philadelphia (Lincoln Financial)": {low:140, high:380},
+      "Foxborough (Gillette)": {low:160, high:440},
+      "Atlanta (Mercedes-Benz)": {low:130, high:360},
+      "Miami (Hard Rock)": {low:190, high:520},
+      "Dallas (AT&T)": {low:120, high:330},
+      "Houston (NRG)": {low:110, high:300},
+      "Kansas City (Arrowhead)": {low:100, high:280},
+      "Seattle (Lumen Field)": {low:160, high:430},
+      "Santa Clara (Levi's)": {low:180, high:480},
+      "Inglewood (SoFi)": {low:160, high:440},
+      "Vancouver (BC Place)": {low:180, high:480},
+      "Toronto (BMO Field)": {low:150, high:420},
+      "Mexico City (Azteca)": {low:70, high:220},
+      "Guadalajara (Akron)": {low:60, high:180},
+      "Monterrey (BBVA)": {low:65, high:200},
+    };
+
+    const HOME_CITIES = [
+      {n:"New York, NY",      lat:40.7128, lng:-74.006,   airport:"JFK"},
+      {n:"Los Angeles, CA",   lat:34.0522, lng:-118.2437, airport:"LAX"},
+      {n:"Chicago, IL",       lat:41.8781, lng:-87.6298,  airport:"ORD"},
+      {n:"Houston, TX",       lat:29.7604, lng:-95.3698,  airport:"IAH"},
+      {n:"Phoenix, AZ",       lat:33.4484, lng:-112.074,  airport:"PHX"},
+      {n:"Philadelphia, PA",  lat:39.9526, lng:-75.1652,  airport:"PHL"},
+      {n:"San Antonio, TX",   lat:29.4241, lng:-98.4936,  airport:"SAT"},
+      {n:"San Diego, CA",     lat:32.7157, lng:-117.1611, airport:"SAN"},
+      {n:"Dallas, TX",        lat:32.7767, lng:-96.797,   airport:"DFW"},
+      {n:"San Jose, CA",      lat:37.3382, lng:-121.8863, airport:"SJC"},
+      {n:"Austin, TX",        lat:30.2672, lng:-97.7431,  airport:"AUS"},
+      {n:"San Francisco, CA", lat:37.7749, lng:-122.4194, airport:"SFO"},
+      {n:"Seattle, WA",       lat:47.6062, lng:-122.3321, airport:"SEA"},
+      {n:"Denver, CO",        lat:39.7392, lng:-104.9903, airport:"DEN"},
+      {n:"Washington DC",     lat:38.9072, lng:-77.0369,  airport:"DCA"},
+      {n:"Boston, MA",        lat:42.3601, lng:-71.0589,  airport:"BOS"},
+      {n:"Nashville, TN",     lat:36.1627, lng:-86.7816,  airport:"BNA"},
+      {n:"Las Vegas, NV",     lat:36.1699, lng:-115.1398, airport:"LAS"},
+      {n:"Atlanta, GA",       lat:33.749,  lng:-84.388,   airport:"ATL"},
+      {n:"Minneapolis, MN",   lat:44.9778, lng:-93.265,   airport:"MSP"},
+      {n:"Tampa, FL",         lat:27.9506, lng:-82.4572,  airport:"TPA"},
+      {n:"Miami, FL",         lat:25.7617, lng:-80.1918,  airport:"MIA"},
+      {n:"Kansas City, MO",   lat:39.0997, lng:-94.5786,  airport:"MCI"},
+      {n:"Portland, OR",      lat:45.5051, lng:-122.675,  airport:"PDX"},
+      {n:"Indianapolis, IN",  lat:39.7684, lng:-86.1581,  airport:"IND"},
+      {n:"Charlotte, NC",     lat:35.2271, lng:-80.8431,  airport:"CLT"},
+      {n:"Pittsburgh, PA",    lat:40.4406, lng:-79.9959,  airport:"PIT"},
+      {n:"Detroit, MI",       lat:42.3314, lng:-83.0458,  airport:"DTW"},
+      {n:"Toronto, ON",       lat:43.6532, lng:-79.3832,  airport:"YYZ"},
+      {n:"Vancouver, BC",     lat:49.2827, lng:-123.1207, airport:"YVR"},
+      {n:"Montreal, QC",      lat:45.5017, lng:-73.5673,  airport:"YUL"},
+      {n:"Calgary, AB",       lat:51.0447, lng:-114.0719, airport:"YYC"},
+      {n:"Mexico City, MX",   lat:19.4326, lng:-99.1332,  airport:"MEX"},
+      {n:"Guadalajara, MX",   lat:20.6597, lng:-103.3496, airport:"GDL"},
+      {n:"Monterrey, MX",     lat:25.6866, lng:-100.3161, airport:"MTY"},
+    ];
+
+    function haversine(lat1,lon1,lat2,lon2){
+      const R=3959,dLat=(lat2-lat1)*Math.PI/180,dLon=(lon2-lon1)*Math.PI/180;
+      const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+      return R*2*Math.asin(Math.sqrt(a));
+    }
+    function travelCost(miles){
+      if(miles<100) return {low:0,high:40,mode:"🚗 Drive"};
+      if(miles<350) return {low:30,high:90,mode:"🚗 Drive"};
+      if(miles<700) return {low:100,high:280,mode:"🚗/✈️ Drive or Fly"};
+      if(miles<1500) return {low:200,high:500,mode:"✈️ Fly"};
+      if(miles<2500) return {low:300,high:700,mode:"✈️ Fly"};
+      return {low:400,high:1000,mode:"✈️ Intl. Flight"};
+    }
+    function venueType(name){
+      if(name.includes("Dallas")||name.includes("Houston")) return "texas";
+      if(name.includes("Vancouver")||name.includes("Toronto")) return "canada";
+      if(name.includes("Mexico")||name.includes("Guadalajara")||name.includes("Monterrey")) return "mexico";
+      return "usa";
+    }
+    function venueColor(name){
+      const t=venueType(name);
+      return t==="canada"?"#22c55e":t==="mexico"?"#f97316":"#3b82f6";
+    }
+
+    /* ===================== UTILITY FUNCTIONS ===================== */
+    const SORTED_ELO = Object.entries(ELO).sort(([,a],[,b])=>b-a);
+    const RANKS = SORTED_ELO.reduce((acc,[t],i)=>{acc[t]=i+1;return acc;},{});
+    function fl(t){return FLAGS[t]||"⚽";}
+    function e(t){return ELO[t]||1200;}
+    function wp(a,b){return 1/(1+Math.pow(10,(e(b)-e(a))/400));}
+    function simMatch(a,b){return Math.random()<wp(a,b)?a:b;}
+    function fc(f){
+      if(f>10)return"#4ade80"; if(f>3)return"#86efac";
+      if(f>0)return"#bef264"; if(f>-3)return"#94a3b8";
+      if(f>-10)return"#fca5a5"; return"#f87171";
+    }
+    function fa(f){return f>=5?"↑↑":f>=1?"↑":f>-1?"→":f>=-5?"↓":"↓↓";}
+
+    /* ===================== GEOCODING ===================== */
+    async function geocodeCity(query){
+      const params=new URLSearchParams({
+        q: query,
+        format:"json",
+        limit:"3",
+        countrycodes:"us,mx,ca",
+        "accept-language":"en",
+      });
+      const resp=await fetch(`https://nominatim.openstreetmap.org/search?${params}`,{
+        headers:{"User-Agent":"wc2026-bracket/1.0"}
+      });
+      if(!resp.ok) throw new Error("Geocoding request failed");
+      const data=await resp.json();
+      if(!data.length) return null;
+      const hit=data[0];
+      // Build a short display name: "City, State/Province"
+      const parts=hit.display_name.split(",").map(s=>s.trim());
+      const shortName=parts.slice(0,2).join(", ");
+      return {n:shortName, lat:parseFloat(hit.lat), lng:parseFloat(hit.lon)};
+    }
+
+    /* ===================== SIMULATION FUNCTIONS ===================== */
+    function simGroup(teams){
+      const pts={},gd={};
+      teams.forEach(t=>{pts[t]=0;gd[t]=0;});
+      for(let i=0;i<teams.length;i++){
+        for(let j=i+1;j<teams.length;j++){
+          const a=teams[i],b=teams[j],pA=wp(a,b)*0.75,r=Math.random();
+          if(r<pA){pts[a]+=3;gd[a]+=(1+Math.random());gd[b]-=Math.random();}
+          else if(r<pA+0.25){pts[a]+=1;pts[b]+=1;}
+          else{pts[b]+=3;gd[b]+=(1+Math.random());gd[a]-=Math.random();}
+        }
+      }
+      return [...teams].sort((a,b)=>pts[b]-pts[a]||gd[b]-gd[a]||Math.random()-.5);
+    }
+    function assign3rd(thirds){
+      const slots=Object.keys(SLOT_ALLOW),res={},used=new Set();
+      let changed=true;
+      while(changed){
+        changed=false;
+        for(const s of slots){
+          if(res[s])continue;
+          const v=thirds.filter(t=>!used.has(t.team)&&SLOT_ALLOW[s].includes(t.group));
+          if(v.length===1){res[s]=v[0].team;used.add(v[0].team);changed=true;}
+        }
+      }
+      for(const s of slots){
+        if(res[s])continue;
+        const v=thirds.filter(t=>!used.has(t.team)&&SLOT_ALLOW[s].includes(t.group));
+        if(v.length>0){res[s]=v[0].team;used.add(v[0].team);}
+        else res[s]="TBD";
+      }
+      return res;
+    }
+    function runOnce(){
+      const W={},R={},thirds=[];
+      for(const[g,{teams}]of Object.entries(GROUPS)){
+        const rk=simGroup(teams);
+        W[g]=rk[0];R[g]=rk[1];
+        thirds.push({team:rk[2],group:g,pts:e(rk[2])});
+      }
+      thirds.sort((a,b)=>b.pts-a.pts);
+      const sg=assign3rd(thirds);
+      const gv=k=>sg[k]||"TBD";
+      const ok=(a,b)=>a&&b&&a!=="TBD"&&b!=="TBD"&&a!==b;
+      const key=(a,b)=>[a,b].sort().join("|");
+      const r32p=[
+        [W.E,gv("M74")],[W.I,gv("M77")],[R.A,R.B],[W.F,R.C],
+        [R.K,R.L],[W.H,R.J],[W.D,gv("M81")],[W.G,gv("M82")],
+        [W.C,R.F],[R.E,R.I],[W.A,gv("M79")],[W.L,gv("M80")],
+        [W.J,R.H],[R.D,R.G],[W.B,gv("M85")],[W.K,gv("M87")],
+      ];
+      const out={r32:[],r16:[],qf:[],sf:[],final:[]};
+      const r32w=r32p.map(([a,b],idx)=>{
+        if(!ok(a,b))return a&&a!=="TBD"?a:b&&b!=="TBD"?b:"TBD";
+        out.r32.push({idx,key:key(a,b),teamA:a,teamB:b});
+        return simMatch(a,b);
+      });
+      const r16p=[[r32w[0],r32w[1]],[r32w[2],r32w[3]],[r32w[4],r32w[5]],[r32w[6],r32w[7]],
+                  [r32w[8],r32w[9]],[r32w[10],r32w[11]],[r32w[12],r32w[13]],[r32w[14],r32w[15]]];
+      const r16w=r16p.map(([a,b],idx)=>{
+        if(!ok(a,b))return a&&a!=="TBD"?a:b&&b!=="TBD"?b:"TBD";
+        out.r16.push({idx,key:key(a,b),teamA:a,teamB:b});
+        return simMatch(a,b);
+      });
+      const qfp=[[r16w[0],r16w[1]],[r16w[2],r16w[3]],[r16w[4],r16w[5]],[r16w[6],r16w[7]]];
+      const qfw=qfp.map(([a,b],idx)=>{
+        if(!ok(a,b))return a&&a!=="TBD"?a:b&&b!=="TBD"?b:"TBD";
+        out.qf.push({idx,key:key(a,b),teamA:a,teamB:b});
+        return simMatch(a,b);
+      });
+      const sfp=[[qfw[0],qfw[1]],[qfw[2],qfw[3]]];
+      const sfw=sfp.map(([a,b],idx)=>{
+        if(!ok(a,b))return a&&a!=="TBD"?a:b&&b!=="TBD"?b:"TBD";
+        out.sf.push({idx,key:key(a,b),teamA:a,teamB:b});
+        return simMatch(a,b);
+      });
+      let champion="TBD";
+      if(ok(sfw[0],sfw[1])){out.final.push({idx:0,key:key(sfw[0],sfw[1]),teamA:sfw[0],teamB:sfw[1]});champion=simMatch(sfw[0],sfw[1]);}
+      else champion=sfw[0]!=="TBD"?sfw[0]:sfw[1];
+      // Track team appearances per round per slot
+      const teamSlots={r32:{},r16:{},qf:{},sf:{},final:{}};
+      for(const [rnd,matches] of Object.entries(out)){
+        for(const {idx,teamA,teamB} of matches){
+          if(!teamSlots[rnd][idx]) teamSlots[rnd][idx]={};
+          for(const t of [teamA,teamB]){
+            if(t&&t!=="TBD") teamSlots[rnd][idx][t]=(teamSlots[rnd][idx][t]||0)+1;
+          }
+        }
+      }
+      // Track team wins per round (advancing teams)
+      const teamRounds={r32:{},r16:{},qf:{},sf:{},final:{}};
+      const advancers={
+        r32:r32w,r16:r16w,qf:qfw,sf:sfw,final:[champion]
+      };
+      for(const [rnd,teams] of Object.entries(advancers)){
+        for(const t of teams){
+          if(t&&t!=="TBD") teamRounds[rnd][t]=(teamRounds[rnd][t]||0)+1;
+        }
+      }
+      return {rounds:out,champion,teamSlots,teamRounds};
+    }
+
+    /* ===================== COMPONENTS ===================== */
+    function WinBar({a,b}){
+      const pA=Math.round(wp(a,b)*100);
+      const pB=100-pA;
+      const cA=COLORS[a]||"#1e40af";
+      const cB=COLORS[b]||"#7f1d1d";
+      return (
+        <div style={{marginTop:6}}>
+          <div style={{display:"flex",borderRadius:4,overflow:"hidden",height:18,fontSize:11,fontWeight:700}}>
+            <div style={{width:`${pA}%`,background:cA,display:"flex",alignItems:"center",justifyContent:"flex-end",paddingRight:4,color:"#fff",minWidth:pA>15?undefined:0,overflow:"hidden"}}>
+              {pA>15?`${pA}%`:""}
+            </div>
+            <div style={{width:`${pB}%`,background:cB,display:"flex",alignItems:"center",paddingLeft:4,color:"#fff",minWidth:pB>15?undefined:0,overflow:"hidden"}}>
+              {pB>15?`${pB}%`:""}
+            </div>
+          </div>
+          <div style={{display:"flex",justifyContent:"space-between",fontSize:10,color:"#94a3b8",marginTop:2}}>
+            <span>{fl(a)} {a} {pA}%</span>
+            <span>{pB}% {fl(b)} {b}</span>
+          </div>
+        </div>
+      );
+    }
+
+    function MatchupRow({rank,a,b,count,N}){
+      const medals=["🥇","🥈","🥉"];
+      const pct=((count/N)*100).toFixed(1);
+      return (
+        <div style={{
+          background:"#0d1f3c",border:"1px solid #1e3a5f",borderRadius:6,padding:"8px 10px",marginBottom:6
+        }}>
+          <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
+            <span style={{fontSize:16,minWidth:20}}>{medals[rank]||"⚽"}</span>
+            <div style={{flex:1,minWidth:0}}>
+              <div style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}}>
+                <span style={{fontSize:13,fontWeight:600}}>{fl(a)} {a}</span>
+                <span style={{color:"#64748b",fontSize:11}}>#{RANKS[a]}</span>
+                <span style={{color:"#475569",fontSize:12}}>vs</span>
+                <span style={{fontSize:13,fontWeight:600}}>{fl(b)} {b}</span>
+                <span style={{color:"#64748b",fontSize:11}}>#{RANKS[b]}</span>
+                <span style={{marginLeft:"auto",background:"#1e3a5f",color:"#93c5fd",padding:"2px 8px",borderRadius:12,fontSize:12,fontWeight:700,whiteSpace:"nowrap"}}>
+                  {pct}%
+                </span>
+              </div>
+            </div>
+          </div>
+          <WinBar a={a} b={b} />
+        </div>
+      );
+    }
+
+    function PriceBadge({tier, prices}){
+      const p=prices?.tiers?.[tier];
+      const updated=prices?.last_updated;
+      const isPlaceholder=prices?.source?.includes("Placeholder");
+      if(!p)return null;
+      return(
+        <div style={{
+          background:"#050e20",border:"1px solid #1e3a5f",
+          borderRadius:8,padding:"8px 12px",marginTop:8
+        }}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:6}}>
+            <span style={{color:"#64748b",fontSize:11,fontWeight:700}}>🎟️ RESALE TICKET PRICES{isPlaceholder?" (est.)":""}</span>
+            {updated&&<span style={{color:"#334155",fontSize:10}}>Updated {updated}</span>}
+          </div>
+          <div style={{display:"flex",gap:16,marginTop:6,flexWrap:"wrap"}}>
+            <div><div style={{color:"#64748b",fontSize:10}}>LOW</div><div style={{color:"#4ade80",fontWeight:700,fontSize:15}}>${p.low}</div></div>
+            <div><div style={{color:"#64748b",fontSize:10}}>MEDIAN</div><div style={{color:"#fbbf24",fontWeight:700,fontSize:15}}>${p.median}</div></div>
+            <div><div style={{color:"#64748b",fontSize:10}}>HIGH</div><div style={{color:"#f87171",fontWeight:700,fontSize:15}}>${p.high}+</div></div>
+            <div style={{marginLeft:"auto",display:"flex",gap:8,alignItems:"center",flexWrap:"wrap"}}>
+              <a href="https://www.stubhub.com/world-cup-tickets/grouping/45410" target="_blank" rel="noopener" style={{color:"#60a5fa",fontSize:11,textDecoration:"none",background:"#0d1f3c",padding:"3px 8px",borderRadius:6}}>StubHub</a>
+              <a href="https://seatgeek.com/fifa-world-cup-tickets" target="_blank" rel="noopener" style={{color:"#60a5fa",fontSize:11,textDecoration:"none",background:"#0d1f3c",padding:"3px 8px",borderRadius:6}}>SeatGeek</a>
+              <a href="https://www.vividseats.com/world-cup-soccer-tickets--sports-soccer/performer/944" target="_blank" rel="noopener" style={{color:"#60a5fa",fontSize:11,textDecoration:"none",background:"#0d1f3c",padding:"3px 8px",borderRadius:6}}>VividSeats</a>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function FlightsButton({fromCity, toCity}){
+      if(!fromCity||!toCity) return null;
+      const q=`flights from ${fromCity} to ${toCity}`;
+      const url=`https://www.google.com/travel/flights?q=${encodeURIComponent(q)}`;
+      return (
+        <a href={url} target="_blank" rel="noopener" style={{
+          display:"inline-flex",alignItems:"center",gap:6,
+          background:"#0d1f3c",border:"1px solid #1e3a5f",
+          color:"#60a5fa",fontSize:12,textDecoration:"none",
+          padding:"5px 12px",borderRadius:6,fontWeight:600,
+        }}>✈️ Search Google Flights →</a>
+      );
+    }
+
+    function SlotCard({slot,rows,N,tier,prices}){
+      const isTexas=slot.texas;
+      return (
+        <div style={{
+          background:"#061228",
+          border:`1px solid ${isTexas?"#f59e0b":"#1e3a5f"}`,
+          borderRadius:10,
+          padding:"14px 16px",
+          marginBottom:14,
+        }}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8,flexWrap:"wrap",gap:4}}>
+            <div style={{display:"flex",gap:8,alignItems:"center",flexWrap:"wrap"}}>
+              <span style={{
+                background:"#1e3a5f",color:"#60a5fa",
+                padding:"2px 10px",borderRadius:12,fontSize:12,fontWeight:700
+              }}>{slot.m}</span>
+              {isTexas&&<span style={{background:"#78350f",color:"#fbbf24",padding:"2px 8px",borderRadius:12,fontSize:11,fontWeight:700}}>★ Texas</span>}
+            </div>
+            <span style={{color:"#64748b",fontSize:12}}>{slot.date}</span>
+          </div>
+          <div style={{marginBottom:4}}>
+            <span style={{color:"#94a3b8",fontSize:12}}>📍 {slot.venue}</span>
+          </div>
+          <div style={{color:"#64748b",fontSize:11,marginBottom:10}}>{slot.desc}</div>
+          {rows&&rows.length>0?rows.map((r,i)=>(
+            <MatchupRow key={i} rank={i} a={r.a} b={r.b} count={r.count} N={N} />
+          )):(
+            <div style={{color:"#475569",fontSize:12,textAlign:"center",padding:"12px 0"}}>No simulation data yet</div>
+          )}
+          <PriceBadge tier={tier||"r32"} prices={prices}/>
+        </div>
+      );
+    }
+
+    function GroupCard({letter,g}){
+      const matches=GS[letter]||[];
+      return (
+        <div style={{
+          background:"#061228",
+          border:"1px solid #1e3a5f",
+          borderRadius:10,
+          padding:"14px 16px",
+          marginBottom:14,
+        }}>
+          <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}>
+            <span style={{
+              background:"#1e3a5f",color:"#60a5fa",
+              padding:"4px 14px",borderRadius:20,fontSize:14,fontWeight:800,letterSpacing:1
+            }}>Group {letter}</span>
+          </div>
+          <div style={{marginBottom:10}}>
+            {g.teams.map(t=>{
+              const isProj=g.proj.includes(t);
+              return (
+                <div key={t} style={{
+                  display:"flex",alignItems:"center",gap:8,
+                  padding:"5px 8px",borderRadius:6,marginBottom:3,
+                  background:isProj?"#0f2d4a":"transparent",
+                  border:isProj?"1px solid #1e3a5f":"1px solid transparent"
+                }}>
+                  <span style={{fontSize:18}}>{fl(t)}</span>
+                  <span style={{flex:1,fontSize:13,fontWeight:isProj?600:400}}>{t}</span>
+                  {isProj&&<span style={{color:"#4ade80",fontSize:11,fontWeight:700}}>✓ Proj. Advance</span>}
+                  <span style={{color:"#64748b",fontSize:11}}>#{RANKS[t]}</span>
+                </div>
+              );
+            })}
+          </div>
+          <div style={{borderTop:"1px solid #1e3a5f",paddingTop:10}}>
+            <div style={{color:"#64748b",fontSize:11,fontWeight:700,marginBottom:6,textTransform:"uppercase",letterSpacing:1}}>Matches</div>
+            {matches.map((m,i)=>(
+              <div key={i} style={{
+                display:"flex",alignItems:"center",gap:8,
+                padding:"4px 0",borderBottom:i<matches.length-1?"1px solid #0d1f3c":"none",
+                flexWrap:"wrap"
+              }}>
+                <span style={{color:"#64748b",fontSize:11,minWidth:42}}>{m.date}</span>
+                <span style={{fontSize:13}}>{fl(m.a)} {m.a}</span>
+                <span style={{color:"#475569",fontSize:12}}>vs</span>
+                <span style={{fontSize:13}}>{fl(m.b)} {m.b}</span>
+                <span style={{marginLeft:"auto",color:"#475569",fontSize:11}}>{m.venue}</span>
+                {m.texas&&<span style={{color:"#f59e0b",fontSize:10,fontWeight:700}}>★TX</span>}
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    /* ===================== MAIN APP ===================== */
+    const N=10000;
+    const CHUNK=500;
+    const ROUND_LABELS={r32:"Round of 32",r16:"Round of 16",qf:"Quarterfinals",sf:"Semifinals",final:"Final"};
+
+    // Gather all unique venues
+    function getAllVenues(){
+      const vSet=new Set();
+      for(const gMatches of Object.values(GS)) for(const m of gMatches) vSet.add(m.venue);
+      for(const rounds of Object.values(KO)) for(const m of rounds) vSet.add(m.venue);
+      return [...vSet].sort();
+    }
+
+    function App(){
+      const [tab,setTab]=useState("champion");
+      const [progress,setProgress]=useState(0);
+      const [done,setDone]=useState(false);
+      const [simData,setSimData]=useState({r32:{},r16:{},qf:{},sf:{},final:{}});
+      const [teamSlotData,setTeamSlotData]=useState({r32:{},r16:{},qf:{},sf:{},final:{}});
+      const [teamRoundData,setTeamRoundData]=useState({r32:{},r16:{},qf:{},sf:{},final:{}});
+      const [championData,setChampionData]=useState({});
+      const [trackTeam,setTrackTeam]=useState("France");
+      const [venueFilter,setVenueFilter]=useState("Atlanta (Mercedes-Benz)");
+      const [selectedMapVenue,setSelectedMapVenue]=useState(null);
+      const [prices,setPrices]=useState(null);
+      const [homeCity,setHomeCity]=useState(null);
+      const [cityInput,setCityInput]=useState("");
+      const [citySearching,setCitySearching]=useState(false);
+      const [cityError,setCityError]=useState(null);
+      const [tripRound,setTripRound]=useState("qf");
+      const mapRef=useRef(null);
+      const mapDivRef=useRef(null);
+      const markersRef=useRef({});
+
+      // Simulation useEffect
+      useEffect(()=>{
+        const sc={r32:{},r16:{},qf:{},sf:{},final:{}};
+        const ts={r32:{},r16:{},qf:{},sf:{},final:{}};
+        const tr={r32:{},r16:{},qf:{},sf:{},final:{}};
+        const cc={};
+        let done=0;
+        function runChunk(){
+          const end=Math.min(done+CHUNK,N);
+          for(let i=done;i<end;i++){
+            const {rounds,champion,teamSlots,teamRounds}=runOnce();
+            // matchup counts
+            for(const[rnd,matches]of Object.entries(rounds)){
+              for(const{idx,key}of matches){
+                if(!sc[rnd][idx])sc[rnd][idx]={};
+                sc[rnd][idx][key]=(sc[rnd][idx][key]||0)+1;
+              }
+            }
+            // team slot counts
+            for(const[rnd,slots]of Object.entries(teamSlots)){
+              for(const[idx,teams]of Object.entries(slots)){
+                if(!ts[rnd][idx])ts[rnd][idx]={};
+                for(const[t,c]of Object.entries(teams)){
+                  ts[rnd][idx][t]=(ts[rnd][idx][t]||0)+c;
+                }
+              }
+            }
+            // team round advancement
+            for(const[rnd,teams]of Object.entries(teamRounds)){
+              for(const[t,c]of Object.entries(teams)){
+                if(!tr[rnd][t])tr[rnd][t]=0;
+                tr[rnd][t]+=c;
+              }
+            }
+            // champion counts
+            if(champion&&champion!=="TBD") cc[champion]=(cc[champion]||0)+1;
+          }
+          done=end;
+          setProgress(done);
+          if(done<N){
+            setTimeout(runChunk,0);
+          } else {
+            setSimData({...sc});
+            setTeamSlotData({...ts});
+            setTeamRoundData({...tr});
+            setChampionData({...cc});
+            setDone(true);
+          }
+        }
+        runChunk();
+      },[]);
+
+      // Prices useEffect
+      useEffect(()=>{
+        fetch("/wc2026/prices.json")
+          .then(r=>r.json())
+          .then(d=>setPrices(d))
+          .catch(()=>{});
+      },[]);
+
+      // Leaflet map init useEffect
+      useEffect(()=>{
+        if(mapRef.current||!mapDivRef.current||typeof L==="undefined") return;
+        const map=L.map(mapDivRef.current,{
+          center:[38,-100],zoom:3,
+          scrollWheelZoom:false,
+          zoomControl:true,
+        });
+        L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",{
+          attribution:"© OpenStreetMap © CARTO",maxZoom:19
+        }).addTo(map);
+        mapRef.current=map;
+
+        Object.entries(VENUE_COORDS).forEach(([name,{lat,lng}])=>{
+          const color=venueColor(name);
+          const m=L.circleMarker([lat,lng],{
+            radius:11,fillColor:color,color:"#ffffff",
+            weight:2,opacity:1,fillOpacity:0.9
+          }).addTo(map);
+          m.bindTooltip(name,{direction:"top",offset:[0,-8]});
+          m.on("click",()=>setSelectedMapVenue(prev=>prev===name?null:name));
+          markersRef.current[name]=m;
+        });
+      },[]);
+
+      // Marker style update useEffect
+      useEffect(()=>{
+        Object.entries(markersRef.current).forEach(([name,marker])=>{
+          const isSelected=name===selectedMapVenue;
+          let color=venueColor(name);
+          if(tab==="trip"&&homeCity){
+            const vc=VENUE_COORDS[name];
+            if(vc){
+              const dist=haversine(homeCity.lat,homeCity.lng,vc.lat,vc.lng);
+              const tc=travelCost(dist);
+              const hc=HOTEL_COST[name]||{low:150,high:400};
+              const tk=prices?.tiers?.[tripRound]||{low:200};
+              const total=tc.low+hc.low+tk.low;
+              color=total<600?"#4ade80":total<1200?"#fbbf24":"#f87171";
+            }
+          }
+          marker.setStyle({
+            fillColor:color,
+            weight:isSelected?3:2,
+            radius:isSelected?15:11,
+            color:isSelected?"#ffffff":"#ffffff",
+            fillOpacity:isSelected?1:0.9,
+          });
+        });
+      },[selectedMapVenue,tab,homeCity,tripRound,prices]);
+
+      const allVenues=useMemo(()=>getAllVenues(),[]);
+
+      // Build slot rows from simData
+      function getSlotRows(rnd,idx){
+        const data=simData[rnd]&&simData[rnd][idx]?simData[rnd][idx]:{};
+        return Object.entries(data)
+          .sort(([,a],[,b])=>b-a)
+          .slice(0,3)
+          .map(([k,count])=>{
+            const [a,b]=k.split("|");
+            return {a,b,count};
+          });
+      }
+
+      // Champion tab data
+      const champRows=useMemo(()=>{
+        return Object.entries(ELO)
+          .map(([t])=>({team:t,count:championData[t]||0}))
+          .sort((a,b)=>b.count-a.count);
+      },[championData]);
+
+      // Track a team data
+      const trackData=useMemo(()=>{
+        if(!trackTeam)return null;
+        // find group
+        let teamGroup=null,groupObj=null;
+        for(const[g,go]of Object.entries(GROUPS)){
+          if(go.teams.includes(trackTeam)){teamGroup=g;groupObj=go;break;}
+        }
+        // round data
+        const rounds=["r32","r16","qf","sf","final"];
+        const roundInfo=rounds.map(rnd=>{
+          const roundRoundData=teamRoundData[rnd]||{};
+          const teamCount=roundRoundData[trackTeam]||0;
+          const pct=(teamCount/N*100);
+          // find which slots this team appeared in
+          const slotData=teamSlotData[rnd]||{};
+          const mySlots=[];
+          for(const[idx,teams]of Object.entries(slotData)){
+            if(teams[trackTeam]){
+              // get top opponents in that slot
+              const opps=Object.entries(teams)
+                .filter(([t])=>t!==trackTeam)
+                .sort(([,a],[,b])=>b-a)
+                .slice(0,3)
+                .map(([t,c])=>({team:t,pct:(c/N*100)}));
+              mySlots.push({idx:Number(idx),slotFreq:(teams[trackTeam]/N*100),opps});
+            }
+          }
+          mySlots.sort((a,b)=>b.slotFreq-a.slotFreq);
+          return {rnd,pct,slots:mySlots};
+        });
+        return {teamGroup,groupObj,roundInfo};
+      },[trackTeam,teamRoundData,teamSlotData]);
+
+      // Venue finder
+      const venueData=useMemo(()=>{
+        if(!venueFilter)return null;
+        const gsMatches=[];
+        for(const[grp,matches]of Object.entries(GS)){
+          for(const m of matches){
+            if(m.venue===venueFilter) gsMatches.push({...m,group:grp});
+          }
+        }
+        const koMatches=[];
+        const roundKeys=["r32","r16","qf","sf","final"];
+        for(const rnd of roundKeys){
+          const slots=KO[rnd]||[];
+          slots.forEach((slot,idx)=>{
+            if(slot.venue===venueFilter){
+              // find the correct global idx
+              let globalIdx=idx;
+              const rows=getSlotRows(rnd,globalIdx);
+              koMatches.push({...slot,rnd,idx:globalIdx,rows});
+            }
+          });
+        }
+        return {gsMatches,koMatches};
+      },[venueFilter,simData]);
+
+      const tabs=[
+        {id:"champion",label:"🏆 Champion Odds"},
+        {id:"track",label:"🔍 Track a Team"},
+        {id:"venue",label:"📍 Venue Finder"},
+        {id:"trip",label:"✈️ Trip Planner"},
+        {id:"rankings",label:"📊 FIFA Rankings"},
+        {id:"groups",label:"🏟️ Group Stage"},
+        {id:"r32",label:"Round of 32"},
+        {id:"r16",label:"Round of 16"},
+        {id:"qf",label:"Quarterfinals"},
+        {id:"sf",label:"Semifinals"},
+        {id:"final",label:"⭐ Final"},
+      ];
+
+      return (
+        <div>
+          {/* HEADER — sticky, full width */}
+          <div style={{
+            background:"linear-gradient(135deg,#061228 0%,#0a1f3f 100%)",
+            borderBottom:"1px solid #1e3a5f",
+            padding:"20px 0 16px",
+            marginBottom:0,
+            position:"sticky",top:0,zIndex:100,
+          }}>
+            <div style={{maxWidth:900,margin:"0 auto",padding:"0 16px"}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
+                <div>
+                  <div style={{color:"#60a5fa",fontSize:11,fontWeight:700,letterSpacing:2,textTransform:"uppercase",marginBottom:2}}>
+                    FIFA World Cup 2026 · Full Bracket Predictor
+                  </div>
+                  <h1 style={{fontSize:"clamp(16px,4vw,24px)",fontWeight:800,color:"#f1f5f9",lineHeight:1.2,marginBottom:8}}>
+                    All Knockout Matches · Monte Carlo Predictions
+                  </h1>
+                  {!done?(
+                    <div style={{display:"flex",alignItems:"center",gap:10}}>
+                      <div style={{flex:1,maxWidth:200,height:6,background:"#1e3a5f",borderRadius:3,overflow:"hidden"}}>
+                        <div style={{width:`${(progress/N)*100}%`,height:"100%",background:"#3b82f6",transition:"width 0.2s"}}/>
+                      </div>
+                      <span style={{color:"#60a5fa",fontSize:12}}>Running {progress.toLocaleString()} / {N.toLocaleString()} sims…</span>
+                    </div>
+                  ):(
+                    <div style={{color:"#4ade80",fontSize:12,fontWeight:600}}>✓ {N.toLocaleString()} simulations complete</div>
+                  )}
+                </div>
+                <a href="https://debangandey.rbind.io" style={{
+                  color:"#60a5fa",fontSize:12,textDecoration:"none",
+                  background:"#0d1f3c",border:"1px solid #1e3a5f",
+                  padding:"6px 12px",borderRadius:8,whiteSpace:"nowrap",marginLeft:12,
+                  display:"inline-block",marginTop:4
+                }}>← debangandey.rbind.io</a>
+              </div>
+            </div>
+          </div>
+
+          {/* MAP — full width */}
+          <div ref={mapDivRef} id="wc-map" style={{width:"100%",height:400,borderBottom:"1px solid #1e3a5f"}} />
+
+          {/* VENUE PANEL — shows when a pin is clicked, full width */}
+          {selectedMapVenue && (()=>{
+            const vType=venueType(selectedMapVenue);
+            const isTexas=vType==="texas";
+            const isCanada=vType==="canada";
+            const isMexico=vType==="mexico";
+            const accentColor=isTexas?"#f59e0b":isCanada?"#22c55e":isMexico?"#f97316":"#3b82f6";
+
+            // Group stage matches at this venue
+            const gsMatches=[];
+            for(const[grp,matches]of Object.entries(GS)){
+              for(const m of matches){
+                if(m.venue===selectedMapVenue) gsMatches.push({...m,group:grp});
+              }
+            }
+
+            // KO matches at this venue
+            const koMatches=[];
+            for(const[rnd,slots]of Object.entries(KO)){
+              slots.forEach((slot,idx)=>{
+                if(slot.venue===selectedMapVenue){
+                  const rows=getSlotRows(rnd,idx);
+                  koMatches.push({...slot,rnd,idx,rows});
+                }
+              });
+            }
+
+            // Trip cost if homeCity set
+            let tripInfo=null;
+            if(homeCity){
+              const vc=VENUE_COORDS[selectedMapVenue];
+              if(vc){
+                const dist=Math.round(haversine(homeCity.lat,homeCity.lng,vc.lat,vc.lng));
+                const tc=travelCost(dist);
+                // Use round-specific hotel price: tripRound selection → group fallback → flat fallback → hardcoded
+                const roundForHotel=tripRound||"group";
+                const hc=prices?.hotels?.[selectedMapVenue]?.[roundForHotel]
+                       || prices?.hotels?.[selectedMapVenue]?.["group"]
+                       || HOTEL_COST[selectedMapVenue]
+                       || {low:150,high:400};
+                const hotelRoundLabel=prices?.hotels?.[selectedMapVenue]?.[roundForHotel]?"("+roundForHotel.toUpperCase()+" rate)":null;
+                const venueCity=vc.city||selectedMapVenue;
+                tripInfo={dist,tc,hc,hotelRoundLabel,venueCity};
+              }
+            }
+
+            return (
+              <div style={{
+                background:"#061228",
+                border:`1px solid ${accentColor}`,
+                borderTop:"none",
+                padding:"16px",
+                marginBottom:0,
+              }}>
+                <div style={{maxWidth:900,margin:"0 auto"}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12,flexWrap:"wrap",gap:8}}>
+                    <div style={{display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"}}>
+                      <span style={{fontSize:22}}>📍</span>
+                      <span style={{fontWeight:800,fontSize:16,color:"#f1f5f9"}}>{selectedMapVenue}</span>
+                      {isTexas&&<span style={{background:"#78350f",color:"#fbbf24",padding:"2px 10px",borderRadius:12,fontSize:11,fontWeight:700}}>★ Texas</span>}
+                      {isCanada&&<span style={{background:"#052e16",color:"#22c55e",padding:"2px 10px",borderRadius:12,fontSize:11,fontWeight:700}}>🍁 Canada</span>}
+                      {isMexico&&<span style={{background:"#1c0a00",color:"#f97316",padding:"2px 10px",borderRadius:12,fontSize:11,fontWeight:700}}>🇲🇽 Mexico</span>}
+                      <span style={{color:"#64748b",fontSize:12}}>{gsMatches.length} group · {koMatches.length} knockout matches</span>
+                    </div>
+                    <button onClick={()=>setSelectedMapVenue(null)} style={{
+                      background:"transparent",border:"1px solid #1e3a5f",color:"#64748b",
+                      borderRadius:6,padding:"4px 10px",fontSize:12,cursor:"pointer"
+                    }}>✕ Close</button>
+                  </div>
+
+                  {/* Trip cost mini-panel */}
+                  {tripInfo&&(
+                    <div style={{
+                      background:"#050e20",border:"1px solid #1e3a5f",borderRadius:8,
+                      padding:"10px 14px",marginBottom:12,
+                    }}>
+                      <div style={{display:"flex",gap:20,flexWrap:"wrap",alignItems:"center",marginBottom:8}}>
+                        <span style={{color:"#64748b",fontSize:12,fontWeight:700}}>FROM {homeCity.n.toUpperCase()}</span>
+                        <span style={{color:"#94a3b8",fontSize:12}}>{tripInfo.dist.toLocaleString()} mi · {tripInfo.tc.mode}</span>
+                        <span style={{color:"#60a5fa",fontSize:12}}>Travel: <b>${tripInfo.tc.low}–${tripInfo.tc.high}</b></span>
+                        <span style={{color:"#a78bfa",fontSize:12}}>Hotel/night: <b>${tripInfo.hc.low}–${tripInfo.hc.high}</b>
+                          {tripInfo.hotelRoundLabel&&<span style={{color:"#475569",fontSize:10,marginLeft:4}}>{tripInfo.hotelRoundLabel}</span>}
+                        </span>
+                        {prices?.tiers&&(()=>{
+                          const tier=koMatches[0]?.rnd||"r32";
+                          const tk=prices.tiers[tier]||prices.tiers.r32;
+                          const totalLow=tripInfo.tc.low+tripInfo.hc.low+tk.low;
+                          const totalHigh=tripInfo.tc.high+tripInfo.hc.high*2+tk.high;
+                          return <span style={{color:"#fbbf24",fontWeight:700,fontSize:13}}>Est. Total: ${totalLow.toLocaleString()}–${totalHigh.toLocaleString()}</span>;
+                        })()}
+                      </div>
+                      {tripInfo.tc.mode.includes("✈️")&&(
+                        <FlightsButton fromCity={homeCity.n.split(",")[0]} toCity={tripInfo.venueCity}/>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Group stage matches */}
+                  {gsMatches.length>0&&(
+                    <div style={{marginBottom:12}}>
+                      <div style={{color:"#64748b",fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:1,marginBottom:8}}>Group Stage</div>
+                      {gsMatches.map((m,i)=>(
+                        <div key={i} style={{
+                          display:"flex",alignItems:"center",gap:8,flexWrap:"wrap",
+                          padding:"6px 10px",background:"#050e20",borderRadius:7,marginBottom:4,
+                          border:"1px solid #1e3a5f"
+                        }}>
+                          <span style={{background:"#1e3a5f",color:"#a78bfa",padding:"1px 8px",borderRadius:10,fontSize:11,fontWeight:700}}>Grp {m.group}</span>
+                          <span style={{color:"#64748b",fontSize:12}}>{m.date}</span>
+                          <span style={{fontSize:14,fontWeight:600}}>{fl(m.a)} {m.a}</span>
+                          <span style={{color:"#475569",fontSize:12}}>vs</span>
+                          <span style={{fontSize:14,fontWeight:600}}>{fl(m.b)} {m.b}</span>
+                        </div>
+                      ))}
+                      <PriceBadge tier="group" prices={prices}/>
+                    </div>
+                  )}
+
+                  {/* Knockout matches */}
+                  {koMatches.length>0&&(
+                    <div>
+                      <div style={{color:"#64748b",fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:1,marginBottom:8}}>Knockout Matches</div>
+                      {koMatches.map((m,i)=>(
+                        <div key={i} style={{marginBottom:8}}>
+                          <SlotCard slot={m} rows={m.rows} N={N} tier={m.rnd} prices={prices}/>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* TAB BAR — constrained width */}
+          <div style={{maxWidth:900,margin:"0 auto",padding:"0 16px"}}>
+            <div style={{
+              display:"flex",gap:4,overflowX:"auto",padding:"12px 0",
+              borderBottom:"1px solid #1e3a5f",marginBottom:20,
+              scrollbarWidth:"thin",
+            }}>
+              {tabs.map(t=>(
+                <button key={t.id} onClick={()=>setTab(t.id)} style={{
+                  background:tab===t.id?"#1e3a5f":"transparent",
+                  color:tab===t.id?"#60a5fa":"#64748b",
+                  border:`1px solid ${tab===t.id?"#3b82f6":"#1e3a5f"}`,
+                  borderRadius:8,padding:"6px 14px",
+                  fontSize:12,fontWeight:600,cursor:"pointer",whiteSpace:"nowrap",
+                  transition:"all 0.15s",flexShrink:0,
+                }}>{t.label}</button>
+              ))}
+            </div>
+          </div>
+
+          {/* TAB CONTENT — constrained width */}
+          <div style={{maxWidth:900,margin:"0 auto",padding:"0 16px 40px"}}>
+
+            {/* =============== CHAMPION ODDS TAB =============== */}
+            {tab==="champion"&&(
+              <div>
+                <h2 style={{fontSize:18,fontWeight:700,color:"#f1f5f9",marginBottom:4}}>🏆 Champion Odds</h2>
+                <p style={{color:"#64748b",fontSize:13,marginBottom:20}}>
+                  {done?`Based on ${N.toLocaleString()} Monte Carlo simulations using ELO ratings`:"Simulations running — odds will appear when complete"}
+                </p>
+                {[
+                  {label:"Top Favorites",desc:"Champion probability > 8%",filter:t=>t.count/N>0.08,accent:"#f59e0b"},
+                  {label:"Strong Contenders",desc:"3% – 8% champion probability",filter:t=>t.count/N>=0.03&&t.count/N<=0.08,accent:"#60a5fa"},
+                  {label:"Dark Horses",desc:"Champion probability < 3%",filter:t=>t.count/N<0.03&&t.count>0,accent:"#a78bfa"},
+                ].map(({label,desc,filter,accent})=>{
+                  const rows=champRows.filter(filter);
+                  if(!rows.length)return null;
+                  const maxCount=rows[0]?.count||1;
+                  return (
+                    <div key={label} style={{marginBottom:24}}>
+                      <div style={{
+                        display:"flex",alignItems:"center",gap:10,marginBottom:10,
+                        borderBottom:`2px solid ${accent}`,paddingBottom:6
+                      }}>
+                        <span style={{color:accent,fontWeight:700,fontSize:15}}>{label}</span>
+                        <span style={{color:"#475569",fontSize:12}}>{desc}</span>
+                      </div>
+                      {rows.map(({team,count},i)=>{
+                        const pct=(count/N*100);
+                        const barW=maxCount>0?(count/maxCount*100):0;
+                        const teamColor=COLORS[team]||"#1e40af";
+                        const f=FORM[team]||0;
+                        return (
+                          <div key={team} style={{
+                            display:"flex",alignItems:"center",gap:10,
+                            padding:"8px 12px",borderRadius:8,marginBottom:5,
+                            background:"#061228",border:"1px solid #1e3a5f",
+                            flexWrap:"wrap",gap:8
+                          }}>
+                            <span style={{color:"#475569",fontSize:12,minWidth:22,textAlign:"right"}}>{i+1}.</span>
+                            <span style={{fontSize:22}}>{fl(team)}</span>
+                            <div style={{flex:1,minWidth:120}}>
+                              <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:4,flexWrap:"wrap"}}>
+                                <span style={{fontWeight:700,fontSize:14}}>{team}</span>
+                                <span style={{color:"#475569",fontSize:11}}>#{RANKS[team]} ELO</span>
+                                <span style={{
+                                  color:fc(f),fontSize:11,fontWeight:700,
+                                  background:"#0d1f3c",padding:"1px 6px",borderRadius:10
+                                }}>{fa(f)} {f>0?"+":""}{f.toFixed(1)}</span>
+                              </div>
+                              <div style={{display:"flex",alignItems:"center",gap:8}}>
+                                <div style={{flex:1,height:8,background:"#0d1f3c",borderRadius:4,overflow:"hidden"}}>
+                                  <div style={{width:`${barW}%`,height:"100%",background:teamColor,borderRadius:4,transition:"width 0.5s"}}/>
+                                </div>
+                                <span style={{
+                                  color:"#f1f5f9",fontWeight:800,fontSize:13,minWidth:46,textAlign:"right"
+                                }}>{pct.toFixed(1)}%</span>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })}
+                {done&&champRows.filter(t=>t.count===0).length>0&&(
+                  <div style={{marginBottom:24}}>
+                    <div style={{
+                      display:"flex",alignItems:"center",gap:10,marginBottom:10,
+                      borderBottom:"2px solid #334155",paddingBottom:6
+                    }}>
+                      <span style={{color:"#475569",fontWeight:700,fontSize:15}}>No Champion Sims</span>
+                      <span style={{color:"#374151",fontSize:12}}>0% across all simulations</span>
+                    </div>
+                    <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
+                      {champRows.filter(t=>t.count===0).map(({team})=>(
+                        <span key={team} style={{
+                          background:"#061228",border:"1px solid #1e3a5f",
+                          borderRadius:8,padding:"4px 10px",fontSize:12,color:"#475569"
+                        }}>{fl(team)} {team}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* =============== TRACK A TEAM TAB =============== */}
+            {tab==="track"&&(
+              <div>
+                <h2 style={{fontSize:18,fontWeight:700,color:"#f1f5f9",marginBottom:4}}>🔍 Track a Team</h2>
+                <p style={{color:"#64748b",fontSize:13,marginBottom:16}}>Follow a team's projected path through the tournament</p>
+                <div style={{marginBottom:20}}>
+                  <select
+                    value={trackTeam}
+                    onChange={e=>setTrackTeam(e.target.value)}
+                    style={{
+                      background:"#0d1f3c",border:"1px solid #1e3a5f",color:"#e2e8f0",
+                      borderRadius:8,padding:"10px 16px",fontSize:14,width:"100%",maxWidth:360,
+                      cursor:"pointer",outline:"none"
+                    }}
+                  >
+                    {SORTED_ELO.map(([t])=>(
+                      <option key={t} value={t}>{fl(t)} {t} (ELO: {ELO[t]})</option>
+                    ))}
+                  </select>
+                </div>
+                {trackTeam&&trackData&&(()=>{
+                  const {teamGroup,groupObj,roundInfo}=trackData;
+                  const f=FORM[trackTeam]||0;
+                  const champPct=((championData[trackTeam]||0)/N*100);
+                  return (
+                    <div>
+                      {/* Team header card */}
+                      <div style={{
+                        background:"linear-gradient(135deg,#0a1f3f,#061228)",
+                        border:`2px solid ${COLORS[trackTeam]||"#1e3a5f"}`,
+                        borderRadius:12,padding:"16px 20px",marginBottom:20,
+                        display:"flex",alignItems:"center",gap:16,flexWrap:"wrap"
+                      }}>
+                        <span style={{fontSize:52,lineHeight:1}}>{fl(trackTeam)}</span>
+                        <div style={{flex:1,minWidth:160}}>
+                          <div style={{fontSize:22,fontWeight:800,color:"#f1f5f9",marginBottom:4}}>{trackTeam}</div>
+                          <div style={{display:"flex",gap:16,flexWrap:"wrap"}}>
+                            <div>
+                              <div style={{color:"#64748b",fontSize:11,textTransform:"uppercase",letterSpacing:1}}>ELO Rating</div>
+                              <div style={{color:"#60a5fa",fontWeight:700,fontSize:15}}>{ELO[trackTeam]||"N/A"}</div>
+                            </div>
+                            <div>
+                              <div style={{color:"#64748b",fontSize:11,textTransform:"uppercase",letterSpacing:1}}>World Rank</div>
+                              <div style={{color:"#60a5fa",fontWeight:700,fontSize:15}}>#{RANKS[trackTeam]}</div>
+                            </div>
+                            <div>
+                              <div style={{color:"#64748b",fontSize:11,textTransform:"uppercase",letterSpacing:1}}>Recent Form</div>
+                              <div style={{color:fc(f),fontWeight:700,fontSize:15}}>{fa(f)} {f>0?"+":""}{f.toFixed(2)}</div>
+                            </div>
+                            <div>
+                              <div style={{color:"#64748b",fontSize:11,textTransform:"uppercase",letterSpacing:1}}>Champion Odds</div>
+                              <div style={{color:"#fbbf24",fontWeight:700,fontSize:15}}>🏆 {champPct.toFixed(1)}%</div>
+                            </div>
+                            <div>
+                              <div style={{color:"#64748b",fontSize:11,textTransform:"uppercase",letterSpacing:1}}>Group</div>
+                              <div style={{color:"#a78bfa",fontWeight:700,fontSize:15}}>Group {teamGroup||"?"}</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Group assignment */}
+                      {teamGroup&&groupObj&&(
+                        <div style={{
+                          background:"#061228",border:"1px solid #1e3a5f",
+                          borderRadius:10,padding:"14px 16px",marginBottom:20
+                        }}>
+                          <div style={{fontWeight:700,fontSize:14,color:"#a78bfa",marginBottom:10}}>Group {teamGroup} — All Teams</div>
+                          {groupObj.teams.map(t=>{
+                            const isProj=groupObj.proj.includes(t);
+                            const isThis=t===trackTeam;
+                            return (
+                              <div key={t} style={{
+                                display:"flex",alignItems:"center",gap:10,
+                                padding:"6px 10px",borderRadius:6,marginBottom:4,
+                                background:isThis?"#0f2d4a":isProj?"#071a30":"transparent",
+                                border:isThis?`1px solid ${COLORS[t]||"#3b82f6"}`:isProj?"1px solid #1e3a5f":"1px solid transparent"
+                              }}>
+                                <span style={{fontSize:20}}>{fl(t)}</span>
+                                <span style={{flex:1,fontWeight:isThis?700:400,color:isThis?"#f1f5f9":"#e2e8f0"}}>{t}</span>
+                                <span style={{color:"#64748b",fontSize:11}}>ELO {ELO[t]}</span>
+                                <span style={{color:"#64748b",fontSize:11}}>#{RANKS[t]}</span>
+                                {isProj&&<span style={{color:"#4ade80",fontSize:11,fontWeight:700}}>✓</span>}
+                                {isThis&&<span style={{color:"#60a5fa",fontSize:11,fontWeight:700}}>← you</span>}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      {/* Probable KO Path */}
+                      <div style={{
+                        background:"#061228",border:"1px solid #1e3a5f",
+                        borderRadius:10,padding:"14px 16px",marginBottom:20
+                      }}>
+                        <div style={{fontWeight:700,fontSize:14,color:"#60a5fa",marginBottom:14}}>Probable Knockout Path</div>
+                        {roundInfo.map(({rnd,pct,slots})=>{
+                          const label=ROUND_LABELS[rnd]||rnd;
+                          const barColor=pct>50?"#4ade80":pct>20?"#60a5fa":pct>5?"#fbbf24":"#f87171";
+                          return (
+                            <div key={rnd} style={{marginBottom:16}}>
+                              <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
+                                <span style={{color:"#94a3b8",fontWeight:600,fontSize:13,minWidth:120}}>{label}</span>
+                                <div style={{flex:1,height:8,background:"#0d1f3c",borderRadius:4,overflow:"hidden"}}>
+                                  <div style={{width:`${Math.min(pct,100)}%`,height:"100%",background:barColor,borderRadius:4,transition:"width 0.5s"}}/>
+                                </div>
+                                <span style={{color:barColor,fontWeight:700,fontSize:13,minWidth:46,textAlign:"right"}}>{pct.toFixed(1)}%</span>
+                              </div>
+                              {slots.length>0&&pct>0.5&&(
+                                <div style={{paddingLeft:130}}>
+                                  {slots.slice(0,2).map(({idx,slotFreq,opps})=>{
+                                    const slotMeta=(KO[rnd]||[])[idx];
+                                    return (
+                                      <div key={idx} style={{marginBottom:6}}>
+                                        {slotMeta&&(
+                                          <div style={{color:"#64748b",fontSize:11,marginBottom:3}}>
+                                            {slotMeta.m} — {slotMeta.venue} ({slotFreq.toFixed(1)}% appear here)
+                                          </div>
+                                        )}
+                                        {opps.length>0&&(
+                                          <div style={{display:"flex",flexWrap:"wrap",gap:4}}>
+                                            <span style={{color:"#475569",fontSize:11}}>Likely opponents:</span>
+                                            {opps.slice(0,3).map(({team,pct:oPct})=>(
+                                              <span key={team} style={{
+                                                background:"#0d1f3c",border:"1px solid #1e3a5f",
+                                                borderRadius:12,padding:"1px 8px",fontSize:11,color:"#94a3b8"
+                                              }}>{fl(team)} {team} <span style={{color:"#60a5fa"}}>{oPct.toFixed(1)}%</span></span>
+                                            ))}
+                                          </div>
+                                        )}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
+
+            {/* =============== VENUE FINDER TAB =============== */}
+            {tab==="venue"&&(
+              <div>
+                <h2 style={{fontSize:18,fontWeight:700,color:"#f1f5f9",marginBottom:4}}>📍 Venue Finder</h2>
+                <p style={{color:"#64748b",fontSize:13,marginBottom:16}}>Find all matches scheduled at a specific stadium — great for ticket buyers</p>
+                <div style={{marginBottom:20}}>
+                  <select
+                    value={venueFilter}
+                    onChange={e=>setVenueFilter(e.target.value)}
+                    style={{
+                      background:"#0d1f3c",border:"1px solid #1e3a5f",color:"#e2e8f0",
+                      borderRadius:8,padding:"10px 16px",fontSize:14,width:"100%",maxWidth:440,
+                      cursor:"pointer",outline:"none"
+                    }}
+                  >
+                    {allVenues.map(v=>(
+                      <option key={v} value={v}>{v}</option>
+                    ))}
+                  </select>
+                </div>
+                {venueFilter&&venueData&&(()=>{
+                  const {gsMatches,koMatches}=venueData;
+                  const isTexasVenue=venueFilter.includes("Houston")||venueFilter.includes("Dallas");
+                  return (
+                    <div>
+                      <div style={{
+                        background: isTexasVenue?"#1c1100":"#061228",
+                        border:`1px solid ${isTexasVenue?"#f59e0b":"#1e3a5f"}`,
+                        borderRadius:10,padding:"12px 16px",marginBottom:20,
+                        display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"
+                      }}>
+                        <span style={{fontSize:20}}>📍</span>
+                        <span style={{fontWeight:700,fontSize:15,color:isTexasVenue?"#fbbf24":"#f1f5f9"}}>{venueFilter}</span>
+                        {isTexasVenue&&<span style={{background:"#78350f",color:"#fbbf24",padding:"2px 10px",borderRadius:12,fontSize:12,fontWeight:700}}>★ Texas Venue</span>}
+                        <span style={{color:"#64748b",fontSize:12,marginLeft:"auto"}}>{gsMatches.length} group stage · {koMatches.length} knockout</span>
+                      </div>
+
+                      {gsMatches.length>0&&(
+                        <div style={{marginBottom:24}}>
+                          <div style={{fontWeight:700,fontSize:14,color:"#94a3b8",marginBottom:10,
+                            textTransform:"uppercase",letterSpacing:1,borderBottom:"1px solid #1e3a5f",paddingBottom:6}}>
+                            Group Stage Matches
+                          </div>
+                          {gsMatches.map((m,i)=>(
+                            <div key={i} style={{
+                              background:"#061228",border:"1px solid #1e3a5f",
+                              borderRadius:8,padding:"10px 14px",marginBottom:8,
+                              display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"
+                            }}>
+                              <span style={{
+                                background:"#1e3a5f",color:"#a78bfa",
+                                padding:"2px 8px",borderRadius:12,fontSize:11,fontWeight:700
+                              }}>Group {m.group}</span>
+                              <span style={{color:"#64748b",fontSize:12,minWidth:46}}>{m.date}</span>
+                              <div style={{display:"flex",alignItems:"center",gap:8,flex:1}}>
+                                <span style={{fontSize:14,fontWeight:600}}>{fl(m.a)} {m.a}</span>
+                                <span style={{color:"#475569",fontSize:12,fontWeight:700}}>vs</span>
+                                <span style={{fontSize:14,fontWeight:600}}>{fl(m.b)} {m.b}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {koMatches.length>0&&(
+                        <div>
+                          <div style={{fontWeight:700,fontSize:14,color:"#94a3b8",marginBottom:10,
+                            textTransform:"uppercase",letterSpacing:1,borderBottom:"1px solid #1e3a5f",paddingBottom:6}}>
+                            Knockout Matches
+                          </div>
+                          {koMatches.map((m,i)=>(
+                            <SlotCard key={i} slot={m} rows={m.rows} N={N} tier={m.rnd} prices={prices}/>
+                          ))}
+                        </div>
+                      )}
+
+                      {gsMatches.length===0&&koMatches.length===0&&(
+                        <div style={{color:"#475569",textAlign:"center",padding:"40px 0",fontSize:14}}>
+                          No matches found for this venue
+                        </div>
+                      )}
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
+
+            {/* =============== TRIP PLANNER TAB =============== */}
+            {tab==="trip"&&(
+              <div>
+                <h2 style={{fontSize:18,fontWeight:700,color:"#f1f5f9",marginBottom:4}}>✈️ Trip Planner</h2>
+                <p style={{color:"#64748b",fontSize:13,marginBottom:16}}>
+                  Select your home city to estimate total trip costs for any match. Click venues on the map above to see breakdowns. Pins turn green (affordable), yellow (moderate), or red (expensive) based on estimated total cost.
+                </p>
+                <div style={{marginBottom:20}}>
+                  {/* City search input */}
+                  <div style={{marginBottom:10}}>
+                    <div style={{color:"#64748b",fontSize:11,fontWeight:700,marginBottom:6}}>YOUR CITY (US, Mexico, or Canada)</div>
+                    <div style={{display:"flex",gap:8,flexWrap:"wrap",alignItems:"center"}}>
+                      <input
+                        type="text"
+                        value={cityInput}
+                        onChange={e=>{setCityInput(e.target.value);setCityError(null);}}
+                        onKeyDown={async e=>{
+                          if(e.key==="Enter"&&cityInput.trim()){
+                            setCitySearching(true);setCityError(null);
+                            try{
+                              const result=await geocodeCity(cityInput.trim());
+                              if(result){setHomeCity(result);setCityInput(result.n);}
+                              else setCityError("City not found — try adding a state/province (e.g. 'Austin, TX')");
+                            }catch(err){setCityError("Search failed — check your connection");}
+                            finally{setCitySearching(false);}
+                          }
+                        }}
+                        placeholder="Type any city, e.g. Austin TX or Calgary"
+                        style={{
+                          background:"#0d1f3c",border:"1px solid #1e3a5f",color:"#e2e8f0",
+                          borderRadius:8,padding:"10px 16px",fontSize:14,outline:"none",
+                          width:280,
+                        }}
+                      />
+                      <button
+                        disabled={citySearching||!cityInput.trim()}
+                        onClick={async()=>{
+                          if(!cityInput.trim())return;
+                          setCitySearching(true);setCityError(null);
+                          try{
+                            const result=await geocodeCity(cityInput.trim());
+                            if(result){setHomeCity(result);setCityInput(result.n);}
+                            else setCityError("City not found — try adding a state/province (e.g. 'Austin, TX')");
+                          }catch(err){setCityError("Search failed — check your connection");}
+                          finally{setCitySearching(false);}
+                        }}
+                        style={{
+                          background:citySearching?"#0d1f3c":"#1e3a5f",
+                          border:"1px solid #2d5a9f",color:"#93c5fd",
+                          borderRadius:8,padding:"10px 18px",fontSize:14,cursor:"pointer",fontWeight:700,
+                          opacity:(citySearching||!cityInput.trim())?0.5:1,
+                        }}>
+                        {citySearching?"Searching…":"Search"}
+                      </button>
+                      {homeCity&&(
+                        <button onClick={()=>{setHomeCity(null);setCityInput("");setCityError(null);}}
+                          style={{background:"transparent",border:"1px solid #334155",color:"#64748b",
+                            borderRadius:8,padding:"10px 14px",fontSize:13,cursor:"pointer"}}>
+                          ✕ Clear
+                        </button>
+                      )}
+                    </div>
+                    {cityError&&<div style={{color:"#f87171",fontSize:12,marginTop:6}}>{cityError}</div>}
+                    {homeCity&&(
+                      <div style={{color:"#4ade80",fontSize:12,marginTop:6}}>
+                        📍 Showing costs from <b>{homeCity.n}</b>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Quick-pick popular cities */}
+                  {!homeCity&&(
+                    <div>
+                      <div style={{color:"#475569",fontSize:11,marginBottom:6}}>Quick pick:</div>
+                      <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+                        {["New York, NY","Los Angeles, CA","Chicago, IL","Houston, TX","Miami, FL",
+                          "Dallas, TX","Seattle, WA","Boston, MA","Atlanta, GA","Toronto, ON",
+                          "Vancouver, BC","Mexico City, MX"].map(cn=>{
+                          const city=HOME_CITIES.find(c=>c.n===cn);
+                          if(!city)return null;
+                          return(
+                            <button key={cn}
+                              onClick={()=>{setHomeCity(city);setCityInput(city.n);setCityError(null);}}
+                              style={{
+                                background:"#061228",border:"1px solid #1e3a5f",color:"#94a3b8",
+                                borderRadius:20,padding:"4px 12px",fontSize:11,cursor:"pointer",
+                              }}>{cn.split(",")[0]}</button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div style={{marginBottom:20}}>
+                  <div style={{color:"#64748b",fontSize:11,fontWeight:700,marginBottom:4}}>ROUND TO ATTEND</div>
+                  <select value={tripRound} onChange={e=>setTripRound(e.target.value)} style={{
+                    background:"#0d1f3c",border:"1px solid #1e3a5f",color:"#e2e8f0",
+                    borderRadius:8,padding:"10px 16px",fontSize:14,cursor:"pointer",outline:"none"
+                  }}>
+                    <option value="group">Group Stage</option>
+                    <option value="r32">Round of 32</option>
+                    <option value="r16">Round of 16</option>
+                    <option value="qf">Quarterfinals</option>
+                    <option value="sf">Semifinals</option>
+                    <option value="final">Final</option>
+                  </select>
+                </div>
+
+                {homeCity?(()=>{
+                  // Build venue list for selected round
+                  const venuesWithMatches=new Set();
+                  if(tripRound==="group"){
+                    for(const matches of Object.values(GS)) for(const m of matches) venuesWithMatches.add(m.venue);
+                  } else {
+                    for(const slot of (KO[tripRound]||[])) venuesWithMatches.add(slot.venue);
+                  }
+
+                  const DAY_TRIP_MILES=180; // <3h drive → skip hotel
+                  const costRows=[];
+                  for(const venueName of venuesWithMatches){
+                    const vc=VENUE_COORDS[venueName];
+                    if(!vc)continue;
+                    const dist=Math.round(haversine(homeCity.lat,homeCity.lng,vc.lat,vc.lng));
+                    const isDayTrip=dist<DAY_TRIP_MILES;
+                    const tc=travelCost(dist);
+                    const hcLive=prices?.hotels?.[venueName]?.[tripRound]
+                               || prices?.hotels?.[venueName]?.["group"];
+                    const hcFallback=HOTEL_COST[venueName]||{low:150,high:400};
+                    const hcRaw=hcLive||hcFallback;
+                    // Day-trip: hotel = $0 low, ~$50 high (gas/parking estimate)
+                    const hc=isDayTrip?{low:0,high:50}:hcRaw;
+                    const hotelLive=!!hcLive&&!isDayTrip;
+                    const tk=prices?.tiers?.[tripRound]||{low:150,median:300,high:700};
+                    const totalLow=tc.low+hc.low+tk.low;
+                    const totalHigh=tc.high+(isDayTrip?hc.high:hc.high*2)+tk.high;
+                    const venueCity=vc.city||venueName;
+                    costRows.push({venueName,dist,isDayTrip,tc,hc,hotelLive,hcRaw,tk,totalLow,totalHigh,venueCity});
+                  }
+                  costRows.sort((a,b)=>a.totalLow-b.totalLow);
+                  const top3=costRows.slice(0,3);
+
+                  const RANK_LABELS=["🥇 Best value","🥈 Runner-up","🥉 Third option"];
+                  const RANK_BORDERS=["#f59e0b","#94a3b8","#b45309"];
+                  const RANK_BG=["#1a1200","#0d1325","#0d1325"];
+
+                  return (
+                    <div>
+                      <div style={{color:"#94a3b8",fontSize:13,marginBottom:16}}>
+                        Top 3 cheapest venues to visit for the <b style={{color:"#f1f5f9"}}>{
+                          {group:"Group Stage",r32:"Round of 32",r16:"Round of 16",
+                           qf:"Quarterfinals",sf:"Semifinals",final:"Final"}[tripRound]
+                        }</b> from <b style={{color:"#f1f5f9"}}>{homeCity.n}</b>
+                      </div>
+
+                      {top3.map(({venueName,dist,isDayTrip,tc,hc,hotelLive,hcRaw,tk,totalLow,totalHigh,venueCity},i)=>{
+                        const isSelected=venueName===selectedMapVenue;
+                        const showFlight=tc.mode.includes("✈️");
+                        const totalColor=totalLow<600?"#4ade80":totalLow<1200?"#fbbf24":"#f87171";
+                        const vt=venueType(venueName);
+
+                        // ── Build rich match items for this venue ──────────────────
+                        const matchItems=[];
+                        if(tripRound==="group"){
+                          // Deterministic: exact teams known
+                          for(const [grp,ms] of Object.entries(GS))
+                            for(const m of ms) if(m.venue===venueName)
+                              matchItems.push({t1:m.a,t2:m.b,date:m.date,grp,certain:true,pct:null});
+                        } else {
+                          // Probabilistic: pull top matchups from Monte Carlo
+                          const venueSlots=(KO[tripRound]||[])
+                            .map((sl,idx)=>({sl,idx}))
+                            .filter(({sl})=>sl.venue===venueName);
+                          for(const {sl,idx} of venueSlots){
+                            const counts=simData[tripRound]?.[idx]||{};
+                            const sorted=Object.entries(counts)
+                              .sort((a,b)=>b[1]-a[1])
+                              .slice(0,3);
+                            if(sorted.length){
+                              for(const [key,cnt] of sorted){
+                                const [t1,t2]=key.split("|");
+                                matchItems.push({t1,t2,date:sl.date,certain:false,
+                                  pct:Math.round((cnt/N)*100)});
+                              }
+                            } else {
+                              matchItems.push({t1:"TBD",t2:"TBD",date:sl.date,certain:false,pct:null});
+                            }
+                          }
+                        }
+                        const topMatch=matchItems[0];
+                        const extraMatches=matchItems.slice(1);
+
+                        return (
+                          <div key={venueName} style={{
+                            background:isSelected?"#0a1f3f":RANK_BG[i],
+                            border:`2px solid ${isSelected?"#3b82f6":RANK_BORDERS[i]}`,
+                            borderRadius:12,padding:"14px 16px",marginBottom:12,
+                            transition:"all 0.15s",position:"relative",overflow:"hidden",
+                          }}>
+                            {/* Rank ribbon */}
+                            <div style={{
+                              position:"absolute",top:0,left:0,
+                              background:RANK_BORDERS[i],color:"#000",
+                              fontSize:10,fontWeight:800,padding:"2px 10px",
+                              borderBottomRightRadius:8,letterSpacing:0.5,
+                            }}>{RANK_LABELS[i]}</div>
+
+                            <div
+                              onClick={()=>{setSelectedMapVenue(venueName);window.scrollTo({top:0,behavior:"smooth"});}}
+                              style={{cursor:"pointer",marginTop:18}}>
+
+                              {/* ── PRIMARY: Match heading ── */}
+                              {topMatch&&(
+                                <div style={{marginBottom:8}}>
+                                  {topMatch.certain?(
+                                    // Group stage — certain match
+                                    <div>
+                                      <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap",marginBottom:2}}>
+                                        <span style={{fontSize:16,fontWeight:700,color:"#f1f5f9"}}>
+                                          {topMatch.t1!=="TBD"?`${fl(topMatch.t1)} ${topMatch.t1}`:"TBD"}
+                                        </span>
+                                        <span style={{color:"#475569",fontSize:13,fontWeight:600}}>vs</span>
+                                        <span style={{fontSize:16,fontWeight:700,color:"#f1f5f9"}}>
+                                          {topMatch.t2!=="TBD"?`${fl(topMatch.t2)} ${topMatch.t2}`:"TBD"}
+                                        </span>
+                                        {topMatch.grp&&<span style={{color:"#64748b",fontSize:11}}>Group {topMatch.grp}</span>}
+                                        <span style={{color:"#475569",fontSize:11}}>{topMatch.date}</span>
+                                      </div>
+                                      {/* Extra group-stage matches */}
+                                      {extraMatches.length>0&&(
+                                        <div style={{color:"#475569",fontSize:11,marginTop:3}}>
+                                          {extraMatches.map((m,j)=>(
+                                            <span key={j} style={{marginRight:10}}>
+                                              {fl(m.t1)} {m.t1} vs {fl(m.t2)} {m.t2}
+                                              {m.grp&&<span style={{color:"#334155"}}> (Grp {m.grp})</span>}
+                                            </span>
+                                          ))}
+                                        </div>
+                                      )}
+                                    </div>
+                                  ):(
+                                    // KO — probabilistic top matchup
+                                    <div>
+                                      <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap",marginBottom:4}}>
+                                        <span style={{fontSize:16,fontWeight:700,color:"#f1f5f9"}}>
+                                          {topMatch.t1!=="TBD"?`${fl(topMatch.t1)} ${topMatch.t1}`:"TBD"}
+                                        </span>
+                                        <span style={{color:"#475569",fontSize:13,fontWeight:600}}>vs</span>
+                                        <span style={{fontSize:16,fontWeight:700,color:"#f1f5f9"}}>
+                                          {topMatch.t2!=="TBD"?`${fl(topMatch.t2)} ${topMatch.t2}`:"TBD"}
+                                        </span>
+                                        {topMatch.pct!==null&&(
+                                          <span style={{
+                                            background:"#1e3a5f",color:"#93c5fd",fontSize:11,
+                                            fontWeight:700,padding:"2px 8px",borderRadius:10,
+                                          }}>{topMatch.pct}% likely</span>
+                                        )}
+                                        <span style={{color:"#475569",fontSize:11}}>{topMatch.date}</span>
+                                      </div>
+                                      {/* Other possible matchups */}
+                                      {extraMatches.length>0&&done&&(
+                                        <div style={{color:"#475569",fontSize:11,marginTop:2}}>
+                                          <span style={{color:"#334155",marginRight:4}}>Also possible:</span>
+                                          {extraMatches.slice(0,2).map((m,j)=>(
+                                            <span key={j} style={{marginRight:10,color:"#475569"}}>
+                                              {fl(m.t1)}{fl(m.t2)} {m.pct}%
+                                            </span>
+                                          ))}
+                                        </div>
+                                      )}
+                                      {!done&&<div style={{color:"#334155",fontSize:11}}>Sim running…</div>}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+
+                              {/* ── SECONDARY: Venue + distance ── */}
+                              <div style={{
+                                display:"flex",alignItems:"center",gap:6,
+                                paddingTop:8,borderTop:"1px solid #0d1f3c",
+                                marginBottom:8,flexWrap:"wrap",
+                              }}>
+                                <span style={{color:"#64748b",fontSize:12,fontWeight:600}}>{venueName}</span>
+                                {isDayTrip&&<span style={{
+                                  background:"#052e16",color:"#4ade80",fontSize:10,fontWeight:700,
+                                  padding:"2px 8px",borderRadius:10,border:"1px solid #166534",
+                                }}>🚗 Day trip</span>}
+                                {vt==="canada"&&<span style={{color:"#22c55e",fontSize:11}}>🍁</span>}
+                                {vt==="mexico"&&<span style={{color:"#f97316",fontSize:11}}>🇲🇽</span>}
+                                <span style={{color:"#475569",fontSize:11,marginLeft:"auto"}}>
+                                  {dist.toLocaleString()} mi · {tc.mode}
+                                </span>
+                              </div>
+
+                              {/* ── Cost breakdown + total ── */}
+                              <div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap"}}>
+                                <span style={{color:totalColor,fontWeight:800,fontSize:16,marginRight:4}}>
+                                  ${totalLow.toLocaleString()}–${totalHigh.toLocaleString()}
+                                </span>
+                                <span style={{
+                                  background:"#0d1f3c",border:"1px solid #1e3a5f",
+                                  color:"#93c5fd",fontSize:11,padding:"2px 8px",borderRadius:20,
+                                }}>Travel ${tc.low}–${tc.high}</span>
+                                <span style={{
+                                  background:"#0d1f3c",border:"1px solid #1e3a5f",
+                                  color:isDayTrip?"#4ade80":"#fcd34d",fontSize:11,padding:"2px 8px",borderRadius:20,
+                                }}>{isDayTrip?"🚗 No hotel":"🏨 $"+hc.low+"–$"+hc.high+"/nt"}{hotelLive&&" ✓"}</span>
+                                <span style={{
+                                  background:"#0d1f3c",border:"1px solid #1e3a5f",
+                                  color:"#c4b5fd",fontSize:11,padding:"2px 8px",borderRadius:20,
+                                }}>🎟️ ${tk.low}–${tk.high}</span>
+                              </div>
+                            </div>
+
+                            {/* Flight search link */}
+                            {showFlight&&(
+                              <div onClick={e=>e.stopPropagation()} style={{marginTop:10}}>
+                                <FlightsButton fromCity={homeCity.n.split(",")[0]} toCity={venueCity}/>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+
+                      {costRows.length>3&&(
+                        <div style={{color:"#334155",fontSize:11,textAlign:"center",padding:"6px 0"}}>
+                          +{costRows.length-3} more venues hosting {
+                            {group:"Group Stage",r32:"Round of 32",r16:"Round of 16",
+                             qf:"Quarterfinals",sf:"Semifinals",final:"Final"}[tripRound]
+                          } matches — click a pin on the map to explore
+                        </div>
+                      )}
+
+                      <div style={{color:"#334155",fontSize:11,marginTop:10}}>
+                        * Day trip = venue within {DAY_TRIP_MILES} miles (≈3h drive); hotel cost is $0. All costs are estimates. Click any card to see that venue's matches on the map.
+                      </div>
+                    </div>
+                  );
+                })():(
+                  <div style={{color:"#475569",textAlign:"center",padding:"40px 0",fontSize:14}}>
+                    Select your home city above to see the top 3 cheapest venues to visit
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* =============== FIFA RANKINGS TAB =============== */}
+            {tab==="rankings"&&(
+              <div>
+                <h2 style={{fontSize:18,fontWeight:700,color:"#f1f5f9",marginBottom:4}}>📊 FIFA World Rankings</h2>
+                <p style={{color:"#64748b",fontSize:13,marginBottom:20}}>All 48 qualified teams ranked by ELO rating with recent form indicator</p>
+                <div style={{
+                  display:"grid",gap:5,
+                }}>
+                  {SORTED_ELO.map(([t,elo],i)=>{
+                    const f=FORM[t]||0;
+                    const maxElo=SORTED_ELO[0][1];
+                    const barW=(elo/maxElo)*100;
+                    const teamColor=COLORS[t]||"#334155";
+                    return (
+                      <div key={t} style={{
+                        background:"#061228",border:"1px solid #1e3a5f",
+                        borderRadius:8,padding:"8px 12px",
+                        display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"
+                      }}>
+                        <span style={{color:"#475569",fontSize:12,minWidth:24,textAlign:"right"}}>{i+1}</span>
+                        <span style={{fontSize:20}}>{fl(t)}</span>
+                        <div style={{flex:1,minWidth:120}}>
+                          <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:3,flexWrap:"wrap"}}>
+                            <span style={{fontWeight:600,fontSize:13}}>{t}</span>
+                            <span style={{
+                              color:fc(f),fontSize:11,fontWeight:700,
+                              background:"#0d1f3c",padding:"1px 6px",borderRadius:10
+                            }}>{fa(f)}</span>
+                          </div>
+                          <div style={{display:"flex",alignItems:"center",gap:8}}>
+                            <div style={{flex:1,height:6,background:"#0d1f3c",borderRadius:3,overflow:"hidden"}}>
+                              <div style={{width:`${barW}%`,height:"100%",background:teamColor,borderRadius:3}}/>
+                            </div>
+                            <span style={{color:"#60a5fa",fontSize:12,fontWeight:700,minWidth:36,textAlign:"right"}}>{elo}</span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* =============== GROUP STAGE TAB =============== */}
+            {tab==="groups"&&(
+              <div>
+                <h2 style={{fontSize:18,fontWeight:700,color:"#f1f5f9",marginBottom:4}}>🏟️ Group Stage</h2>
+                <p style={{color:"#64748b",fontSize:13,marginBottom:20}}>All 12 groups with projected qualifiers and match schedule</p>
+                {Object.entries(GROUPS).map(([letter,g])=>(
+                  <GroupCard key={letter} letter={letter} g={g} />
+                ))}
+              </div>
+            )}
+
+            {/* =============== KNOCKOUT ROUND TABS =============== */}
+            {["r32","r16","qf","sf","final"].map(rnd=>{
+              if(tab!==rnd)return null;
+              const slots=KO[rnd]||[];
+              const label=ROUND_LABELS[rnd];
+              const n=rnd==="r32"?16:rnd==="r16"?8:rnd==="qf"?4:rnd==="sf"?2:1;
+              return (
+                <div key={rnd}>
+                  <h2 style={{fontSize:18,fontWeight:700,color:"#f1f5f9",marginBottom:4}}>{label}</h2>
+                  <p style={{color:"#64748b",fontSize:13,marginBottom:20}}>
+                    {n} match{n>1?"es":""} — top 3 most likely matchups from {N.toLocaleString()} simulations
+                  </p>
+                  {slots.map((slot,idx)=>{
+                    const rows=getSlotRows(rnd,idx);
+                    return <SlotCard key={slot.m} slot={slot} rows={rows} N={N} tier={rnd} prices={prices}/>;
+                  })}
+                </div>
+              );
+            })}
+
+            {/* FOOTER */}
+            <div style={{
+              borderTop:"1px solid #1e3a5f",
+              paddingTop:20,
+              marginTop:20,
+              textAlign:"center",
+              color:"#334155",
+              fontSize:12,
+            }}>
+              Monte Carlo simulation using official FIFA rankings (April 2026) · Built by{" "}
+              <a href="https://debangandey.rbind.io" style={{color:"#475569",textDecoration:"none"}}>Debangan Dey</a>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>

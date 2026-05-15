@@ -2,3 +2,6 @@
 .Rhistory
 .RData
 .Ruserdata
+
+# API keys — never commit this
+.env

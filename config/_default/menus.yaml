@@ -16,3 +16,6 @@ main:
   - name: Teaching
     url: /courses
     weight: 40
+  - name: "⚽ WC 2026"
+    url: /wc2026/
+    weight: 50
