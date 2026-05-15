@@ -233,7 +233,6 @@
         {m:"M102",date:"Jul 15",venue:"Atlanta (Mercedes-Benz)",desc:"W(M99) vs W(M100)"},
       ],
       final:[
-        {m:"M103",date:"Jul 18",venue:"Miami (Hard Rock)",desc:"Third Place"},
         {m:"M104",date:"Jul 19",venue:"East Rutherford (MetLife)",desc:"Championship Match"},
       ],
     };
@@ -472,15 +471,9 @@
         out.sf.push({idx,key:key(a,b),teamA:a,teamB:b});
         return simMatch(a,b);
       });
-      // SF losers → Third Place (M103, KO.final[0], idx:0)
-      const sfLos=[
-        ok(sfp[0][0],sfp[0][1])?(sfp[0][0]===sfw[0]?sfp[0][1]:sfp[0][0]):"TBD",
-        ok(sfp[1][0],sfp[1][1])?(sfp[1][0]===sfw[1]?sfp[1][1]:sfp[1][0]):"TBD",
-      ];
-      if(ok(sfLos[0],sfLos[1])) out.final.push({idx:0,key:key(sfLos[0],sfLos[1]),teamA:sfLos[0],teamB:sfLos[1]});
-      // SF winners → Championship (M104, KO.final[1], idx:1)
+      // SF winners → Championship Final (M104, KO.final[0], idx:0)
       let champion="TBD";
-      if(ok(sfw[0],sfw[1])){out.final.push({idx:1,key:key(sfw[0],sfw[1]),teamA:sfw[0],teamB:sfw[1]});champion=simMatch(sfw[0],sfw[1]);}
+      if(ok(sfw[0],sfw[1])){out.final.push({idx:0,key:key(sfw[0],sfw[1]),teamA:sfw[0],teamB:sfw[1]});champion=simMatch(sfw[0],sfw[1]);}
       else champion=sfw[0]!=="TBD"?sfw[0]:sfw[1];
       // Track team appearances per round per slot
       const teamSlots={r32:{},r16:{},qf:{},sf:{},final:{}};
@@ -691,7 +684,7 @@
     /* ===================== MAIN APP ===================== */
     const N=10000;
     const CHUNK=500;
-    const ROUND_LABELS={r32:"Round of 32",r16:"Round of 16",qf:"Quarterfinals",sf:"Semifinals",final:"Third Place & Final"};
+    const ROUND_LABELS={r32:"Round of 32",r16:"Round of 16",qf:"Quarterfinals",sf:"Semifinals",final:"Final"};
 
     // Gather all unique venues
     function getAllVenues(){
@@ -1554,7 +1547,7 @@
                     <option value="r16">Round of 16</option>
                     <option value="qf">Quarterfinals</option>
                     <option value="sf">Semifinals</option>
-                    <option value="final">Third Place &amp; Final</option>
+                    <option value="final">Final</option>
                   </select>
                 </div>
 
@@ -1649,7 +1642,7 @@
                   const top3=sorted.slice(0,3);
                   const MEDAL=["🥇","🥈","🥉"];
 
-                  const ROUND_LABEL={group:"Group Stage",r32:"Round of 32",r16:"Round of 16",qf:"Quarterfinals",sf:"Semifinals",final:"Third Place & Final"};
+                  const ROUND_LABEL={group:"Group Stage",r32:"Round of 32",r16:"Round of 16",qf:"Quarterfinals",sf:"Semifinals",final:"Final"};
 
                   return (
                     <div>
@@ -1877,7 +1870,7 @@
               if(tab!==rnd)return null;
               const slots=KO[rnd]||[];
               const label=ROUND_LABELS[rnd];
-              const n=rnd==="r32"?16:rnd==="r16"?8:rnd==="qf"?4:rnd==="sf"?2:2;
+              const n=rnd==="r32"?16:rnd==="r16"?8:rnd==="qf"?4:rnd==="sf"?2:1;
               return (
                 <div key={rnd}>
                   <h2 style={{fontSize:18,fontWeight:700,color:"#f1f5f9",marginBottom:4}}>{label}</h2>
