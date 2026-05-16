@@ -2542,12 +2542,11 @@
                     const r32=buildUserR32(savedBracket.gp||{},ta);
                     const ko=savedBracket.ko||{};
                     const displayName=sbDisplayName||sbUser?.email?.split('@')[0]||'My Bracket';
-                    const downloadBracket=()=>{
+                    // Shared helper: renders bracket SVG → PNG blob
+                    const getBracketBlob=()=>new Promise((resolve,reject)=>{
                       const svgEl=document.getElementById('bracket-svg');
-                      if(!svgEl)return;
+                      if(!svgEl){reject(new Error('SVG not found'));return;}
                       const svgData=new XMLSerializer().serializeToString(svgEl);
-                      const blob=new Blob([svgData],{type:'image/svg+xml;charset=utf-8'});
-                      const url=URL.createObjectURL(blob);
                       const img=new Image();
                       img.onload=()=>{
                         const c=document.createElement('canvas');
@@ -2555,11 +2554,57 @@
                         const ctx=c.getContext('2d');
                         ctx.fillStyle='#ffffff'; ctx.fillRect(0,0,c.width,c.height);
                         ctx.drawImage(img,0,0,c.width,c.height);
-                        const a=document.createElement('a');
-                        a.download='wc2026-bracket.png'; a.href=c.toDataURL('image/png'); a.click();
-                        URL.revokeObjectURL(url);
+                        c.toBlob(blob=>{
+                          if(blob)resolve(blob); else reject(new Error('Canvas toBlob failed'));
+                        },'image/png');
                       };
+                      img.onerror=reject;
                       img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svgData);
+                    });
+                    const downloadBracket=async()=>{
+                      try{
+                        const blob=await getBracketBlob();
+                        const url=URL.createObjectURL(blob);
+                        const a=document.createElement('a');
+                        a.download='wc2026-bracket.png'; a.href=url; a.click();
+                        setTimeout(()=>URL.revokeObjectURL(url),1000);
+                      }catch(e){alert('Could not generate image: '+e.message);}
+                    };
+                    const copyImage=async()=>{
+                      try{
+                        const blob=await getBracketBlob();
+                        await navigator.clipboard.write([new ClipboardItem({'image/png':blob})]);
+                        alert('Bracket image copied to clipboard! Paste it anywhere.');
+                      }catch(e){
+                        // Clipboard API not supported — fall back to download
+                        alert('Clipboard not supported in this browser — downloading the image instead.');
+                        downloadBracket();
+                      }
+                    };
+                    const shareImage=async()=>{
+                      const champion=savedBracket?.ko?.final?.[0]||'my team';
+                      const shareText=`I picked ${champion} to win the 2026 World Cup! Make your own predictions at debangandey.rbind.io/wc2026`;
+                      try{
+                        const blob=await getBracketBlob();
+                        const file=new File([blob],'wc2026-bracket.png',{type:'image/png'});
+                        if(navigator.canShare&&navigator.canShare({files:[file]})){
+                          await navigator.share({
+                            files:[file],
+                            title:'My WC 2026 Bracket',
+                            text:shareText,
+                          });
+                        } else {
+                          // Web Share API not available — copy image + show instructions
+                          await navigator.clipboard.write([new ClipboardItem({'image/png':blob})]);
+                          alert('Image copied to clipboard!\n\nOpen Facebook (or any app), create a post, and paste the image. Caption suggestion:\n\n'+shareText);
+                        }
+                      }catch(e){
+                        if(e.name!=='AbortError'){
+                          // Final fallback: just download
+                          alert('Sharing not supported — downloading the image instead. You can post it manually on Facebook or Instagram.');
+                          downloadBracket();
+                        }
+                      }
                     };
                     return (
                       <div style={{marginBottom:24}}>
@@ -2570,12 +2615,8 @@
                           <div style={{display:'flex',gap:8}}>
                             {!locked&&<button onClick={()=>setSavedBracket(null)} style={secondaryBtn}>✏️ Edit</button>}
                             <button onClick={downloadBracket} style={{...secondaryBtn,color:'#a78bfa',borderColor:'#4c1d95'}}>📸 Save Image</button>
-                            <button onClick={()=>{
-                              navigator.clipboard.writeText(window.location.href).then(()=>alert('Link copied!'));
-                            }} style={{...secondaryBtn,color:'#34d399',borderColor:'#065f46'}}>🔗 Copy Link</button>
-                            <button onClick={()=>{
-                              window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}&quote=${encodeURIComponent(`I picked ${savedBracket?.ko?.final?.[0]||'my team'} to win the 2026 World Cup! Check out debangandey.rbind.io/wc2026 to make your predictions.`)}`, '_blank','width=600,height=400');
-                            }} style={{...secondaryBtn,color:'#93c5fd',borderColor:'#1e40af'}}>📘 Facebook</button>
+                            <button onClick={copyImage} style={{...secondaryBtn,color:'#34d399',borderColor:'#065f46'}}>📋 Copy Image</button>
+                            <button onClick={shareImage} style={{...secondaryBtn,color:'#93c5fd',borderColor:'#1e40af'}}>🔗 Share Image</button>
                           </div>
                         </div>
 
