@@ -698,7 +698,7 @@
     }
 
     /* ===================== MAIN APP ===================== */
-    const N=10000;
+    const N=50000;
     const CHUNK=500;
     const ROUND_LABELS={r32:"Round of 32",r16:"Round of 16",qf:"Quarterfinals",sf:"Semifinals",final:"Final"};
 
@@ -711,7 +711,7 @@
     }
 
     function App(){
-      const [tab,setTab]=useState("champion");
+      const [tab,setTab]=useState("guide");
       const [progress,setProgress]=useState(0);
       const [done,setDone]=useState(false);
       const [simData,setSimData]=useState({r32:{},r16:{},qf:{},sf:{},final:{}});
@@ -879,28 +879,36 @@
         // round data
         const rounds=["r32","r16","qf","sf","final"];
         const roundInfo=rounds.map(rnd=>{
-          const roundRoundData=teamRoundData[rnd]||{};
-          const teamCount=roundRoundData[trackTeam]||0;
-          const pct=(teamCount/N*100);
           // find which slots this team appeared in
           const slotData=teamSlotData[rnd]||{};
           const mySlots=[];
           for(const[idx,teams]of Object.entries(slotData)){
             if(teams[trackTeam]){
-              // get top opponents in that slot
-              const opps=Object.entries(teams)
-                .filter(([t])=>t!==trackTeam)
-                .sort(([,a],[,b])=>b-a)
+              const slotFreq=(teams[trackTeam]/N*100);
+              // Derive opponents from actual head-to-head matchup counts in simData.
+              // This prevents same-group teammates appearing as "opponents" — they share
+              // a slot bucket across different simulation branches but never face each other.
+              const matchups=simData[rnd]?.[idx]||{};
+              const opps=Object.entries(matchups)
+                .filter(([k])=>k.split("|").includes(trackTeam))
+                .map(([k,c])=>{
+                  const [tA,tB]=k.split("|");
+                  return {team:(tA===trackTeam?tB:tA),count:c};
+                })
+                .sort((a,b)=>b.count-a.count)
                 .slice(0,3)
-                .map(([t,c])=>({team:t,pct:(c/N*100)}));
-              mySlots.push({idx:Number(idx),slotFreq:(teams[trackTeam]/N*100),opps});
+                .map(({team,count})=>({team,pct:(count/N*100)}));
+              mySlots.push({idx:Number(idx),slotFreq,opps});
             }
           }
           mySlots.sort((a,b)=>b.slotFreq-a.slotFreq);
+          // pct = probability of REACHING this round (sum of slot appearance frequencies)
+          // not teamRoundData which counts advancements (wins), not appearances
+          const pct=mySlots.reduce((sum,s)=>sum+s.slotFreq,0);
           return {rnd,pct,slots:mySlots};
         });
         return {teamGroup,groupObj,roundInfo};
-      },[trackTeam,teamRoundData,teamSlotData]);
+      },[trackTeam,teamSlotData,simData]);
 
       // Venue finder
       const venueData=useMemo(()=>{
@@ -928,17 +936,18 @@
       },[venueFilter,simData]);
 
       const tabs=[
+        {id:"guide",label:"📖 How to Use"},
         {id:"champion",label:"🏆 Champion Odds"},
         {id:"track",label:"🔍 Track a Team"},
         {id:"venue",label:"📍 Venue Finder"},
         {id:"trip",label:"✈️ Trip Planner"},
-        {id:"rankings",label:"📊 FIFA Rankings"},
         {id:"groups",label:"🏟️ Group Stage"},
         {id:"r32",label:"Round of 32"},
         {id:"r16",label:"Round of 16"},
         {id:"qf",label:"Quarterfinals"},
         {id:"sf",label:"Semifinals"},
         {id:"final",label:"⭐ Final"},
+        {id:"rankings",label:"📊 FIFA Rankings"},
       ];
 
       return (
@@ -1141,6 +1150,73 @@
 
           {/* TAB CONTENT — constrained width */}
           <div style={{maxWidth:900,margin:"0 auto",padding:"0 16px 40px"}}>
+
+            {/* =============== GUIDE TAB =============== */}
+            {tab==="guide"&&(
+              <div>
+                <h2 style={{fontSize:18,fontWeight:700,color:"#f1f5f9",marginBottom:4}}>📖 How to Use This Simulator</h2>
+                <p style={{color:"#64748b",fontSize:13,marginBottom:24}}>
+                  A Monte Carlo bracket predictor for FIFA World Cup 2026 — run {N.toLocaleString()} simulated tournaments and explore what's likely, what's possible, and what it costs to be there.
+                </p>
+
+                {[
+                  {
+                    icon:"⚙️",title:"How the simulation works",
+                    body:"Each simulation runs the full tournament — group stage through the Final — using ELO ratings and recent form scores to calculate win probabilities for every match. Stronger teams win more often, but upsets happen. After 50,000 runs, the percentages you see are how often each outcome actually occurred across all those tournaments."
+                  },
+                  {
+                    icon:"🏆",title:"Champion Odds",
+                    body:"Shows each team's championship probability broken into three tiers: Top Favorites (>8%), Strong Contenders (3–8%), and Dark Horses (<3%). The bar length reflects relative likelihood. Use this as a quick power ranking — teams near the top of Dark Horses are your classic 'upset watch' picks."
+                  },
+                  {
+                    icon:"🏟️",title:"Group Stage & Knockout Round tabs",
+                    body:"Group Stage shows all 12 groups with projected qualifiers highlighted. The Round of 32 through Final tabs show each match slot's top 3 most likely matchups, their probability, and the expected win split. Gold/silver/bronze medals rank the matchups by frequency. Match quality labels (Elite Clash, Upset Alert, Even Contest…) are based on the relative ELO gap between the two teams — not just raw strength."
+                  },
+                  {
+                    icon:"🔍",title:"Track a Team",
+                    body:"Pick any of the 48 qualified nations. You'll see their group, ELO rating, FIFA rank, form rating, and a round-by-round probability breakdown of how far they're likely to go. Each round shows which slot(s) they're likely to play in, the venue, and their most probable opponents — drawn only from actual simulated head-to-head pairings, so same-group teammates never appear as knockout opponents."
+                  },
+                  {
+                    icon:"📍",title:"Venue Finder",
+                    body:"Search by city or stadium name to see every match scheduled at that venue across all rounds. Useful if you're planning to attend games at a specific location and want to know which teams are likely to play there."
+                  },
+                  {
+                    icon:"✈️",title:"Trip Planner",
+                    body:"Enter your home city and select a knockout round. The planner estimates total trip cost — flights, hotel, and ticket resale prices — for every match in that round. Sort by Best Match to surface high-quality games that won't break the bank (the ranking penalises astronomical ticket ceilings), or by Cheapest to find the most affordable options. Texas venues are flagged separately since flights from some cities are cheaper there. Prices are resale market estimates and will vary."
+                  },
+                  {
+                    icon:"🎟️",title:"Reading ticket prices",
+                    body:"Ticket price ranges shown are secondary market (resale) estimates, not face value. The LOW figure is a realistic floor; the HIGH figure reflects premium seats and high-demand scenarios. Group stage matches are significantly cheaper than knockout rounds. Final tickets (M104, East Rutherford) carry the widest range — expect $5,888–$65,000+ depending on the finalists."
+                  },
+                  {
+                    icon:"📊",title:"ELO ratings & form",
+                    body:"ELO is a rolling strength rating updated after every international match — higher means stronger. Form is a recent-results bonus/penalty layered on top. Both feed into the win probability formula for each simulated match. The FIFA Rankings tab at the end shows all 48 teams sorted by ELO with their form indicator."
+                  },
+                ].map(({icon,title,body})=>(
+                  <div key={title} style={{
+                    background:"#061228",border:"1px solid #1e3a5f",
+                    borderRadius:10,padding:"14px 16px",marginBottom:12,
+                  }}>
+                    <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
+                      <span style={{fontSize:18}}>{icon}</span>
+                      <span style={{fontWeight:700,fontSize:14,color:"#e2e8f0"}}>{title}</span>
+                    </div>
+                    <p style={{color:"#94a3b8",fontSize:13,margin:0,lineHeight:1.6}}>{body}</p>
+                  </div>
+                ))}
+
+                <div style={{
+                  background:"#0d1f3c",border:"1px solid #1e3a5f",
+                  borderRadius:10,padding:"12px 16px",marginTop:8,
+                  display:"flex",alignItems:"center",gap:10,
+                }}>
+                  <span style={{fontSize:20}}>💡</span>
+                  <p style={{color:"#64748b",fontSize:12,margin:0,lineHeight:1.5}}>
+                    Probabilities update every time you reload — each run of 50,000 simulations introduces slight variance, so numbers may shift by a fraction of a percent. All match data uses the official FIFA World Cup 2026 schedule. Ticket prices are resale estimates only.
+                  </p>
+                </div>
+              </div>
+            )}
 
             {/* =============== CHAMPION ODDS TAB =============== */}
             {tab==="champion"&&(
