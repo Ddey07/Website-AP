@@ -11,6 +11,7 @@
   <script src="prices.js" onerror="window.WC_PRICES=null"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -536,6 +537,171 @@
       );
     }
 
+    // ============================================================
+    // BRACKET CHALLENGE — Supabase setup + components
+    // ============================================================
+    const SB_URL='https://cfnlnksqnmtscchtugtd.supabase.co';
+    const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNmbmxua3Nxbm10c2NjaHR1Z3RkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg5MzM0MzIsImV4cCI6MjA5NDUwOTQzMn0.9HgzuCdTQ61BQY8LsY1KI7vlvypQY4anWBRDVHzbkE4';
+    const sb=supabase.createClient(SB_URL,SB_KEY);
+    const BRACKET_LOCK=new Date('2026-06-10T23:59:00-04:00');
+    const IS_LOCKED=()=>new Date()>BRACKET_LOCK;
+    const THIRD_SLOT_ORD=['M74','M77','M79','M80','M81','M82','M85','M87'];
+    const SLOT_ALLOW_C={
+      M74:['A','B','C','D','F'],M77:['C','D','F','G','H'],
+      M79:['C','E','F','H','I'],M80:['E','H','I','J','K'],
+      M81:['B','E','F','I','J'],M82:['A','E','H','I','J'],
+      M85:['E','F','G','I','J'],M87:['D','E','I','J','L'],
+    };
+    const ROUND_PTS={grp1:3,grp2:2,grpT:2,r32:5,r16:10,qf:20,sf:40,final:80};
+
+    // Assign 8 qualifying 3rd-place teams to valid slots (greedy)
+    function assignUserThirds(thirds){
+      const res={};const used=new Set();
+      for(const slot of THIRD_SLOT_ORD){
+        const c=thirds.find(t=>!used.has(t.team)&&SLOT_ALLOW_C[slot].includes(t.group));
+        res[slot]=c?(used.add(c.team),c.team):'TBD';
+      }
+      return res;
+    }
+
+    // Build 16 R32 matchup pairs from group picks + third assignments
+    function buildUserR32(gp,ta){
+      const w=g=>gp[g]?.first||'TBD';
+      const r=g=>gp[g]?.second||'TBD';
+      return [
+        [w('E'),ta.M74||'TBD'],  // idx0  M74
+        [w('I'),ta.M77||'TBD'],  // idx1  M77
+        [r('A'),r('B')],          // idx2  M73
+        [w('F'),r('C')],          // idx3  M75
+        [r('K'),r('L')],          // idx4  M83
+        [w('H'),r('J')],          // idx5  M84
+        [w('D'),ta.M81||'TBD'],  // idx6  M81
+        [w('G'),ta.M82||'TBD'],  // idx7  M82
+        [w('C'),r('F')],          // idx8  M76
+        [r('E'),r('I')],          // idx9  M78
+        [w('A'),ta.M79||'TBD'],  // idx10 M79
+        [w('L'),ta.M80||'TBD'],  // idx11 M80
+        [w('J'),r('H')],          // idx12 M86
+        [r('D'),r('G')],          // idx13 M88
+        [w('B'),ta.M85||'TBD'],  // idx14 M85
+        [w('K'),ta.M87||'TBD'],  // idx15 M87
+      ];
+    }
+
+    // Return teams at a given KO slot based on prior-round picks
+    function getKOTeams(rnd,idx,r32Teams,koPicks){
+      if(rnd==='r32')return r32Teams[idx]||['TBD','TBD'];
+      const prev={r16:'r32',qf:'r16',sf:'qf',final:'sf'}[rnd];
+      const a=idx*2,b=idx*2+1;
+      return [koPicks[prev]?.[a]||'TBD',koPicks[prev]?.[b]||'TBD'];
+    }
+
+    // GroupPicker — pick 1st & 2nd from a group
+    function GroupPicker({letter,group,picks,onChange}){
+      const first=picks?.first,second=picks?.second;
+      const btn=(pos,t)=>{
+        const isActive=(pos==='first'?first:second)===t;
+        return (
+          <button onClick={()=>{
+            const np={...picks};
+            np[pos]=t;
+            if(pos==='first'&&second===t)np.second=null;
+            if(pos==='second'&&first===t)np.first=null;
+            onChange(np);
+          }} style={{
+            background:isActive?(pos==='first'?'#f59e0b':'#60a5fa'):'#0d1f3c',
+            color:isActive?'#000':'#64748b',
+            border:`1px solid ${isActive?(pos==='first'?'#f59e0b':'#3b82f6'):'#1e3a5f'}`,
+            borderRadius:6,padding:'3px 10px',fontSize:11,fontWeight:700,cursor:'pointer',
+          }}>{pos==='first'?'1st':'2nd'}</button>
+        );
+      };
+      return (
+        <div style={{background:'#061228',border:'1px solid #1e3a5f',borderRadius:10,padding:'12px 14px',marginBottom:10}}>
+          <div style={{fontWeight:700,color:'#60a5fa',fontSize:13,marginBottom:8}}>Group {letter}</div>
+          {group.teams.map(t=>(
+            <div key={t} style={{display:'flex',alignItems:'center',gap:8,marginBottom:5}}>
+              <span style={{fontSize:18,width:24}}>{fl(t)}</span>
+              <span style={{flex:1,fontSize:13,color:'#e2e8f0'}}>{t}</span>
+              <span style={{color:'#475569',fontSize:11,marginRight:4}}>#{RANKS[t]}</span>
+              {btn('first',t)}
+              {btn('second',t)}
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    // KnockoutPicker — pick winners for all KO rounds in one scrollable view
+    function KnockoutPicker({groupPicks,thirdPicks,koPicks,setKoPicks}){
+      const ta=assignUserThirds(thirdPicks);
+      const r32Teams=buildUserR32(groupPicks,ta);
+      const rounds=['r32','r16','qf','sf','final'];
+      const koSlots={r32:KO.r32,r16:KO.r16,qf:KO.qf,sf:KO.sf,final:KO.final};
+      const roundNames={r32:'Round of 32',r16:'Round of 16',qf:'Quarterfinals',sf:'Semifinals',final:'Final'};
+      function pick(rnd,idx,team){
+        setKoPicks(prev=>{
+          const next={...prev,[rnd]:{...prev[rnd],[idx]:team}};
+          // clear downstream slots that depended on this slot
+          const downstream={r32:'r16',r16:'qf',qf:'sf',sf:'final'};
+          let cur=rnd;
+          while(downstream[cur]){
+            const nxt=downstream[cur];
+            const nxtIdx=Math.floor(idx/2);
+            if(next[nxt]?.[nxtIdx]){
+              next[nxt]={...next[nxt]};
+              delete next[nxt][nxtIdx];
+            }
+            idx=nxtIdx;cur=nxt;
+          }
+          return next;
+        });
+      }
+      return (
+        <div>
+          {rounds.map(rnd=>(
+            <div key={rnd} style={{marginBottom:20}}>
+              <div style={{fontWeight:700,color:'#60a5fa',fontSize:14,marginBottom:8,
+                borderBottom:'1px solid #1e3a5f',paddingBottom:4}}>{roundNames[rnd]}</div>
+              {koSlots[rnd].map((slot,idx)=>{
+                const[tA,tB]=getKOTeams(rnd,idx,r32Teams,koPicks);
+                const winner=koPicks[rnd]?.[idx];
+                const ready=tA!=='TBD'&&tB!=='TBD';
+                const mk=(t,align)=>(
+                  <button onClick={()=>ready&&pick(rnd,idx,t)} style={{
+                    flex:1,background:winner===t?'#1e3a5f':'#0d1f3c',
+                    color:winner===t?'#f1f5f9':'#64748b',
+                    border:`1px solid ${winner===t?'#3b82f6':'#1e3a5f'}`,
+                    borderRadius:8,padding:'8px 10px',cursor:ready?'pointer':'default',
+                    textAlign:align,fontSize:12,fontWeight:winner===t?700:400,
+                    display:'flex',alignItems:'center',gap:6,
+                    flexDirection:align==='right'?'row-reverse':'row',
+                  }}>
+                    {t!=='TBD'&&<span style={{fontSize:16}}>{fl(t)}</span>}
+                    <span>{t}</span>
+                    {winner===t&&<span style={{color:'#34d399',fontSize:14}}>✓</span>}
+                  </button>
+                );
+                return (
+                  <div key={slot.m} style={{background:'#040d1c',border:'1px solid #0d1f3c',
+                    borderRadius:8,padding:'8px 10px',marginBottom:6}}>
+                    <div style={{fontSize:10,color:'#334155',marginBottom:5}}>
+                      {slot.m} · {slot.date} · 📍 {slot.venue}
+                    </div>
+                    <div style={{display:'flex',alignItems:'center',gap:6}}>
+                      {mk(tA,'left')}
+                      <span style={{color:'#334155',fontSize:11,fontWeight:700,flexShrink:0}}>vs</span>
+                      {mk(tB,'right')}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+      );
+    }
+
     function MatchupRow({rank,a,b,count,N}){
       const medals=["🥇","🥈","🥉"];
       const pct=((count/N)*100).toFixed(1);
@@ -711,6 +877,24 @@
     }
 
     function App(){
+      // --- Bracket Challenge state ---
+      const [sbUser,setSbUser]=useState(null);
+      const [authMode,setAuthMode]=useState('signin');
+      const [authEmail,setAuthEmail]=useState('');
+      const [authPass,setAuthPass]=useState('');
+      const [authName,setAuthName]=useState('');
+      const [authErr,setAuthErr]=useState('');
+      const [authLoading,setAuthLoading]=useState(false);
+      const [bStep,setBStep]=useState(1); // 1=grpAF 2=grpGL 3=thirds 4=ko
+      const [groupPicks,setGroupPicks]=useState({});
+      const [thirdPicks,setThirdPicks]=useState([]);
+      const [koPicks,setKoPicks]=useState({r32:{},r16:{},qf:{},sf:{},final:{}});
+      const [savedBracket,setSavedBracket]=useState(null);
+      const [leaderboard,setLeaderboard]=useState([]);
+      const [saving,setSaving]=useState(false);
+      const [bracketLoading,setBracketLoading]=useState(false);
+      // --- End Bracket Challenge state ---
+
       const [tab,setTab]=useState("guide");
       const [progress,setProgress]=useState(0);
       const [done,setDone]=useState(false);
@@ -784,6 +968,99 @@
         }
         runChunk();
       },[]);
+
+      // Bracket Challenge auth + data useEffect
+      useEffect(()=>{
+        const loadBracket=async(uid)=>{
+          setBracketLoading(true);
+          const{data}=await sb.from('predictions').select('*').eq('user_id',uid);
+          if(data&&data.length>0){
+            const gp={},ko={r32:{},r16:{},qf:{},sf:{},final:{}},thirds=[];
+            for(const row of data){
+              if(row.round==='grp1'){
+                const g=String.fromCharCode(65+row.slot_idx);
+                gp[g]={...gp[g],first:row.picked_team};
+              } else if(row.round==='grp2'){
+                const g=String.fromCharCode(65+row.slot_idx);
+                gp[g]={...gp[g],second:row.picked_team};
+              } else if(row.round==='grpT'){
+                const[grp,team]=row.picked_team.split(':');
+                thirds.push({group:grp,team});
+              } else if(['r32','r16','qf','sf','final'].includes(row.round)){
+                ko[row.round][row.slot_idx]=row.picked_team;
+              }
+            }
+            setGroupPicks(gp);setThirdPicks(thirds);setKoPicks(ko);
+            setSavedBracket({gp,thirds,ko});
+          }
+          setBracketLoading(false);
+        };
+        const loadLeaderboard=async()=>{
+          const[{data:sc},{data:pr}]=await Promise.all([
+            sb.from('scores').select('user_id,round,points'),
+            sb.from('profiles').select('id,display_name'),
+          ]);
+          if(!sc||!pr)return;
+          const nm={};pr.forEach(p=>nm[p.id]=p.display_name);
+          const tot={};
+          for(const s of sc){
+            if(!tot[s.user_id])tot[s.user_id]={name:nm[s.user_id]||'Anonymous',total:0,rounds:{}};
+            tot[s.user_id].total+=s.points;
+            tot[s.user_id].rounds[s.round]=(tot[s.user_id].rounds[s.round]||0)+s.points;
+          }
+          setLeaderboard(Object.values(tot).sort((a,b)=>b.total-a.total));
+        };
+        sb.auth.getSession().then(({data:{session}})=>{
+          setSbUser(session?.user||null);
+          if(session?.user)loadBracket(session.user.id);
+        });
+        const{data:{subscription}}=sb.auth.onAuthStateChange((_,session)=>{
+          setSbUser(session?.user||null);
+          if(session?.user)loadBracket(session.user.id);
+          else{setSavedBracket(null);setGroupPicks({});setThirdPicks([]);setKoPicks({r32:{},r16:{},qf:{},sf:{},final:{}});}
+        });
+        loadLeaderboard();
+        return()=>subscription.unsubscribe();
+      },[]);
+
+      const handleAuth=async()=>{
+        setAuthErr('');setAuthLoading(true);
+        if(authMode==='signup'){
+          const{data,error}=await sb.auth.signUp({email:authEmail,password:authPass});
+          if(error){setAuthErr(error.message);}
+          else if(data.user){
+            await sb.from('profiles').upsert({id:data.user.id,display_name:authName||authEmail.split('@')[0]});
+          }
+        } else {
+          const{error}=await sb.auth.signInWithPassword({email:authEmail,password:authPass});
+          if(error)setAuthErr(error.message);
+        }
+        setAuthLoading(false);
+      };
+
+      const handleSignOut=async()=>{
+        await sb.auth.signOut();
+        setSavedBracket(null);setBStep(1);
+      };
+
+      const saveBracket=async()=>{
+        if(!sbUser)return;
+        setSaving(true);
+        const rows=[];
+        for(const[g,p]of Object.entries(groupPicks)){
+          const idx=g.charCodeAt(0)-65;
+          if(p.first)rows.push({user_id:sbUser.id,round:'grp1',slot_idx:idx,picked_team:p.first});
+          if(p.second)rows.push({user_id:sbUser.id,round:'grp2',slot_idx:idx,picked_team:p.second});
+        }
+        thirdPicks.forEach((t,i)=>rows.push({user_id:sbUser.id,round:'grpT',slot_idx:i,picked_team:`${t.group}:${t.team}`}));
+        for(const[rnd,slots]of Object.entries(koPicks))
+          for(const[idx,team]of Object.entries(slots))
+            if(team)rows.push({user_id:sbUser.id,round:rnd,slot_idx:Number(idx),picked_team:team});
+        const{error}=await sb.from('predictions').upsert(rows,{onConflict:'user_id,round,slot_idx'});
+        setSaving(false);
+        if(!error){setSavedBracket({gp:groupPicks,thirds:thirdPicks,ko:koPicks});}
+        else alert('Save failed: '+error.message);
+      };
 
       // Prices useEffect
       useEffect(()=>{
@@ -937,7 +1214,8 @@
 
       const tabs=[
         {id:"guide",label:"📖 How to Use"},
-        {id:"champion",label:"🏆 Champion Odds"},
+        {id:"challenge",label:"🏆 Bracket Challenge"},
+        {id:"champion",label:"📊 Champion Odds"},
         {id:"track",label:"🔍 Track a Team"},
         {id:"venue",label:"📍 Venue Finder"},
         {id:"trip",label:"✈️ Trip Planner"},
@@ -1217,6 +1495,290 @@
                 </div>
               </div>
             )}
+
+            {/* =============== BRACKET CHALLENGE TAB =============== */}
+            {tab==="challenge"&&(()=>{
+              const locked=IS_LOCKED();
+              const inputStyle={
+                width:'100%',background:'#061228',border:'1px solid #1e3a5f',
+                borderRadius:8,padding:'10px 12px',color:'#e2e8f0',fontSize:14,
+                outline:'none',marginBottom:10,
+              };
+              const primaryBtn={
+                background:'#3b82f6',color:'#fff',border:'none',borderRadius:8,
+                padding:'10px 20px',fontSize:14,fontWeight:700,cursor:'pointer',width:'100%',
+              };
+              const secondaryBtn={
+                background:'transparent',color:'#60a5fa',border:'1px solid #1e3a5f',
+                borderRadius:8,padding:'8px 16px',fontSize:13,fontWeight:600,cursor:'pointer',
+              };
+              const navBtn={
+                background:'#0d1f3c',color:'#94a3b8',border:'1px solid #1e3a5f',
+                borderRadius:8,padding:'8px 20px',fontSize:13,fontWeight:600,cursor:'pointer',
+              };
+              // Step completeness checks
+              const grpAFDone=['A','B','C','D','E','F'].every(g=>groupPicks[g]?.first&&groupPicks[g]?.second);
+              const grpGLDone=['G','H','I','J','K','L'].every(g=>groupPicks[g]?.first&&groupPicks[g]?.second);
+              const thirdsDone=thirdPicks.length===8;
+              const r32Done=Object.keys(koPicks.r32||{}).length===16;
+              const r16Done=Object.keys(koPicks.r16||{}).length===8;
+              const qfDone=Object.keys(koPicks.qf||{}).length===4;
+              const sfDone=Object.keys(koPicks.sf||{}).length===2;
+              const finalDone=koPicks.final?.[0];
+              const allKODone=r32Done&&r16Done&&qfDone&&sfDone&&finalDone;
+              return (
+                <div>
+                  <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',flexWrap:'wrap',gap:8,marginBottom:4}}>
+                    <h2 style={{fontSize:18,fontWeight:700,color:'#f1f5f9'}}>🏆 Bracket Challenge</h2>
+                    {sbUser&&(
+                      <div style={{display:'flex',alignItems:'center',gap:8}}>
+                        <span style={{color:'#475569',fontSize:12}}>{sbUser.email}</span>
+                        <button onClick={handleSignOut} style={{...secondaryBtn,padding:'4px 12px',fontSize:12}}>Sign Out</button>
+                      </div>
+                    )}
+                  </div>
+                  <p style={{color:'#64748b',fontSize:13,marginBottom:20}}>
+                    {locked
+                      ?'Predictions are locked — the tournament has started!'
+                      :`Predict the full bracket before ${BRACKET_LOCK.toLocaleDateString('en-US',{month:'long',day:'numeric'})}. Compete against the Monte Carlo model.`}
+                  </p>
+
+                  {/* ---- AUTH ---- */}
+                  {!sbUser&&(
+                    <div style={{background:'#061228',border:'1px solid #1e3a5f',borderRadius:12,padding:'24px',maxWidth:400,marginBottom:24}}>
+                      <div style={{display:'flex',gap:8,marginBottom:16}}>
+                        {['signin','signup'].map(m=>(
+                          <button key={m} onClick={()=>{setAuthMode(m);setAuthErr('');}} style={{
+                            flex:1,padding:'8px',borderRadius:8,fontSize:13,fontWeight:700,cursor:'pointer',
+                            background:authMode===m?'#1e3a5f':'transparent',
+                            color:authMode===m?'#60a5fa':'#475569',
+                            border:`1px solid ${authMode===m?'#3b82f6':'#1e3a5f'}`,
+                          }}>{m==='signin'?'Sign In':'Sign Up'}</button>
+                        ))}
+                      </div>
+                      {authMode==='signup'&&(
+                        <input style={inputStyle} placeholder="Display name (shown on leaderboard)"
+                          value={authName} onChange={e=>setAuthName(e.target.value)} />
+                      )}
+                      <input style={inputStyle} placeholder="Email" type="email"
+                        value={authEmail} onChange={e=>setAuthEmail(e.target.value)} />
+                      <input style={inputStyle} placeholder="Password" type="password"
+                        value={authPass} onChange={e=>setAuthPass(e.target.value)}
+                        onKeyDown={e=>e.key==='Enter'&&handleAuth()} />
+                      {authErr&&<p style={{color:'#f87171',fontSize:12,marginBottom:8}}>{authErr}</p>}
+                      <button style={primaryBtn} onClick={handleAuth} disabled={authLoading}>
+                        {authLoading?'Please wait…':authMode==='signin'?'Sign In':'Create Account'}
+                      </button>
+                    </div>
+                  )}
+
+                  {/* ---- BRACKET WIZARD ---- */}
+                  {sbUser&&!savedBracket&&!bracketLoading&&(
+                    <div>
+                      {/* Progress steps */}
+                      <div style={{display:'flex',gap:4,marginBottom:20}}>
+                        {[['1','Groups A–F',grpAFDone],['2','Groups G–L',grpGLDone],['3','3rd Place',thirdsDone],['4','Knockouts',allKODone]].map(([n,label,done],i)=>(
+                          <div key={n} onClick={()=>setBStep(i+1)} style={{
+                            flex:1,background:bStep===i+1?'#1e3a5f':done?'#0d2a1a':'#061228',
+                            border:`1px solid ${bStep===i+1?'#3b82f6':done?'#16a34a':'#1e3a5f'}`,
+                            borderRadius:8,padding:'6px 4px',textAlign:'center',cursor:'pointer',
+                          }}>
+                            <div style={{fontSize:11,fontWeight:700,color:done?'#34d399':bStep===i+1?'#60a5fa':'#475569'}}>{done?'✓':n}</div>
+                            <div style={{fontSize:10,color:'#475569'}}>{label}</div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Step 1: Groups A–F */}
+                      {bStep===1&&(
+                        <div>
+                          <p style={{color:'#64748b',fontSize:12,marginBottom:12}}>Pick 1st and 2nd place for each group.</p>
+                          {['A','B','C','D','E','F'].map(g=>(
+                            <GroupPicker key={g} letter={g} group={GROUPS[g]}
+                              picks={groupPicks[g]||{}} onChange={p=>setGroupPicks(prev=>({...prev,[g]:p}))} />
+                          ))}
+                          <div style={{display:'flex',justifyContent:'flex-end',marginTop:8}}>
+                            <button style={{...navBtn,background:grpAFDone?'#3b82f6':'#0d1f3c',color:grpAFDone?'#fff':'#475569'}}
+                              disabled={!grpAFDone} onClick={()=>setBStep(2)}>Next: Groups G–L →</button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Step 2: Groups G–L */}
+                      {bStep===2&&(
+                        <div>
+                          <p style={{color:'#64748b',fontSize:12,marginBottom:12}}>Pick 1st and 2nd place for each group.</p>
+                          {['G','H','I','J','K','L'].map(g=>(
+                            <GroupPicker key={g} letter={g} group={GROUPS[g]}
+                              picks={groupPicks[g]||{}} onChange={p=>setGroupPicks(prev=>({...prev,[g]:p}))} />
+                          ))}
+                          <div style={{display:'flex',justifyContent:'space-between',marginTop:8}}>
+                            <button style={navBtn} onClick={()=>setBStep(1)}>← Back</button>
+                            <button style={{...navBtn,background:grpGLDone?'#3b82f6':'#0d1f3c',color:grpGLDone?'#fff':'#475569'}}
+                              disabled={!grpGLDone} onClick={()=>setBStep(3)}>Next: 3rd Place →</button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Step 3: 3rd place qualifiers */}
+                      {bStep===3&&(()=>{
+                        const allThirds=[];
+                        for(const[g,go]of Object.entries(GROUPS)){
+                          const qual=[groupPicks[g]?.first,groupPicks[g]?.second].filter(Boolean);
+                          go.teams.filter(t=>!qual.includes(t)).forEach(t=>allThirds.push({group:g,team:t}));
+                        }
+                        return (
+                          <div>
+                            <p style={{color:'#64748b',fontSize:12,marginBottom:4}}>
+                              8 of the 12 groups' 3rd-place teams qualify for the Round of 32. Select exactly 8.
+                            </p>
+                            <p style={{color:thirdPicks.length===8?'#34d399':'#f59e0b',fontSize:13,fontWeight:700,marginBottom:12}}>
+                              {thirdPicks.length}/8 selected
+                            </p>
+                            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:6}}>
+                              {allThirds.map(({group:g,team:t})=>{
+                                const sel=thirdPicks.some(tp=>tp.team===t);
+                                const disabled=!sel&&thirdPicks.length===8;
+                                return (
+                                  <button key={t} onClick={()=>{
+                                    if(sel)setThirdPicks(prev=>prev.filter(tp=>tp.team!==t));
+                                    else if(thirdPicks.length<8)setThirdPicks(prev=>[...prev,{group:g,team:t}]);
+                                  }} style={{
+                                    background:sel?'#0d2a1a':'#061228',
+                                    border:`1px solid ${sel?'#16a34a':'#1e3a5f'}`,
+                                    borderRadius:8,padding:'8px 10px',cursor:disabled?'not-allowed':'pointer',
+                                    opacity:disabled?0.4:1,
+                                    display:'flex',alignItems:'center',gap:6,textAlign:'left',
+                                  }}>
+                                    <span style={{fontSize:18}}>{fl(t)}</span>
+                                    <div>
+                                      <div style={{fontSize:12,color:'#e2e8f0',fontWeight:600}}>{t}</div>
+                                      <div style={{fontSize:10,color:'#475569'}}>Group {g} · #{RANKS[t]}</div>
+                                    </div>
+                                    {sel&&<span style={{marginLeft:'auto',color:'#34d399'}}>✓</span>}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                            <div style={{display:'flex',justifyContent:'space-between',marginTop:12}}>
+                              <button style={navBtn} onClick={()=>setBStep(2)}>← Back</button>
+                              <button style={{...navBtn,background:thirdsDone?'#3b82f6':'#0d1f3c',color:thirdsDone?'#fff':'#475569'}}
+                                disabled={!thirdsDone} onClick={()=>setBStep(4)}>Next: Knockouts →</button>
+                            </div>
+                          </div>
+                        );
+                      })()}
+
+                      {/* Step 4: Knockout bracket */}
+                      {bStep===4&&(
+                        <div>
+                          <p style={{color:'#64748b',fontSize:12,marginBottom:12}}>
+                            Pick match winners round by round. Picks auto-propagate to the next round.
+                          </p>
+                          <KnockoutPicker groupPicks={groupPicks} thirdPicks={thirdPicks}
+                            koPicks={koPicks} setKoPicks={setKoPicks} />
+                          <div style={{position:'sticky',bottom:0,background:'#040d1c',padding:'12px 0',
+                            borderTop:'1px solid #1e3a5f',display:'flex',justifyContent:'space-between',gap:8}}>
+                            <button style={navBtn} onClick={()=>setBStep(3)}>← Back</button>
+                            <button onClick={saveBracket} disabled={saving||!allKODone} style={{
+                              ...primaryBtn,width:'auto',padding:'10px 28px',
+                              opacity:allKODone?1:0.5,cursor:allKODone?'pointer':'not-allowed',
+                            }}>
+                              {saving?'Saving…':'🔒 Submit Bracket'}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Loading */}
+                  {sbUser&&bracketLoading&&(
+                    <div style={{textAlign:'center',padding:'40px',color:'#475569'}}>Loading your bracket…</div>
+                  )}
+
+                  {/* ---- SAVED BRACKET VIEW ---- */}
+                  {sbUser&&savedBracket&&!bracketLoading&&(()=>{
+                    const champion=savedBracket.ko.final?.[0];
+                    const ta=assignUserThirds(savedBracket.thirds||[]);
+                    const r32=buildUserR32(savedBracket.gp||{},ta);
+                    return (
+                      <div style={{marginBottom:24}}>
+                        <div style={{background:'#061228',border:'1px solid #16a34a',borderRadius:12,padding:'16px',marginBottom:16}}>
+                          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:8}}>
+                            <div>
+                              <div style={{color:'#34d399',fontWeight:700,fontSize:13,marginBottom:4}}>✓ Bracket saved</div>
+                              <div style={{color:'#94a3b8',fontSize:13}}>
+                                Your champion pick: {champion?<><span style={{fontSize:20}}>{fl(champion)}</span> <strong style={{color:'#f1f5f9'}}>{champion}</strong></>:'not set'}
+                              </div>
+                            </div>
+                            {!locked&&(
+                              <button onClick={()=>setSavedBracket(null)} style={secondaryBtn}>✏️ Edit Bracket</button>
+                            )}
+                          </div>
+                        </div>
+                        {/* Summary of picks */}
+                        <div style={{background:'#040d1c',border:'1px solid #1e3a5f',borderRadius:10,padding:'14px'}}>
+                          <div style={{fontWeight:700,fontSize:13,color:'#60a5fa',marginBottom:10}}>Your R32 Bracket</div>
+                          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:4}}>
+                            {r32.map(([tA,tB],i)=>{
+                              const winner=savedBracket.ko.r32?.[i];
+                              return (
+                                <div key={i} style={{background:'#061228',border:'1px solid #0d1f3c',
+                                  borderRadius:6,padding:'6px 8px',fontSize:11}}>
+                                  <div style={{color:'#475569',marginBottom:2}}>{KO.r32[i]?.m}</div>
+                                  <div style={{display:'flex',justifyContent:'space-between'}}>
+                                    <span style={{color:winner===tA?'#34d399':'#94a3b8'}}>{fl(tA)} {tA}</span>
+                                    <span style={{color:'#334155'}}>vs</span>
+                                    <span style={{color:winner===tB?'#34d399':'#94a3b8'}}>{fl(tB)} {tB}</span>
+                                  </div>
+                                  {winner&&<div style={{color:'#60a5fa',fontSize:10,marginTop:2}}>→ {winner}</div>}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  {/* ---- LEADERBOARD ---- */}
+                  <div style={{marginTop:8}}>
+                    <div style={{fontWeight:700,fontSize:15,color:'#f1f5f9',marginBottom:12,
+                      borderBottom:'1px solid #1e3a5f',paddingBottom:8}}>🏅 Leaderboard</div>
+                    {leaderboard.length===0?(
+                      <div style={{background:'#061228',border:'1px solid #1e3a5f',borderRadius:10,
+                        padding:'20px',textAlign:'center',color:'#475569',fontSize:13}}>
+                        No scores yet — tournament kicks off June 11. Submit your bracket to join!
+                      </div>
+                    ):(
+                      leaderboard.map((u,i)=>(
+                        <div key={u.name} style={{
+                          background:'#061228',border:`1px solid ${i===0?'#f59e0b':'#1e3a5f'}`,
+                          borderRadius:8,padding:'10px 14px',marginBottom:6,
+                          display:'flex',alignItems:'center',gap:12,
+                        }}>
+                          <span style={{fontSize:16,minWidth:28}}>{['🥇','🥈','🥉'][i]||`#${i+1}`}</span>
+                          <span style={{flex:1,fontWeight:600,fontSize:14,color:'#e2e8f0'}}>{u.name}</span>
+                          <div style={{textAlign:'right'}}>
+                            <div style={{fontWeight:700,color:'#f59e0b',fontSize:15}}>{u.total} pts</div>
+                            <div style={{fontSize:10,color:'#475569'}}>
+                              {Object.entries(u.rounds).map(([r,p])=>`${r}: ${p}`).join(' · ')}
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                    <div style={{marginTop:12,background:'#040d1c',border:'1px solid #1e3a5f',
+                      borderRadius:8,padding:'10px 14px',display:'flex',alignItems:'center',gap:12,opacity:0.6}}>
+                      <span style={{fontSize:16,minWidth:28}}>🤖</span>
+                      <span style={{flex:1,fontWeight:600,fontSize:14,color:'#94a3b8'}}>Monte Carlo Model</span>
+                      <div style={{color:'#475569',fontSize:12}}>Scored after each round</div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* =============== CHAMPION ODDS TAB =============== */}
             {tab==="champion"&&(
