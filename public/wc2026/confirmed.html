@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Email Confirmed · WC 2026 Bracket</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #040d1c;
+      color: #e2e8f0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .card {
+      background: #061228;
+      border: 1px solid #1e3a5f;
+      border-radius: 16px;
+      padding: 40px 36px;
+      max-width: 440px;
+      width: 100%;
+      text-align: center;
+    }
+
+    .icon { font-size: 52px; margin-bottom: 20px; }
+
+    .title {
+      font-size: 22px;
+      font-weight: 800;
+      color: #f1f5f9;
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: #64748b;
+      line-height: 1.6;
+      margin-bottom: 28px;
+    }
+
+    .badge {
+      display: inline-block;
+      background: #0d2a1a;
+      border: 1px solid #16a34a;
+      color: #34d399;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 4px 14px;
+      border-radius: 20px;
+      margin-bottom: 28px;
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      background: #3b82f6;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 13px 20px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background 0.15s;
+    }
+    .btn:hover { background: #2563eb; }
+
+    .countdown {
+      margin-top: 16px;
+      font-size: 12px;
+      color: #334155;
+    }
+    .countdown span { color: #475569; font-weight: 600; }
+
+    .error-card {
+      background: #1c0a00;
+      border: 1px solid #92400e;
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-bottom: 24px;
+      font-size: 13px;
+      color: #fbbf24;
+      display: none;
+    }
+
+    .header-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #60a5fa;
+      margin-bottom: 16px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <div class="header-label">FIFA World Cup 2026 · Bracket Challenge</div>
+
+  <div class="icon" id="icon">⏳</div>
+  <div class="title" id="title">Confirming your email…</div>
+  <p class="subtitle" id="subtitle">Just a moment while we verify your account.</p>
+
+  <div class="error-card" id="error-card" role="alert"></div>
+
+  <div id="badge-wrap" style="display:none">
+    <div class="badge">✓ Email confirmed</div>
+  </div>
+
+  <a href="/wc2026/" class="btn" id="cta-btn" style="display:none">
+    🏆 Go to Bracket Challenge
+  </a>
+
+  <div class="countdown" id="countdown" style="display:none">
+    Redirecting in <span id="secs">5</span>s…
+  </div>
+</div>
+
+<script>
+  const SB_URL = 'https://cfnlnksqnmtscchtugtd.supabase.co';
+  const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNmbmxua3Nxbm10c2NjaHR1Z3RkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYwNjQ5ODAsImV4cCI6MjA2MTY0MDk4MH0.I5vD0FAaJOXhUzGXuMMDy7Z52ZXNqkiHjFmYalT_j7g';
+
+  const sb = supabase.createClient(SB_URL, SB_KEY);
+
+  const icon      = document.getElementById('icon');
+  const title     = document.getElementById('title');
+  const subtitle  = document.getElementById('subtitle');
+  const badgeWrap = document.getElementById('badge-wrap');
+  const ctaBtn    = document.getElementById('cta-btn');
+  const countdown = document.getElementById('countdown');
+  const secsEl    = document.getElementById('secs');
+  const errorCard = document.getElementById('error-card');
+
+  function showSuccess() {
+    icon.textContent      = '🎉';
+    title.textContent     = 'You\'re all set!';
+    subtitle.textContent  = 'Your email is confirmed. Head to the Bracket Challenge, sign in, and submit your picks before the tournament starts.';
+    badgeWrap.style.display = 'block';
+    ctaBtn.style.display    = 'block';
+    countdown.style.display = 'block';
+
+    let secs = 5;
+    const timer = setInterval(() => {
+      secs--;
+      secsEl.textContent = secs;
+      if (secs <= 0) {
+        clearInterval(timer);
+        window.location.href = '/wc2026/';
+      }
+    }, 1000);
+  }
+
+  function showError(msg) {
+    icon.textContent        = '⚠️';
+    title.textContent       = 'Something went wrong';
+    subtitle.textContent    = 'The confirmation link may have expired or already been used. Try signing in directly — if your email is already confirmed it will work fine.';
+    errorCard.textContent   = msg;
+    errorCard.style.display = 'block';
+    ctaBtn.style.display    = 'block';
+    ctaBtn.textContent      = '→ Go to Bracket Challenge';
+  }
+
+  // Supabase puts tokens in the URL hash after email confirmation.
+  // Calling getSession() triggers the client to pick them up automatically.
+  async function init() {
+    try {
+      const { data, error } = await sb.auth.getSession();
+
+      if (error) {
+        showError(error.message);
+        return;
+      }
+
+      if (data?.session) {
+        // Session established — user is now logged in
+        showSuccess();
+      } else {
+        // No session in hash either — link may be stale or already used
+        // Still show success if they got here via a valid link
+        const hash = window.location.hash;
+        if (hash.includes('type=signup') || hash.includes('type=email_change')) {
+          showSuccess();
+        } else {
+          showError('No active session found. The link may have already been used.');
+        }
+      }
+    } catch (e) {
+      showError(e.message || 'Unexpected error.');
+    }
+  }
+
+  init();
+</script>
+
+</body>
+</html>
