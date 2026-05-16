@@ -349,15 +349,29 @@
     const MONTH_NUMS={Jan:"01",Feb:"02",Mar:"03",Apr:"04",May:"05",Jun:"06",Jul:"07",Aug:"08",Sep:"09",Oct:"10",Nov:"11",Dec:"12"};
     function toISO(d){const[m,day]=d.split(" ");return`2026-${MONTH_NUMS[m]}-${String(day).padStart(2,"0")}`;}
 
-    // Match quality stars: 1–5 based on sum of both teams' ELOs
-    function qualityStars(sumElo){
-      const avg=sumElo/2;
-      if(avg>=1900)return 5; if(avg>=1800)return 4;
-      if(avg>=1700)return 3; if(avg>=1600)return 2;
-      return 1;
-    }
-    function qualityColor(stars){
-      return stars>=5?"#f59e0b":stars>=4?"#a3e635":stars>=3?"#34d399":stars>=2?"#60a5fa":"#94a3b8";
+    // Match label based on relative ELO strength + absolute tier
+    // Considers both competitive balance (diff) and prestige (avg/lower)
+    function matchLabel(eloA,eloB){
+      const avg=(eloA+eloB)/2;
+      const diff=Math.abs(eloA-eloB);
+      const higher=Math.max(eloA,eloB);
+      const lower=Math.min(eloA,eloB);
+      // Both elite — top teams closely matched
+      if(lower>=1750) return {label:"Elite clash",   color:"#f59e0b",stars:5};
+      // Both strong — high-level even match
+      if(lower>=1650&&avg>=1700) return {label:"Top match",      color:"#a3e635",stars:4};
+      // Strong team vs capable challenger — upset possible (e.g. Brazil vs Japan)
+      if(higher>=1720&&lower>=1450&&diff<=300) return {label:"Upset alert",  color:"#fb923c",stars:4};
+      // Similar-tier teams, close gap — even contest (e.g. Ecuador vs Senegal)
+      if(diff<=130&&avg>=1550) return {label:"Even contest",  color:"#34d399",stars:3};
+      // Lower-tier teams evenly matched
+      if(diff<=130) return {label:"Underdog battle",color:"#94a3b8",stars:2};
+      // Large gap — one side is a clear dominant favourite
+      if(diff>300) return {label:"Mismatch",       color:"#64748b",stars:1};
+      // Strong team vs weaker side, moderate gap
+      if(higher>=1650) return {label:"Heavy favorite",color:"#60a5fa",stars:2};
+      // Mid-table teams, one has edge
+      return {label:"Competitive",   color:"#34d399",stars:3};
     }
 
     const SORTED_ELO = Object.entries(ELO).sort(([,a],[,b])=>b-a);
@@ -1566,7 +1580,8 @@
                         if(!vc)continue;
                         const isoDate=toISO(m.date);
                         const matchKey=`${isoDate}|${m.venue}`;
-                        const sumElo=(ELO[m.a]||1300)+(ELO[m.b]||1300);
+                        const eloA=ELO[m.a]||1300, eloB=ELO[m.b]||1300;
+                        const sumElo=eloA+eloB;
                         const tk=prices?.matches?.[matchKey]
                                ||prices?.tiers?.group
                                ||{low:150,high:700};
@@ -1580,7 +1595,7 @@
                         allMatchRows.push({
                           t1:m.a,t2:m.b,date:m.date,isoDate,venue:m.venue,group:grp,
                           certain:true,pct:null,altMatchups:[],
-                          sumElo,matchKey,tk,tc,hc,isDayTrip,dist,totalLow,totalHigh,
+                          eloA,eloB,sumElo,matchKey,tk,tc,hc,isDayTrip,dist,totalLow,totalHigh,
                           venueCity:vc.city||m.venue,
                         });
                       }
@@ -1628,18 +1643,21 @@
                       const hc=isDayTrip?{low:0,high:50}:hcRaw;
                       const totalLow=tc.low+hc.low+tk.low;
                       const totalHigh=tc.high+(isDayTrip?hc.high:hc.high*2)+tk.high;
+                      const eloA=ELO[t1]||sumElo/2, eloB=ELO[t2]||sumElo/2;
                       allMatchRows.push({
                         t1,t2,date:sl.date,isoDate,venue:sl.venue,slotM:sl.m,
                         certain:false,pct,altMatchups,
-                        sumElo,matchKey,matchNum,tk,tc,hc,isDayTrip,dist,totalLow,totalHigh,
+                        eloA,eloB,sumElo,matchKey,matchNum,tk,tc,hc,isDayTrip,dist,totalLow,totalHigh,
                         venueCity:vc.city||sl.venue,
                       });
                     });
                   }
 
-                  // Sort: quality = highest sum ELO, cost = lowest total
+                  // Quality score: label tier (drama + prestige) + avg ELO as tiebreaker
+                  const LABEL_SCORE={"Elite clash":5000,"Top match":4000,"Upset alert":3500,"Even contest":3000,"Competitive":2000,"Heavy favorite":1000,"Underdog battle":800,"Underdog clash":600,"Mismatch":200};
+                  const qScore=r=>(LABEL_SCORE[matchLabel(r.eloA,r.eloB).label]||0)+(r.eloA+r.eloB)/2;
                   const sorted=[...allMatchRows].sort((a,b)=>
-                    tripSort==="cost"?(a.totalLow-b.totalLow):(b.sumElo-a.sumElo)
+                    tripSort==="cost"?(a.totalLow-b.totalLow):(qScore(b)-qScore(a))
                   );
                   const top3=sorted.slice(0,3);
                   const MEDAL=["🥇","🥈","🥉"];
@@ -1674,9 +1692,8 @@
 
                       {top3.map((row,i)=>{
                         const{t1,t2,date,venue,group,certain,pct,altMatchups,
-                              sumElo,tk,tc,hc,isDayTrip,dist,totalLow,totalHigh,venueCity}=row;
-                        const stars=qualityStars(sumElo);
-                        const starColor=qualityColor(stars);
+                              eloA,eloB,sumElo,tk,tc,hc,isDayTrip,dist,totalLow,totalHigh,venueCity}=row;
+                        const{label:matchLbl,color:matchColor,stars}=matchLabel(eloA,eloB);
                         const totalColor=totalLow<600?"#4ade80":totalLow<1200?"#fbbf24":"#f87171";
                         const vt=venueType(venue);
                         const showFlight=tc.mode.includes("✈️");
@@ -1698,15 +1715,15 @@
                               <div style={{display:"flex",alignItems:"center",gap:8}}>
                                 <span style={{fontSize:18}}>{MEDAL[i]}</span>
                                 {/* Quality stars */}
-                                <span style={{color:starColor,fontSize:15,letterSpacing:1}}>
+                                <span style={{color:matchColor,fontSize:15,letterSpacing:1}}>
                                   {"★".repeat(stars)}{"☆".repeat(5-stars)}
                                 </span>
                                 <span style={{
-                                  background:"#0d1f3c",border:`1px solid ${starColor}`,
-                                  color:starColor,fontSize:10,fontWeight:700,
+                                  background:"#0d1f3c",border:`1px solid ${matchColor}`,
+                                  color:matchColor,fontSize:10,fontWeight:700,
                                   padding:"2px 8px",borderRadius:10,
                                 }}>
-                                  {stars===5?"Elite clash":stars===4?"Top match":stars===3?"Solid match":stars===2?"Competitive":"Underdog clash"}
+                                  {matchLbl}
                                 </span>
                                 {hasLiveTicket&&(
                                   <span style={{
