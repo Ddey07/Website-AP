@@ -1653,9 +1653,18 @@
                     });
                   }
 
-                  // Quality score: label tier (drama + prestige) + avg ELO as tiebreaker
-                  const LABEL_SCORE={"Elite clash":5000,"Top match":4000,"Upset alert":3500,"Even contest":3000,"Competitive":2000,"Heavy favorite":1000,"Underdog battle":800,"Underdog clash":600,"Mismatch":200};
-                  const qScore=r=>(LABEL_SCORE[matchLabel(r.eloA,r.eloB).label]||0)+(r.eloA+r.eloB)/2;
+                  // Best match score: quality × affordability
+                  // Label scores compressed so ELO (~1300–1877) is a meaningful co-contributor.
+                  // typicalCost = 85% weight on low end + 15% on high — penalises astronomical
+                  // ticket ceilings (e.g. $82k for Morocco–Netherlands) even when the low is cheap.
+                  // Soft penalty: quality × 2000/(2000+cost), so a $2k trip costs ~half the score.
+                  const LABEL_SCORE={"Elite clash":500,"Top match":400,"Upset alert":380,"Even contest":350,"Competitive":250,"Heavy favorite":150,"Underdog battle":120,"Underdog clash":90,"Mismatch":40};
+                  const qScore=r=>{
+                    const{label}=matchLabel(r.eloA,r.eloB);
+                    const raw=(LABEL_SCORE[label]||0)+(r.eloA+r.eloB)/2;
+                    const typicalCost=r.totalLow+(r.totalHigh-r.totalLow)*0.15;
+                    return raw*2000/(2000+typicalCost);
+                  };
                   const sorted=[...allMatchRows].sort((a,b)=>
                     tripSort==="cost"?(a.totalLow-b.totalLow):(qScore(b)-qScore(a))
                   );
