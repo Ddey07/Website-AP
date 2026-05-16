@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -20,13 +21,291 @@
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       min-height: 100vh;
       line-height: 1.5;
+      transition: background 0.25s, color 0.25s;
     }
     #root { min-height: 100vh; }
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: #0d1f3c; }
     ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
-    #wc-map { height: 400px; width: 100%; background: #040d1c; }
+    #wc-map { height: 250px; width: 100%; background: #040d1c; }
+
+    /* ===== SIDEBAR NAV ===== */
+    .sidebar-nav {
+      width: 190px;
+      flex-shrink: 0;
+      background: #040d1c;
+      border-right: 1px solid #1e3a5f;
+      overflow-y: auto;
+      padding: 10px 0 24px;
+      display: flex;
+      flex-direction: column;
+    }
+    .sidebar-tab {
+      display: block;
+      width: 100%;
+      text-align: left;
+      padding: 9px 14px 9px 17px;
+      background: transparent;
+      color: #64748b;
+      border: none;
+      border-left: 3px solid transparent;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      transition: all 0.15s;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-family: inherit;
+    }
+    .sidebar-tab:hover { background: #0d1f3c; color: #94a3b8; }
+    .sidebar-tab.active {
+      background: #0d1f3c;
+      color: #60a5fa;
+      border-left-color: #3b82f6;
+    }
+    body.light-mode .sidebar-nav {
+      background: #f8fafc;
+      border-right-color: #e2e8f0;
+    }
+    body.light-mode .sidebar-tab { color: #64748b; }
+    body.light-mode .sidebar-tab:hover { background: #f1f5f9; color: #374151; }
+    body.light-mode .sidebar-tab.active {
+      background: #dbeafe;
+      color: #1d4ed8;
+      border-left-color: #3b82f6;
+    }
     .leaflet-container { background: #040d1c !important; }
+
+    /* ===== LIGHT MODE OVERRIDES ===== */
+    /* React renders inline styles with a space after colon: style="background: #xxx;" */
+    body.light-mode {
+      background: #f0f4f8 !important;
+      color: #0f172a !important;
+    }
+    body.light-mode ::-webkit-scrollbar-track { background: #e2e8f0; }
+    body.light-mode ::-webkit-scrollbar-thumb { background: #94a3b8; }
+    body.light-mode #wc-map { background: #e2e8f0 !important; }
+    body.light-mode .leaflet-container { background: #e8f0fe !important; }
+
+    /* Override common dark card backgrounds — both hex & rgb versions */
+    body.light-mode [style*="background: #061228"],
+    body.light-mode [style*="background: rgb(6, 18, 40)"] {
+      background: #ffffff !important;
+    }
+    body.light-mode [style*="background: #0d1f3c"],
+    body.light-mode [style*="background: rgb(13, 31, 60)"] {
+      background: #f1f5f9 !important;
+    }
+    body.light-mode [style*="background: #0f172a"],
+    body.light-mode [style*="background: rgb(15, 23, 42)"] {
+      background: #f8fafc !important;
+    }
+    body.light-mode [style*="background: #1e3a5f"],
+    body.light-mode [style*="background: rgb(30, 58, 95)"] {
+      background: #dbeafe !important;
+    }
+    body.light-mode [style*="background: #040d1c"],
+    body.light-mode [style*="background: rgb(4, 13, 28)"] {
+      background: #e8ecf1 !important;
+    }
+    body.light-mode [style*="background: #050e20"],
+    body.light-mode [style*="background: rgb(5, 14, 32)"] {
+      background: #eff6ff !important;
+    }
+    body.light-mode [style*="background: #0a1f3f"],
+    body.light-mode [style*="background: rgb(10, 31, 63)"] {
+      background: #dbeafe !important;
+    }
+    /* Projected advance row backgrounds (navy highlight rows in group stage) */
+    body.light-mode [style*="background: #0f2d4a"],
+    body.light-mode [style*="background: rgb(15, 45, 74)"] {
+      background: #dbeafe !important;
+    }
+    body.light-mode [style*="background: #071a30"],
+    body.light-mode [style*="background: rgb(7, 26, 48)"] {
+      background: #eff6ff !important;
+    }
+    /* Selected/active button states */
+    body.light-mode [style*="background: #1e3f5f"] {
+      background: #bfdbfe !important;
+    }
+    /* Gradient headers → light blue gradient */
+    body.light-mode [style*="135deg,#061228"],
+    body.light-mode [style*="135deg, #061228"] {
+      background: linear-gradient(135deg,#1e40af 0%,#1d4ed8 100%) !important;
+    }
+    body.light-mode [style*="135deg,#0a1f3f"],
+    body.light-mode [style*="135deg, #0a1f3f"] {
+      background: linear-gradient(135deg,#1e3a8a 0%,#1e40af 100%) !important;
+    }
+
+    /* Dark text → light-mode readable (both hex and rgb, since Chrome normalizes inline colors to rgb) */
+    body.light-mode [style*="color: #f1f5f9"],
+    body.light-mode [style*="color: rgb(241, 245, 249)"] { color: #0f172a !important; }
+    body.light-mode [style*="color: #e2e8f0"],
+    body.light-mode [style*="color: rgb(226, 232, 240)"] { color: #1e293b !important; }
+    body.light-mode [style*="color: #94a3b8"],
+    body.light-mode [style*="color: rgb(148, 163, 184)"] { color: #475569 !important; }
+    body.light-mode [style*="color: #64748b"],
+    body.light-mode [style*="color: rgb(100, 116, 139)"] { color: #374151 !important; }
+    body.light-mode [style*="color: #60a5fa"],
+    body.light-mode [style*="color: rgb(96, 165, 250)"] { color: #1d4ed8 !important; }
+    body.light-mode [style*="color: #4ade80"],
+    body.light-mode [style*="color: rgb(74, 222, 128)"] { color: #16a34a !important; }
+    body.light-mode [style*="color: #93c5fd"],
+    body.light-mode [style*="color: rgb(147, 197, 253)"] { color: #1e40af !important; }
+    body.light-mode [style*="color: #cbd5e1"],
+    body.light-mode [style*="color: rgb(203, 213, 225)"] { color: #334155 !important; }
+    body.light-mode [style*="color: #475569"],
+    body.light-mode [style*="color: rgb(71, 85, 105)"] { color: #1e293b !important; }
+    body.light-mode [style*="color: #334155"],
+    body.light-mode [style*="color: rgb(51, 65, 85)"] { color: #0f172a !important; }
+
+    /* Borders — React renders borderBottom as border-bottom */
+    body.light-mode [style*="border: 1px solid #1e3a5f"],
+    body.light-mode [style*="border: 1px solid #0d1f3c"] {
+      border-color: #bfdbfe !important;
+    }
+    body.light-mode [style*="border-bottom: 1px solid #1e3a5f"] {
+      border-bottom-color: #bfdbfe !important;
+    }
+    body.light-mode [style*="border-top: 1px solid #1e3a5f"] {
+      border-top-color: #bfdbfe !important;
+    }
+    /* Additional dark tones */
+    body.light-mode [style*="background: #0d2a1a"] { background: #dcfce7 !important; }
+    body.light-mode [style*="background: #050e20"] { background: #eff6ff !important; }
+    body.light-mode [style*="background: #0a1f3f"] { background: #dbeafe !important; }
+    body.light-mode [style*="background: #030a15"] { background: #f8fafc !important; }
+    body.light-mode [style*="background: #052e16"] { background: #dcfce7 !important; }
+
+    /* Greens that are too light on white backgrounds (hex + rgb) */
+    body.light-mode [style*="color: #34d399"],
+    body.light-mode [style*="color: rgb(52, 211, 153)"] { color: #059669 !important; }
+    body.light-mode [style*="color: #4ade80"],
+    body.light-mode [style*="color: rgb(74, 222, 128)"] { color: #16a34a !important; }
+    body.light-mode [style*="color: #86efac"],
+    body.light-mode [style*="color: rgb(134, 239, 172)"] { color: #15803d !important; }
+    body.light-mode [style*="color: #22c55e"],
+    body.light-mode [style*="color: rgb(34, 197, 94)"] { color: #15803d !important; }
+    /* Yellows/ambers that are invisible on white */
+    body.light-mode [style*="color: #fbbf24"],
+    body.light-mode [style*="color: rgb(251, 191, 36)"] { color: #b45309 !important; }
+    body.light-mode [style*="color: #f59e0b"],
+    body.light-mode [style*="color: rgb(245, 158, 11)"] { color: #b45309 !important; }
+    body.light-mode [style*="color: #fcd34d"],
+    body.light-mode [style*="color: rgb(252, 211, 77)"] { color: #92400e !important; }
+    /* Purples on white */
+    body.light-mode [style*="color: #a78bfa"],
+    body.light-mode [style*="color: rgb(167, 139, 250)"] { color: #6d28d9 !important; }
+    body.light-mode [style*="color: #c4b5fd"],
+    body.light-mode [style*="color: rgb(196, 181, 253)"] { color: #5b21b6 !important; }
+    /* Light backgrounds for dark-bg accent bubbles */
+    body.light-mode [style*="background: #052e16"] { background: #dcfce7 !important; }
+    body.light-mode [style*="background: #1c0a00"] { background: #fff7ed !important; }
+    body.light-mode [style*="background: #78350f"] { background: #fef3c7 !important; }
+    /* Qualification bar track */
+    body.light-mode [style*="background: #0d1f3c"][style*="height: 3px"],
+    body.light-mode [style*="background: #0d1f3c"][style*="height:3px"] {
+      background: #e2e8f0 !important;
+    }
+
+    /* Map border */
+    body.light-mode #wc-map {
+      border-bottom-color: #bfdbfe !important;
+    }
+
+    /* ===== CLASS-BASED OVERRIDES (reliable — bypasses inline style specificity issues) ===== */
+    /* Ticket price section */
+    body.light-mode .price-badge {
+      background: #f0f9ff !important;
+      border-color: #bfdbfe !important;
+    }
+    body.light-mode .price-badge * { color: #374151 !important; }
+    body.light-mode .price-badge a {
+      background: #dbeafe !important;
+      color: #1d4ed8 !important;
+    }
+
+    /* Projected advance rows in group stage */
+    body.light-mode .proj-team-row {
+      background: #dbeafe !important;
+      border-color: #93c5fd !important;
+    }
+    body.light-mode .proj-advance-label { color: #059669 !important; }
+    body.light-mode .proj-team-name { color: #1e293b !important; }
+
+    /* Guide cards */
+    body.light-mode .guide-card {
+      background: #ffffff !important;
+      border-color: #e2e8f0 !important;
+    }
+    body.light-mode .guide-card-title { color: #1e293b !important; }
+    body.light-mode .guide-card-body { color: #475569 !important; }
+
+    /* Track a Team header card */
+    body.light-mode .team-header-card {
+      background: linear-gradient(135deg,#dbeafe,#eff6ff) !important;
+      border-color: #93c5fd !important;
+    }
+    body.light-mode .team-header-name { color: #0f172a !important; }
+    body.light-mode .team-stat-label { color: #64748b !important; }
+    body.light-mode .team-champ-odds { color: #b45309 !important; }
+    body.light-mode .team-group-label { color: #6d28d9 !important; }
+    /* Form value — uses fc() dynamic color, force readable */
+    body.light-mode .team-form-value[style*="rgb(190, 242, 100)"],
+    body.light-mode .team-form-value[style*="#bef264"] { color: #65a30d !important; }
+    body.light-mode .team-form-value[style*="rgb(134, 239, 172)"],
+    body.light-mode .team-form-value[style*="#86efac"] { color: #15803d !important; }
+    body.light-mode .team-form-value[style*="rgb(74, 222, 128)"],
+    body.light-mode .team-form-value[style*="#4ade80"] { color: #16a34a !important; }
+    body.light-mode .team-form-value[style*="rgb(252, 165, 165)"],
+    body.light-mode .team-form-value[style*="#fca5a5"] { color: #b91c1c !important; }
+    body.light-mode .team-form-value[style*="rgb(248, 113, 113)"],
+    body.light-mode .team-form-value[style*="#f87171"] { color: #dc2626 !important; }
+    body.light-mode .team-form-value[style*="rgb(148, 163, 184)"],
+    body.light-mode .team-form-value[style*="#94a3b8"] { color: #475569 !important; }
+
+    /* Missing form colors globally (too light on white) */
+    body.light-mode [style*="color: #bef264"],
+    body.light-mode [style*="color: rgb(190, 242, 100)"] { color: #65a30d !important; }
+    body.light-mode [style*="color: #fca5a5"],
+    body.light-mode [style*="color: rgb(252, 165, 165)"] { color: #b91c1c !important; }
+
+    /* Leaflet map */
+    body.light-mode .leaflet-tile-pane { filter: none; }
+    body.light-mode .leaflet-container { background: #e8f4f8 !important; }
+
+    /* Site header stays on a dark gradient in both modes — keep text white */
+    body.light-mode .site-header,
+    body.light-mode .site-header * {
+      color: #ffffff !important;
+    }
+    /* Except the accent label (blue) and sim complete (green) keep their hues */
+    body.light-mode .site-header .header-accent { color: #93c5fd !important; }
+    body.light-mode .site-header .header-sim-done { color: #86efac !important; }
+    /* Theme toggle button styles */
+    .theme-toggle-btn {
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 20px;
+      padding: 4px 12px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.85);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .theme-toggle-btn:hover { background: rgba(255,255,255,0.12); }
+    body.light-mode .theme-toggle-btn {
+      border-color: rgba(0,0,0,0.2);
+      color: rgba(255,255,255,0.9);
+    }
   </style>
 </head>
 <body>
@@ -554,37 +833,64 @@
     };
     const ROUND_PTS={grp1:3,grp2:2,grpT:2,r32:5,r16:10,qf:20,sf:40,final:80};
 
-    // Assign 8 qualifying 3rd-place teams to valid slots (greedy)
+    // Assign 8 qualifying 3rd-place teams to valid slots.
+    // Uses constraint-sorted backtracking: slots with fewest valid candidates
+    // are filled first, preventing greedy from blocking later slots like M85.
     function assignUserThirds(thirds){
-      const res={};const used=new Set();
-      for(const slot of THIRD_SLOT_ORD){
-        const c=thirds.find(t=>!used.has(t.team)&&SLOT_ALLOW_C[slot].includes(t.group));
-        res[slot]=c?(used.add(c.team),c.team):'TBD';
+      // Sort slots: most constrained (fewest valid teams) first
+      const sorted=[...THIRD_SLOT_ORD].sort((a,b)=>
+        thirds.filter(t=>SLOT_ALLOW_C[a].includes(t.group)).length-
+        thirds.filter(t=>SLOT_ALLOW_C[b].includes(t.group)).length
+      );
+      const res={};
+      function bt(i,used){
+        if(i===sorted.length)return true;
+        const slot=sorted[i];
+        for(const t of thirds){
+          if(!used.has(t.team)&&SLOT_ALLOW_C[slot].includes(t.group)){
+            used.add(t.team);res[slot]=t.team;
+            if(bt(i+1,used))return true;
+            used.delete(t.team);delete res[slot];
+          }
+        }
+        return false;
+      }
+      if(!bt(0,new Set())){
+        // Fallback greedy if selection has no complete solution (invalid combo)
+        const used=new Set();
+        for(const s of THIRD_SLOT_ORD){
+          const c=thirds.find(t=>!used.has(t.team)&&SLOT_ALLOW_C[s].includes(t.group));
+          res[s]=c?(used.add(c.team),c.team):'TBD';
+        }
       }
       return res;
     }
 
     // Build 16 R32 matchup pairs from group picks + third assignments
     function buildUserR32(gp,ta){
+      // Safety: a team picked as 1st/2nd must never also appear as a 3rd-place slot
+      const qualified=new Set(Object.values(gp).flatMap(p=>[p.first,p.second]).filter(Boolean));
+      const safeTA=Object.fromEntries(Object.entries(ta).map(([k,v])=>[k,qualified.has(v)?'TBD':v]));
       const w=g=>gp[g]?.first||'TBD';
       const r=g=>gp[g]?.second||'TBD';
+      const ta2=safeTA;
       return [
-        [w('E'),ta.M74||'TBD'],  // idx0  M74
-        [w('I'),ta.M77||'TBD'],  // idx1  M77
-        [r('A'),r('B')],          // idx2  M73
-        [w('F'),r('C')],          // idx3  M75
-        [r('K'),r('L')],          // idx4  M83
-        [w('H'),r('J')],          // idx5  M84
-        [w('D'),ta.M81||'TBD'],  // idx6  M81
-        [w('G'),ta.M82||'TBD'],  // idx7  M82
-        [w('C'),r('F')],          // idx8  M76
-        [r('E'),r('I')],          // idx9  M78
-        [w('A'),ta.M79||'TBD'],  // idx10 M79
-        [w('L'),ta.M80||'TBD'],  // idx11 M80
-        [w('J'),r('H')],          // idx12 M86
-        [r('D'),r('G')],          // idx13 M88
-        [w('B'),ta.M85||'TBD'],  // idx14 M85
-        [w('K'),ta.M87||'TBD'],  // idx15 M87
+        [w('E'),ta2.M74||'TBD'],  // idx0  M74
+        [w('I'),ta2.M77||'TBD'],  // idx1  M77
+        [r('A'),r('B')],           // idx2  M73
+        [w('F'),r('C')],           // idx3  M75
+        [r('K'),r('L')],           // idx4  M83
+        [w('H'),r('J')],           // idx5  M84
+        [w('D'),ta2.M81||'TBD'],  // idx6  M81
+        [w('G'),ta2.M82||'TBD'],  // idx7  M82
+        [w('C'),r('F')],           // idx8  M76
+        [r('E'),r('I')],           // idx9  M78
+        [w('A'),ta2.M79||'TBD'],  // idx10 M79
+        [w('L'),ta2.M80||'TBD'],  // idx11 M80
+        [w('J'),r('H')],           // idx12 M86
+        [r('D'),r('G')],           // idx13 M88
+        [w('B'),ta2.M85||'TBD'],  // idx14 M85
+        [w('K'),ta2.M87||'TBD'],  // idx15 M87
       ];
     }
 
@@ -597,7 +903,7 @@
     }
 
     // GroupPicker — pick 1st & 2nd from a group
-    function GroupPicker({letter,group,picks,onChange}){
+    function GroupPicker({letter,group,picks,onChange,stats,showModel=true}){
       const first=picks?.first,second=picks?.second;
       const btn=(pos,t)=>{
         const isActive=(pos==='first'?first:second)===t;
@@ -612,22 +918,58 @@
             background:isActive?(pos==='first'?'#f59e0b':'#60a5fa'):'#0d1f3c',
             color:isActive?'#000':'#64748b',
             border:`1px solid ${isActive?(pos==='first'?'#f59e0b':'#3b82f6'):'#1e3a5f'}`,
-            borderRadius:6,padding:'3px 10px',fontSize:11,fontWeight:700,cursor:'pointer',
+            borderRadius:6,padding:'3px 10px',fontSize:11,fontWeight:700,cursor:'pointer',flexShrink:0,
           }}>{pos==='first'?'1st':'2nd'}</button>
         );
       };
       return (
         <div style={{background:'#061228',border:'1px solid #1e3a5f',borderRadius:10,padding:'12px 14px',marginBottom:10}}>
           <div style={{fontWeight:700,color:'#60a5fa',fontSize:13,marginBottom:8}}>Group {letter}</div>
-          {group.teams.map(t=>(
-            <div key={t} style={{display:'flex',alignItems:'center',gap:8,marginBottom:5}}>
-              <span style={{fontSize:18,width:24}}>{fl(t)}</span>
-              <span style={{flex:1,fontSize:13,color:'#e2e8f0'}}>{t}</span>
-              <span style={{color:'#475569',fontSize:11,marginRight:4}}>#{RANKS[t]}</span>
-              {btn('first',t)}
-              {btn('second',t)}
-            </div>
-          ))}
+          {group.teams.map(t=>{
+            const s=stats?.[t];
+            const qualBar=s?.qual||0;
+            return (
+              <div key={t} style={{marginBottom:8}}>
+                <div style={{display:'flex',alignItems:'center',gap:8}}>
+                  <span style={{fontSize:18,width:24,flexShrink:0}}>{fl(t)}</span>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{display:'flex',alignItems:'center',gap:6,marginBottom:s?3:0}}>
+                      <span style={{fontSize:13,color:'#e2e8f0',fontWeight:500}}>{t}</span>
+                      <span style={{color:'#475569',fontSize:10}}>#{RANKS[t]}</span>
+                    </div>
+                    {s&&showModel&&(
+                      <div style={{display:'flex',alignItems:'center',gap:4}}>
+                        {/* qualification bar */}
+                        <div style={{flex:1,height:3,background:'#0d1f3c',borderRadius:2,overflow:'hidden'}}>
+                          <div style={{width:`${qualBar}%`,height:'100%',
+                            background:qualBar>=70?'#34d399':qualBar>=40?'#60a5fa':'#64748b',
+                            borderRadius:2}}/>
+                        </div>
+                        {/* stat badges */}
+                        <span title="Win group probability" style={{fontSize:9,color:'#f59e0b',fontWeight:700,minWidth:28,textAlign:'right'}}>
+                          1st {s.win}%
+                        </span>
+                        <span title="Runner-up probability" style={{fontSize:9,color:'#60a5fa',fontWeight:700,minWidth:26,textAlign:'right'}}>
+                          2nd {s.ru}%
+                        </span>
+                        {s.third>1&&(
+                          <span title="3rd-place qualifier" style={{fontSize:9,color:'#94a3b8',minWidth:24,textAlign:'right'}}>
+                            3rd {s.third}%
+                          </span>
+                        )}
+                        <span title="Total qualification probability" style={{
+                          fontSize:9,fontWeight:700,minWidth:28,textAlign:'right',
+                          color:qualBar>=70?'#34d399':qualBar>=40?'#60a5fa':'#94a3b8',
+                        }}>✓{qualBar}%</span>
+                      </div>
+                    )}
+                  </div>
+                  {btn('first',t)}
+                  {btn('second',t)}
+                </div>
+              </div>
+            );
+          })}
         </div>
       );
     }
@@ -667,31 +1009,53 @@
                 const[tA,tB]=getKOTeams(rnd,idx,r32Teams,koPicks);
                 const winner=koPicks[rnd]?.[idx];
                 const ready=tA!=='TBD'&&tB!=='TBD';
-                const mk=(t,align)=>(
+                // ELO + form win probability
+                const eA=ELO[tA]||1300,eB=ELO[tB]||1300;
+                const fA=FORM[tA]||0,fB=FORM[tB]||0;
+                const qA=Math.pow(10,(eA+fA*10)/400),qB=Math.pow(10,(eB+fB*10)/400);
+                const pA=ready?Math.round(qA/(qA+qB)*100):50,pB=100-pA;
+                const {label:lbl,color:lc}=matchLabel(eA,eB);
+                const mk=(t,align,pct)=>(
                   <button onClick={()=>ready&&pick(rnd,idx,t)} style={{
                     flex:1,background:winner===t?'#1e3a5f':'#0d1f3c',
                     color:winner===t?'#f1f5f9':'#64748b',
                     border:`1px solid ${winner===t?'#3b82f6':'#1e3a5f'}`,
                     borderRadius:8,padding:'8px 10px',cursor:ready?'pointer':'default',
-                    textAlign:align,fontSize:12,fontWeight:winner===t?700:400,
+                    fontSize:12,fontWeight:winner===t?700:400,
                     display:'flex',alignItems:'center',gap:6,
                     flexDirection:align==='right'?'row-reverse':'row',
                   }}>
                     {t!=='TBD'&&<span style={{fontSize:16}}>{fl(t)}</span>}
-                    <span>{t}</span>
+                    <div style={{flex:1,textAlign:align}}>
+                      <div>{t}</div>
+                      {ready&&<div style={{fontSize:10,color:winner===t?'#60a5fa':'#334155',marginTop:1}}>
+                        {pct}% model win
+                      </div>}
+                    </div>
                     {winner===t&&<span style={{color:'#34d399',fontSize:14}}>✓</span>}
                   </button>
                 );
                 return (
                   <div key={slot.m} style={{background:'#040d1c',border:'1px solid #0d1f3c',
                     borderRadius:8,padding:'8px 10px',marginBottom:6}}>
-                    <div style={{fontSize:10,color:'#334155',marginBottom:5}}>
-                      {slot.m} · {slot.date} · 📍 {slot.venue}
+                    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:5}}>
+                      <span style={{fontSize:10,color:'#334155'}}>{slot.m} · {slot.date} · 📍 {slot.venue}</span>
+                      {ready&&<span style={{fontSize:10,color:lc,fontWeight:600}}>{lbl}</span>}
                     </div>
-                    <div style={{display:'flex',alignItems:'center',gap:6}}>
-                      {mk(tA,'left')}
-                      <span style={{color:'#334155',fontSize:11,fontWeight:700,flexShrink:0}}>vs</span>
-                      {mk(tB,'right')}
+                    {/* probability bar */}
+                    {ready&&(
+                      <div style={{display:'flex',height:3,borderRadius:2,overflow:'hidden',marginBottom:6,gap:1}}>
+                        <div style={{width:`${pA}%`,background:'#3b82f6',borderRadius:'2px 0 0 2px'}}/>
+                        <div style={{width:`${pB}%`,background:'#64748b',borderRadius:'0 2px 2px 0'}}/>
+                      </div>
+                    )}
+                    <div style={{display:'flex',alignItems:'stretch',gap:6}}>
+                      {mk(tA,'left',pA)}
+                      <div style={{display:'flex',flexDirection:'column',alignItems:'center',
+                        justifyContent:'center',gap:2,flexShrink:0}}>
+                        <span style={{color:'#334155',fontSize:10,fontWeight:700}}>vs</span>
+                      </div>
+                      {mk(tB,'right',pB)}
                     </div>
                   </div>
                 );
@@ -702,15 +1066,325 @@
       );
     }
 
+    // ── Bracket Tree SVG ──────────────────────────────────────────────
+    function BracketTreeSVG({ko,r32Teams,displayName}){
+      // Symmetric "butterfly" — maximum size, bold colors
+      const W=1960,H=860;
+      const TOP=84,BOT=40,AVAIL=H-TOP-BOT;
+      const BW=190,BH=66,LH=BH/2;   // 33px per team row
+      const GAP=16;
+
+      // Column x (left edge). Step = BW+GAP = 206.
+      // R32L = W/2 - 4*206 - BW/2 = 980-824-95 = 61 → round to 62
+      const R32L=62;
+      const R16L=R32L+BW+GAP;   // 268
+      const QFL =R16L+BW+GAP;   // 474
+      const SFL =QFL +BW+GAP;   // 680
+      const FIN =W/2-BW/2;      // 885  (dead center)
+      const SFR =FIN +BW+GAP;   // 1091
+      const QFR =SFR +BW+GAP;   // 1297
+      const R16R=QFR +BW+GAP;   // 1503
+      const R32R=R16R+BW+GAP;   // 1709
+
+      const mY=(i,n)=>TOP+(i+0.5)*(AVAIL/n);
+      const finCY=mY(0,1);
+
+      // ── Colour system ─────────────────────────────────────────────
+      const C={
+        bg:'#f8fafc',
+        // Round column strips — FIFA 2026-inspired bold color funnel
+        sR32:'#f5f3ff',  sR16:'#fce7f3',  sQF:'#dcfce7',
+        sSF:'#fef9c3',   sFIN:'#fff7ed',
+        // Normal match box
+        normBg:'#ffffff', normBd:'#cbd5e1', normTxt:'#111827',
+        // Winner — deep green + white text (high contrast)
+        winBg:'#14532d',  winTxt:'#ffffff',
+        // Final winner — deep amber + white
+        finWinBg:'#78350f', finWinTxt:'#ffffff',
+        finBd:'#d97706', finBdW:3,
+        // Loser — dim slightly
+        loserTxt:'#4b5563',
+        // Connectors
+        line:'#64748b', lineW:'1.8',
+        gold:'#d97706',
+        // Match number pill
+        mNumBg:'#1e40af', mNumTxt:'#ffffff',
+        // Champion
+        champBg:'#fffbeb', champBd:'#f59e0b',
+        champLabel:'#b45309', champName:'#1c1917',
+        footTxt:'#94a3b8',
+      };
+
+      // SVG drop-shadow filter for winner boxes
+      const shadowId='wshadow';
+
+      // ── Match box ─────────────────────────────────────────────────
+      const Box=({x,cy,tA,tB,winner,matchNum,rtl=false,isFinal=false})=>{
+        const y=cy-BH/2;
+        const wA=!!(winner&&winner===tA), wB=!!(winner&&winner===tB);
+        const trunc=s=>(s||'TBD').length>20?(s||'TBD').slice(0,19)+'…':(s||'TBD');
+        const mnW=46,mnH=18;
+        const mnX=rtl?x+BW-mnW:x;
+
+        const getBg=(isW)=>isW?(isFinal?C.finWinBg:C.winBg):(isFinal?'#fef3c7':C.normBg);
+        const getTxt=(isW)=>isW?(isFinal?C.finWinTxt:C.winTxt):C.loserTxt;
+        const bd=isFinal?C.finBd:C.normBd;
+        const bdW=isFinal?C.finBdW:1;
+
+        return (
+          <g>
+            {/* match number pill */}
+            {matchNum&&(
+              <g>
+                <rect x={mnX} y={y-mnH-3} width={mnW} height={mnH} rx='6' fill={C.mNumBg}/>
+                <text x={mnX+mnW/2} y={y-6} textAnchor='middle' fontSize='9.5' fill={C.mNumTxt}
+                  fontWeight='700' fontFamily='system-ui,sans-serif'>{matchNum}</text>
+              </g>
+            )}
+            {/* ─ top row ─ */}
+            <rect x={x} y={y} width={BW} height={LH}
+              fill={getBg(wA)} stroke={bd} strokeWidth={bdW}
+              filter={wA?`url(#${shadowId})`:'none'}/>
+            <text x={x+9} y={y+LH-10} fontSize='16' fontFamily='system-ui,sans-serif'
+              fill={getTxt(wA)} fontWeight={wA?'700':'500'}>{trunc(tA)}</text>
+            {/* ─ divider ─ */}
+            <line x1={x} y1={y+LH} x2={x+BW} y2={y+LH} stroke={bd} strokeWidth='1'/>
+            {/* ─ bottom row ─ */}
+            <rect x={x} y={y+LH} width={BW} height={LH}
+              fill={getBg(wB)} stroke={bd} strokeWidth={bdW}
+              filter={wB?`url(#${shadowId})`:'none'}/>
+            <text x={x+9} y={y+BH-10} fontSize='16' fontFamily='system-ui,sans-serif'
+              fill={getTxt(wB)} fontWeight={wB?'700':'500'}>{trunc(tB)}</text>
+          </g>
+        );
+      };
+
+      // ── L-shaped connector ────────────────────────────────────────
+      const Conn=({fx,fy,tx,ty})=>{
+        const mx=(fx+tx)/2;
+        return <path d={`M${fx},${fy} H${mx} V${ty} H${tx}`} fill='none'
+          stroke={C.line} strokeWidth={C.lineW} strokeLinecap='round' strokeLinejoin='round'/>;
+      };
+
+      // ── Column header pill ────────────────────────────────────────
+      const ColHdr=({x,label,isFinal=false})=>{
+        const cx=x+BW/2;
+        const pw={'Round of 32':108,'Round of 16':106,'Quarterfinals':116,'Semifinals':100,'⭐ Final':86}[label]||108;
+        return (
+          <g>
+            <rect x={cx-pw/2} y={TOP-26} width={pw} height={21} rx='10'
+              fill={isFinal?C.gold:'#1d4ed8'}/>
+            <text x={cx} y={TOP-10} textAnchor='middle' fontSize='10' fill='white'
+              fontWeight='800' fontFamily='system-ui,sans-serif' letterSpacing='0.4'>{label}</text>
+          </g>
+        );
+      };
+
+      const champ=ko.final?.[0];
+      const cbW=BW+110,cbH=72;
+      const cbX=W/2-cbW/2, cbY=finCY-BH/2-cbH-18;
+
+      return (
+        <svg id="bracket-svg" viewBox={`0 0 ${W} ${H}`} width="100%"
+          xmlns="http://www.w3.org/2000/svg"
+          style={{display:'block',background:C.bg,borderRadius:14}}>
+
+          <defs>
+            <filter id={shadowId} x='-4%' y='-8%' width='108%' height='125%'>
+              <feDropShadow dx='0' dy='2' stdDeviation='2' floodColor='#00000030'/>
+            </filter>
+          </defs>
+
+          <rect width={W} height={H} fill={C.bg}/>
+
+          {/* ── Color-funnel column strips (darkest center, lightest edge) ── */}
+          <rect x={R32L-GAP/2}  y={0} width={BW+GAP} height={H} fill={C.sR32}/>
+          <rect x={R32R-GAP/2}  y={0} width={BW+GAP} height={H} fill={C.sR32}/>
+          <rect x={R16L-GAP/2}  y={0} width={BW+GAP} height={H} fill={C.sR16}/>
+          <rect x={R16R-GAP/2}  y={0} width={BW+GAP} height={H} fill={C.sR16}/>
+          <rect x={QFL-GAP/2}   y={0} width={BW+GAP} height={H} fill={C.sQF}/>
+          <rect x={QFR-GAP/2}   y={0} width={BW+GAP} height={H} fill={C.sQF}/>
+          <rect x={SFL-GAP/2}   y={0} width={BW+GAP} height={H} fill={C.sSF}/>
+          <rect x={SFR-GAP/2}   y={0} width={BW+GAP} height={H} fill={C.sSF}/>
+          <rect x={FIN-GAP/2}   y={0} width={BW+GAP} height={H} fill={C.sFIN}/>
+
+          {/* ══════════════════════════════════════════════════════════
+               HOST COUNTRY LANDMARK SILHOUETTES — faint background
+               Left QF gap:  Chichen Itza  (Mexico)   cx≈570, y 385-590
+               Center top:   CN Tower      (Canada)   cx≈980, y 110-315
+               Center bottom: Rocky Mtn   (USA/CAN)  full-width range
+               Right QF gap: Gateway Arch (USA)       cx≈1392, y 350-580
+          ══════════════════════════════════════════════════════════ */}
+          <g fill='#64748b' opacity='0.10'>
+
+            {/* ── Chichen Itza stepped pyramid (left QF empty zone) ──
+                 cx=570, base at y=580, apex at y=395
+                 5 stepped levels + triangular top                     */}
+            <polygon points={`
+              450,582 690,582
+              690,554 660,554
+              660,526 635,526
+              635,498 615,498
+              615,468 600,468
+              600,434 570,395
+              540,434 525,468
+              525,498 505,498
+              505,526 480,526
+              480,554 450,554
+            `}/>
+
+            {/* ── CN Tower (upper center of Final column) ──
+                 Antenna → pod disc → tapered shaft → spreading base   */}
+            {/* Antenna */}
+            <rect x={978} y={112} width={4} height={72}/>
+            {/* Pod ring */}
+            <ellipse cx={980} cy={192} rx={44} ry={13}/>
+            {/* Shaft above pod → base */}
+            <polygon points='977,184 983,184 990,292 970,292'/>
+            {/* Base spread */}
+            <polygon points='970,290 990,290 1005,312 955,312'/>
+            <rect x={948} y={310} width={64} height={14}/>
+
+            {/* ── Gateway Arch (right QF empty zone) ──
+                 St. Louis, Missouri, USA
+                 Catenary arch: legs at y=572, apex at cy=360
+                 Drawn as outer path minus inner path               */}
+            <path d={`
+              M 1298,574
+              C 1298,468 1348,374 1392,362
+              C 1436,374 1486,468 1486,574
+              L 1470,574
+              C 1470,476 1432,388 1392,378
+              C 1352,388 1314,476 1314,574
+              Z
+            `}/>
+
+            {/* ── Rocky Mountain range (bottom center strip) ──
+                 Spans from QFL to QFR across the lower empty area
+                 Simple overlapping mountain silhouettes at y≈680-820  */}
+            <polygon points={`
+              474,820  520,692  562,738  610,668  660,714
+              710,652  762,700  820,638  880,682  940,624
+              980,658  1020,624 1080,682 1140,638 1198,700
+              1250,652 1300,714 1350,668 1398,738 1440,692
+              1486,820
+            `}/>
+
+          </g>
+
+          {/* ── Title ── */}
+          <text x={W/2} y={30} textAnchor='middle' fontSize='20' fontWeight='900'
+            fill='#0f172a' fontFamily='system-ui,sans-serif' letterSpacing='1.5'>
+            FIFA WORLD CUP 2026 — BRACKET CHALLENGE
+          </text>
+          <text x={W/2} y={54} textAnchor='middle' fontSize='13.5' fill='#475569'
+            fontFamily='system-ui,sans-serif' fontWeight='500'>{displayName}'s Bracket</text>
+          <line x1={62} y1={64} x2={W-62} y2={64} stroke='#e2e8f0' strokeWidth='1.5'/>
+
+          {/* ── Column headers ── */}
+          <ColHdr x={R32L} label='Round of 32'/>
+          <ColHdr x={R16L} label='Round of 16'/>
+          <ColHdr x={QFL}  label='Quarterfinals'/>
+          <ColHdr x={SFL}  label='Semifinals'/>
+          <ColHdr x={FIN}  label='⭐ Final' isFinal={true}/>
+          <ColHdr x={SFR}  label='Semifinals'/>
+          <ColHdr x={QFR}  label='Quarterfinals'/>
+          <ColHdr x={R16R} label='Round of 16'/>
+          <ColHdr x={R32R} label='Round of 32'/>
+
+          {/* ════ LEFT SIDE ════ */}
+          {Array.from({length:8},(_,i)=>{
+            const[tA,tB]=r32Teams[i]||['TBD','TBD'];
+            return <Box key={`r32l${i}`} x={R32L} cy={mY(i,8)} tA={tA} tB={tB} winner={ko.r32?.[i]} matchNum={KO.r32[i]?.m}/>;
+          })}
+          {Array.from({length:4},(_,i)=>(
+            <g key={`r16l${i}`}>
+              <Box x={R16L} cy={mY(i,4)} tA={ko.r32?.[i*2]||'TBD'} tB={ko.r32?.[i*2+1]||'TBD'} winner={ko.r16?.[i]} matchNum={KO.r16[i]?.m}/>
+              <Conn fx={R32L+BW} fy={mY(i*2,8)}   tx={R16L} ty={mY(i,4)}/>
+              <Conn fx={R32L+BW} fy={mY(i*2+1,8)} tx={R16L} ty={mY(i,4)}/>
+            </g>
+          ))}
+          {Array.from({length:2},(_,i)=>(
+            <g key={`qfl${i}`}>
+              <Box x={QFL} cy={mY(i,2)} tA={ko.r16?.[i*2]||'TBD'} tB={ko.r16?.[i*2+1]||'TBD'} winner={ko.qf?.[i]} matchNum={KO.qf[i]?.m}/>
+              <Conn fx={R16L+BW} fy={mY(i*2,4)}   tx={QFL} ty={mY(i,2)}/>
+              <Conn fx={R16L+BW} fy={mY(i*2+1,4)} tx={QFL} ty={mY(i,2)}/>
+            </g>
+          ))}
+          <Box x={SFL} cy={finCY} tA={ko.qf?.[0]||'TBD'} tB={ko.qf?.[1]||'TBD'} winner={ko.sf?.[0]} matchNum={KO.sf[0]?.m}/>
+          <Conn fx={QFL+BW} fy={mY(0,2)} tx={SFL} ty={finCY}/>
+          <Conn fx={QFL+BW} fy={mY(1,2)} tx={SFL} ty={finCY}/>
+
+          {/* ════ FINAL ════ */}
+          <line x1={SFL+BW} y1={finCY} x2={FIN}    y2={finCY} stroke={C.gold} strokeWidth='2.5' strokeDasharray='7,4'/>
+          <line x1={SFR}    y1={finCY} x2={FIN+BW} y2={finCY} stroke={C.gold} strokeWidth='2.5' strokeDasharray='7,4'/>
+          <Box x={FIN} cy={finCY} tA={ko.sf?.[0]||'TBD'} tB={ko.sf?.[1]||'TBD'} winner={ko.final?.[0]} matchNum={KO.final[0]?.m} isFinal={true}/>
+
+          {/* ── Champion badge ── */}
+          {champ?(
+            <g>
+              <line x1={W/2} y1={cbY+cbH} x2={W/2} y2={finCY-BH/2} stroke={C.gold} strokeWidth='2'/>
+              <rect x={cbX} y={cbY} width={cbW} height={cbH} rx='14'
+                fill={C.champBg} stroke={C.champBd} strokeWidth='3'
+                filter={`url(#${shadowId})`}/>
+              <text x={W/2} y={cbY+24} textAnchor='middle' fontSize='12' fontWeight='800'
+                fill={C.champLabel} letterSpacing='2.5' fontFamily='system-ui,sans-serif'>🏆  CHAMPION</text>
+              <text x={W/2} y={cbY+56} textAnchor='middle' fontSize='24' fontWeight='900'
+                fill={C.champName} fontFamily='system-ui,sans-serif'>{champ}</text>
+            </g>
+          ):(
+            <g>
+              <line x1={W/2} y1={cbY+cbH} x2={W/2} y2={finCY-BH/2} stroke={C.gold} strokeWidth='1.5' strokeDasharray='5,3'/>
+              <rect x={cbX} y={cbY} width={cbW} height={cbH} rx='14'
+                fill={C.champBg} stroke={C.champBd} strokeWidth='2' opacity='0.65'/>
+              <text x={W/2} y={cbY+42} textAnchor='middle' fontSize='15' fill='#94a3b8'
+                fontFamily='system-ui,sans-serif'>TBD</text>
+            </g>
+          )}
+
+          {/* ════ RIGHT SIDE ════ */}
+          <Box x={SFR} cy={finCY} tA={ko.qf?.[2]||'TBD'} tB={ko.qf?.[3]||'TBD'} winner={ko.sf?.[1]} matchNum={KO.sf[1]?.m} rtl={true}/>
+          <Conn fx={QFR} fy={mY(0,2)} tx={SFR+BW} ty={finCY}/>
+          <Conn fx={QFR} fy={mY(1,2)} tx={SFR+BW} ty={finCY}/>
+          {Array.from({length:2},(_,i)=>(
+            <g key={`qfr${i}`}>
+              <Box x={QFR} cy={mY(i,2)} tA={ko.r16?.[4+i*2]||'TBD'} tB={ko.r16?.[4+i*2+1]||'TBD'} winner={ko.qf?.[2+i]} matchNum={KO.qf[2+i]?.m} rtl={true}/>
+              <Conn fx={R16R} fy={mY(i*2,4)}   tx={QFR+BW} ty={mY(i,2)}/>
+              <Conn fx={R16R} fy={mY(i*2+1,4)} tx={QFR+BW} ty={mY(i,2)}/>
+            </g>
+          ))}
+          {Array.from({length:4},(_,i)=>(
+            <g key={`r16r${i}`}>
+              <Box x={R16R} cy={mY(i,4)} tA={ko.r32?.[8+i*2]||'TBD'} tB={ko.r32?.[8+i*2+1]||'TBD'} winner={ko.r16?.[4+i]} matchNum={KO.r16[4+i]?.m} rtl={true}/>
+              <Conn fx={R32R} fy={mY(i*2,8)}   tx={R16R+BW} ty={mY(i,4)}/>
+              <Conn fx={R32R} fy={mY(i*2+1,8)} tx={R16R+BW} ty={mY(i,4)}/>
+            </g>
+          ))}
+          {Array.from({length:8},(_,i)=>{
+            const[tA,tB]=r32Teams[8+i]||['TBD','TBD'];
+            return <Box key={`r32r${i}`} x={R32R} cy={mY(i,8)} tA={tA} tB={tB} winner={ko.r32?.[8+i]} matchNum={KO.r32[8+i]?.m} rtl={true}/>;
+          })}
+
+          {/* ── Footer ── */}
+          <line x1={62} y1={H-BOT+8} x2={W-62} y2={H-BOT+8} stroke='#cbd5e1' strokeWidth='1.5'/>
+          <text x={W/2} y={H-13} textAnchor='middle' fontSize='14' fontWeight='700' fill='#475569'
+            fontFamily='system-ui,sans-serif' letterSpacing='0.3'>
+            Created using debangandey.rbind.io/wc2026 · FIFA World Cup 2026 Bracket Predictor
+          </text>
+        </svg>
+      );
+    }
+
     function MatchupRow({rank,a,b,count,N}){
-      const medals=["🥇","🥈","🥉"];
+      const rankBadge=["#1","#2","#3"];
       const pct=((count/N)*100).toFixed(1);
       return (
         <div style={{
           background:"#0d1f3c",border:"1px solid #1e3a5f",borderRadius:6,padding:"8px 10px",marginBottom:6
         }}>
           <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap"}}>
-            <span style={{fontSize:16,minWidth:20}}>{medals[rank]||"⚽"}</span>
+            <span style={{fontSize:12,minWidth:24,fontWeight:700,color:'#60a5fa',textAlign:'center',
+              background:'#1e3a5f',borderRadius:4,padding:'2px 4px'}}>{rankBadge[rank]||"⚽"}</span>
             <div style={{flex:1,minWidth:0}}>
               <div style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}}>
                 <span style={{fontSize:13,fontWeight:600}}>{fl(a)} {a}</span>
@@ -738,7 +1412,7 @@
       const isPlaceholder=prices?.source?.includes("Placeholder");
       if(!p)return null;
       return(
-        <div style={{
+        <div className="price-badge" style={{
           background:"#050e20",border:"1px solid #1e3a5f",
           borderRadius:8,padding:"8px 12px",marginTop:8
         }}>
@@ -828,7 +1502,7 @@
             {g.teams.map(t=>{
               const isProj=g.proj.includes(t);
               return (
-                <div key={t} style={{
+                <div key={t} className={isProj?"proj-team-row":""} style={{
                   display:"flex",alignItems:"center",gap:8,
                   padding:"5px 8px",borderRadius:6,marginBottom:3,
                   background:isProj?"#0f2d4a":"transparent",
@@ -836,7 +1510,7 @@
                 }}>
                   <span style={{fontSize:18}}>{fl(t)}</span>
                   <span style={{flex:1,fontSize:13,fontWeight:isProj?600:400}}>{t}</span>
-                  {isProj&&<span style={{color:"#4ade80",fontSize:11,fontWeight:700}}>✓ Proj. Advance</span>}
+                  {isProj&&<span className="proj-advance-label" style={{color:"#4ade80",fontSize:11,fontWeight:700}}>✓ Proj. Advance</span>}
                   <span style={{color:"#64748b",fontSize:11}}>#{RANKS[t]}</span>
                 </div>
               );
@@ -878,7 +1552,13 @@
 
     function App(){
       // --- Bracket Challenge state ---
+      const [darkMode,setDarkMode]=useState(true);
+      useEffect(()=>{
+        document.body.classList.toggle('light-mode',!darkMode);
+      },[darkMode]);
       const [sbUser,setSbUser]=useState(null);
+      const [sbDisplayName,setSbDisplayName]=useState(''); // fetched from profiles table
+      const [sbAbGroup,setSbAbGroup]=useState(null); // 'model' | 'blind' | null
       const [authMode,setAuthMode]=useState('signin');
       const [authEmail,setAuthEmail]=useState('');
       const [authPass,setAuthPass]=useState('');
@@ -916,6 +1596,7 @@
       const mapRef=useRef(null);
       const mapDivRef=useRef(null);
       const markersRef=useRef({});
+      const tileRef=useRef(null);
 
       // Simulation useEffect
       useEffect(()=>{
@@ -1010,18 +1691,76 @@
           }
           setLeaderboard(Object.values(tot).sort((a,b)=>b.total-a.total));
         };
+        const fetchProfile=async(uid)=>{
+          const{data}=await sb.from('profiles').select('display_name,ab_group').eq('id',uid).single();
+          if(data?.display_name)setSbDisplayName(data.display_name);
+          if(data?.ab_group)setSbAbGroup(data.ab_group);
+        };
         sb.auth.getSession().then(({data:{session}})=>{
           setSbUser(session?.user||null);
-          if(session?.user)loadBracket(session.user.id);
+          if(session?.user){loadBracket(session.user.id);fetchProfile(session.user.id);}
         });
         const{data:{subscription}}=sb.auth.onAuthStateChange((_,session)=>{
           setSbUser(session?.user||null);
-          if(session?.user)loadBracket(session.user.id);
-          else{setSavedBracket(null);setGroupPicks({});setThirdPicks([]);setKoPicks({r32:{},r16:{},qf:{},sf:{},final:{}});}
+          if(session?.user){loadBracket(session.user.id);fetchProfile(session.user.id);}
+          else{setSavedBracket(null);setSbDisplayName('');setSbAbGroup(null);setGroupPicks({});setThirdPicks([]);setKoPicks({r32:{},r16:{},qf:{},sf:{},final:{}});}
         });
         loadLeaderboard();
         return()=>subscription.unsubscribe();
       },[]);
+
+      const autoPick=()=>{
+        // ── Step 1 & 2: group picks ──────────────────────────────────
+        const autoGP={};
+        for(const[g,go]of Object.entries(GROUPS)){
+          // 1st = team with highest win%
+          const byWin=[...go.teams].sort((a,b)=>(groupQualStats[b]?.win||0)-(groupQualStats[a]?.win||0));
+          const first=byWin[0];
+          // 2nd = team with highest ru% among the rest
+          const second=[...go.teams].filter(t=>t!==first)
+            .sort((a,b)=>(groupQualStats[b]?.ru||0)-(groupQualStats[a]?.ru||0))[0];
+          autoGP[g]={first,second};
+        }
+        setGroupPicks(autoGP);
+
+        // ── Step 3: 3rd-place qualifiers ─────────────────────────────
+        // For each group take the non-qualified team with highest 3rd%
+        const thirdCandidates=[];
+        for(const[g,go]of Object.entries(GROUPS)){
+          const qual=new Set([autoGP[g].first,autoGP[g].second]);
+          const best=[...go.teams].filter(t=>!qual.has(t))
+            .sort((a,b)=>(groupQualStats[b]?.third||0)-(groupQualStats[a]?.third||0))[0];
+          if(best)thirdCandidates.push({group:g,team:best,prob:groupQualStats[best]?.third||0});
+        }
+        // Take top 8 by 3rd-place probability
+        thirdCandidates.sort((a,b)=>b.prob-a.prob);
+        const autoThirds=thirdCandidates.slice(0,8);
+        setThirdPicks(autoThirds);
+
+        // ── Step 4: knockout picks ────────────────────────────────────
+        const ta=assignUserThirds(autoThirds);
+        const r32Teams=buildUserR32(autoGP,ta);
+        const autoKO={r32:{},r16:{},qf:{},sf:{},final:{}};
+        // Helper: pick higher-ELO team
+        const favOf=(tA,tB)=>{
+          if(tA==='TBD'||!tA)return tB;if(tB==='TBD'||!tB)return tA;
+          const eA=ELO[tA]||1300,eB=ELO[tB]||1300;
+          const fA=FORM[tA]||0,fB=FORM[tB]||0;
+          const qA=Math.pow(10,(eA+fA*10)/400),qB=Math.pow(10,(eB+fB*10)/400);
+          return qA>=qB?tA:tB;
+        };
+        for(let i=0;i<16;i++){
+          const[tA,tB]=r32Teams[i];
+          autoKO.r32[i]=favOf(tA,tB);
+        }
+        for(let i=0;i<8;i++) autoKO.r16[i]=favOf(autoKO.r32[i*2],autoKO.r32[i*2+1]);
+        for(let i=0;i<4;i++) autoKO.qf[i]=favOf(autoKO.r16[i*2],autoKO.r16[i*2+1]);
+        for(let i=0;i<2;i++) autoKO.sf[i]=favOf(autoKO.qf[i*2],autoKO.qf[i*2+1]);
+        autoKO.final[0]=favOf(autoKO.sf[0],autoKO.sf[1]);
+        setKoPicks(autoKO);
+        // Jump to knockout review step
+        setBStep(4);
+      };
 
       const handleAuth=async()=>{
         setAuthErr('');setAuthLoading(true);
@@ -1029,7 +1768,13 @@
           const{data,error}=await sb.auth.signUp({email:authEmail,password:authPass});
           if(error){setAuthErr(error.message);}
           else if(data.user){
-            await sb.from('profiles').upsert({id:data.user.id,display_name:authName||authEmail.split('@')[0]});
+            const ab_group=Math.random()<0.5?'model':'blind';
+            await sb.from('profiles').upsert({
+              id:data.user.id,
+              display_name:authName||authEmail.split('@')[0],
+              ab_group,
+              ab_assigned_at:new Date().toISOString(),
+            });
           }
         } else {
           const{error}=await sb.auth.signInWithPassword({email:authEmail,password:authPass});
@@ -1046,6 +1791,14 @@
       const saveBracket=async()=>{
         if(!sbUser)return;
         setSaving(true);
+        // Guarantee profile row exists — FK on predictions requires it.
+        // ignoreDuplicates:true preserves existing display names on re-saves.
+        const fallbackName=authName||sbUser.email?.split('@')[0]||'Player';
+        const{error:profErr}=await sb.from('profiles').upsert(
+          {id:sbUser.id,display_name:fallbackName},
+          {onConflict:'id',ignoreDuplicates:true}
+        );
+        if(profErr){setSaving(false);alert('Profile error: '+profErr.message);return;}
         const rows=[];
         for(const[g,p]of Object.entries(groupPicks)){
           const idx=g.charCodeAt(0)-65;
@@ -1081,10 +1834,13 @@
           scrollWheelZoom:false,
           zoomControl:true,
         });
-        L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",{
+        const tile=L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",{
           attribution:"© OpenStreetMap © CARTO",maxZoom:19
         }).addTo(map);
+        tileRef.current=tile;
         mapRef.current=map;
+        // Let layout settle then recalculate map bounds
+        setTimeout(()=>map.invalidateSize(),100);
 
         Object.entries(VENUE_COORDS).forEach(([name,{lat,lng}])=>{
           const color=venueColor(name);
@@ -1124,6 +1880,20 @@
         });
       },[selectedMapVenue,tab,homeCity,tripRound,prices]);
 
+      // Swap map tile layer when dark/light mode changes
+      useEffect(()=>{
+        if(!mapRef.current||typeof L==="undefined") return;
+        if(tileRef.current) tileRef.current.remove();
+        const url=darkMode
+          ?"https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+          :"https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png";
+        tileRef.current=L.tileLayer(url,{attribution:"© OpenStreetMap © CARTO",maxZoom:19}).addTo(mapRef.current);
+        // Update marker border color for contrast on new tile
+        const borderColor=darkMode?"#ffffff":"#1e293b";
+        Object.values(markersRef.current).forEach(m=>m.setStyle({color:borderColor,weight:darkMode?2:1.5}));
+        setTimeout(()=>mapRef.current&&mapRef.current.invalidateSize(),50);
+      },[darkMode]);
+
       const allVenues=useMemo(()=>getAllVenues(),[]);
 
       // Build slot rows from simData
@@ -1139,6 +1909,39 @@
       }
 
       // Champion tab data
+      // Group qualification stats derived from simulation slot data.
+      // r32p maps each group's winner/runner-up to a specific slot index —
+      // those mappings are used to separate win%, runner-up%, and 3rd-qualifier%.
+      const groupQualStats=useMemo(()=>{
+        if(!done)return{};
+        // Which r32 slot each group's WINNER occupies
+        const WIN_SLOT={A:10,B:14,C:8,D:6,E:0,F:3,G:7,H:5,I:1,J:12,K:15,L:11};
+        // Which r32 slot each group's RUNNER-UP occupies
+        const RU_SLOT ={A:2,B:2,C:3,D:13,E:9,F:8,G:13,H:12,I:9,J:5,K:4,L:4};
+        const r32s=teamSlotData.r32||{};
+        const stats={};
+        for(const[g,go]of Object.entries(GROUPS)){
+          const ws=WIN_SLOT[g], rs=RU_SLOT[g];
+          for(const team of go.teams){
+            const wc=(r32s[ws]?.[team]||0);
+            const rc=(r32s[rs]?.[team]||0);
+            // 3rd-place appearances = any slot that is NOT the win/ru slot for this group
+            let tc=0;
+            for(const[si,teams]of Object.entries(r32s)){
+              const i=Number(si);
+              if(i!==ws&&i!==rs)tc+=(teams[team]||0);
+            }
+            stats[team]={
+              win:Math.round(wc/N*100),
+              ru:Math.round(rc/N*100),
+              third:Math.round(tc/N*100),
+              qual:Math.round((wc+rc+tc)/N*100),
+            };
+          }
+        }
+        return stats;
+      },[done,teamSlotData]);
+
       const champRows=useMemo(()=>{
         return Object.entries(ELO)
           .map(([t])=>({team:t,count:championData[t]||0}))
@@ -1229,19 +2032,19 @@
       ];
 
       return (
-        <div>
-          {/* HEADER — sticky, full width */}
-          <div style={{
+        <div style={{display:"flex",flexDirection:"column",height:"100vh",overflow:"hidden"}}>
+          {/* HEADER */}
+          <div className="site-header" style={{
             background:"linear-gradient(135deg,#061228 0%,#0a1f3f 100%)",
             borderBottom:"1px solid #1e3a5f",
-            padding:"20px 0 16px",
-            marginBottom:0,
-            position:"sticky",top:0,zIndex:100,
+            padding:"12px 0 10px",
+            flexShrink:0,
+            zIndex:100,
           }}>
-            <div style={{maxWidth:900,margin:"0 auto",padding:"0 16px"}}>
+            <div style={{padding:"0 20px"}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
                 <div>
-                  <div style={{color:"#60a5fa",fontSize:11,fontWeight:700,letterSpacing:2,textTransform:"uppercase",marginBottom:2}}>
+                  <div className="header-accent" style={{color:"#60a5fa",fontSize:11,fontWeight:700,letterSpacing:2,textTransform:"uppercase",marginBottom:2}}>
                     FIFA World Cup 2026 · Full Bracket Predictor
                   </div>
                   <h1 style={{fontSize:"clamp(16px,4vw,24px)",fontWeight:800,color:"#f1f5f9",lineHeight:1.2,marginBottom:8}}>
@@ -1255,21 +2058,42 @@
                       <span style={{color:"#60a5fa",fontSize:12}}>Running {progress.toLocaleString()} / {N.toLocaleString()} sims…</span>
                     </div>
                   ):(
-                    <div style={{color:"#4ade80",fontSize:12,fontWeight:600}}>✓ {N.toLocaleString()} simulations complete</div>
+                    <div className="header-sim-done" style={{color:"#4ade80",fontSize:12,fontWeight:600}}>✓ {N.toLocaleString()} simulations complete</div>
                   )}
                 </div>
-                <a href="https://debangandey.rbind.io" style={{
-                  color:"#60a5fa",fontSize:12,textDecoration:"none",
-                  background:"#0d1f3c",border:"1px solid #1e3a5f",
-                  padding:"6px 12px",borderRadius:8,whiteSpace:"nowrap",marginLeft:12,
-                  display:"inline-block",marginTop:4
-                }}>← debangandey.rbind.io</a>
+                <div style={{display:"flex",flexDirection:"column",alignItems:"flex-end",gap:6,marginLeft:12}}>
+                  <a href="https://debangandey.rbind.io" style={{
+                    color:"#60a5fa",fontSize:12,textDecoration:"none",
+                    background:"#0d1f3c",border:"1px solid #1e3a5f",
+                    padding:"6px 12px",borderRadius:8,whiteSpace:"nowrap",
+                    display:"inline-block",
+                  }}>← debangandey.rbind.io</a>
+                  <button className="theme-toggle-btn" onClick={()=>setDarkMode(d=>!d)}>
+                    {darkMode ? '☀️ Light' : '🌙 Dark'}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* MAP — full width */}
-          <div ref={mapDivRef} id="wc-map" style={{width:"100%",height:400,borderBottom:"1px solid #1e3a5f"}} />
+          {/* BODY ROW: sidebar + main */}
+          <div style={{display:"flex",flex:1,overflow:"hidden",minHeight:0}}>
+
+            {/* SIDEBAR NAV */}
+            <nav className="sidebar-nav">
+              {tabs.map(t=>(
+                <button key={t.id} className={`sidebar-tab${tab===t.id?" active":""}`}
+                  onClick={()=>setTab(t.id)}>
+                  {t.label}
+                </button>
+              ))}
+            </nav>
+
+            {/* MAIN SCROLL AREA */}
+            <div style={{flex:1,minWidth:0,overflowY:"auto"}}>
+
+              {/* MAP — compact */}
+              <div ref={mapDivRef} id="wc-map" style={{width:"100%",height:250,borderBottom:"1px solid #1e3a5f"}} />
 
           {/* VENUE PANEL — shows when a pin is clicked, full width */}
           {selectedMapVenue && (()=>{
@@ -1406,28 +2230,8 @@
             );
           })()}
 
-          {/* TAB BAR — constrained width */}
-          <div style={{maxWidth:900,margin:"0 auto",padding:"0 16px"}}>
-            <div style={{
-              display:"flex",gap:4,overflowX:"auto",padding:"12px 0",
-              borderBottom:"1px solid #1e3a5f",marginBottom:20,
-              scrollbarWidth:"thin",
-            }}>
-              {tabs.map(t=>(
-                <button key={t.id} onClick={()=>setTab(t.id)} style={{
-                  background:tab===t.id?"#1e3a5f":"transparent",
-                  color:tab===t.id?"#60a5fa":"#64748b",
-                  border:`1px solid ${tab===t.id?"#3b82f6":"#1e3a5f"}`,
-                  borderRadius:8,padding:"6px 14px",
-                  fontSize:12,fontWeight:600,cursor:"pointer",whiteSpace:"nowrap",
-                  transition:"all 0.15s",flexShrink:0,
-                }}>{t.label}</button>
-              ))}
-            </div>
-          </div>
-
-          {/* TAB CONTENT — constrained width */}
-          <div style={{maxWidth:900,margin:"0 auto",padding:"0 16px 40px"}}>
+              {/* TAB CONTENT */}
+              <div style={{maxWidth:860,padding:"16px 24px 40px"}}>
 
             {/* =============== GUIDE TAB =============== */}
             {tab==="guide"&&(
@@ -1471,15 +2275,15 @@
                     body:"ELO is a rolling strength rating updated after every international match — higher means stronger. Form is a recent-results bonus/penalty layered on top. Both feed into the win probability formula for each simulated match. The FIFA Rankings tab at the end shows all 48 teams sorted by ELO with their form indicator."
                   },
                 ].map(({icon,title,body})=>(
-                  <div key={title} style={{
+                  <div key={title} className="guide-card" style={{
                     background:"#061228",border:"1px solid #1e3a5f",
                     borderRadius:10,padding:"14px 16px",marginBottom:12,
                   }}>
                     <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:6}}>
                       <span style={{fontSize:18}}>{icon}</span>
-                      <span style={{fontWeight:700,fontSize:14,color:"#e2e8f0"}}>{title}</span>
+                      <span className="guide-card-title" style={{fontWeight:700,fontSize:14,color:"#e2e8f0"}}>{title}</span>
                     </div>
-                    <p style={{color:"#94a3b8",fontSize:13,margin:0,lineHeight:1.6}}>{body}</p>
+                    <p className="guide-card-body" style={{color:"#94a3b8",fontSize:13,margin:0,lineHeight:1.6}}>{body}</p>
                   </div>
                 ))}
 
@@ -1532,7 +2336,9 @@
                     <h2 style={{fontSize:18,fontWeight:700,color:'#f1f5f9'}}>🏆 Bracket Challenge</h2>
                     {sbUser&&(
                       <div style={{display:'flex',alignItems:'center',gap:8}}>
-                        <span style={{color:'#475569',fontSize:12}}>{sbUser.email}</span>
+                        <span style={{color:'#94a3b8',fontSize:12}}>
+                          {sbDisplayName||sbUser.email?.split('@')[0]}
+                        </span>
                         <button onClick={handleSignOut} style={{...secondaryBtn,padding:'4px 12px',fontSize:12}}>Sign Out</button>
                       </div>
                     )}
@@ -1575,6 +2381,24 @@
                   {/* ---- BRACKET WIZARD ---- */}
                   {sbUser&&!savedBracket&&!bracketLoading&&(
                     <div>
+                      {/* Auto-pick banner */}
+                      {done&&(
+                        <div style={{
+                          background:'#0d1f3c',border:'1px solid #1e3a5f',
+                          borderRadius:10,padding:'10px 14px',marginBottom:14,
+                          display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,flexWrap:'wrap',
+                        }}>
+                          <div>
+                            <div style={{fontSize:12,fontWeight:700,color:'#e2e8f0',marginBottom:2}}>⚡ Auto-Pick</div>
+                            <div style={{fontSize:11,color:'#475569'}}>Fill all stages using model probabilities — then tweak as you like.</div>
+                          </div>
+                          <button onClick={autoPick} style={{
+                            background:'#7c3aed',color:'#fff',border:'none',
+                            borderRadius:8,padding:'8px 18px',fontSize:13,fontWeight:700,cursor:'pointer',flexShrink:0,
+                          }}>⚡ Auto-Pick All</button>
+                        </div>
+                      )}
+
                       {/* Progress steps */}
                       <div style={{display:'flex',gap:4,marginBottom:20}}>
                         {[['1','Groups A–F',grpAFDone],['2','Groups G–L',grpGLDone],['3','3rd Place',thirdsDone],['4','Knockouts',allKODone]].map(([n,label,done],i)=>(
@@ -1595,7 +2419,12 @@
                           <p style={{color:'#64748b',fontSize:12,marginBottom:12}}>Pick 1st and 2nd place for each group.</p>
                           {['A','B','C','D','E','F'].map(g=>(
                             <GroupPicker key={g} letter={g} group={GROUPS[g]}
-                              picks={groupPicks[g]||{}} onChange={p=>setGroupPicks(prev=>({...prev,[g]:p}))} />
+                              stats={groupQualStats} picks={groupPicks[g]||{}} onChange={p=>{
+                                const newGP={...groupPicks,[g]:p};
+                                setGroupPicks(newGP);
+                                const qualified=new Set(Object.values(newGP).flatMap(pk=>[pk.first,pk.second]).filter(Boolean));
+                                setThirdPicks(prev=>prev.filter(tp=>!qualified.has(tp.team)));
+                              }} />
                           ))}
                           <div style={{display:'flex',justifyContent:'flex-end',marginTop:8}}>
                             <button style={{...navBtn,background:grpAFDone?'#3b82f6':'#0d1f3c',color:grpAFDone?'#fff':'#475569'}}
@@ -1610,7 +2439,12 @@
                           <p style={{color:'#64748b',fontSize:12,marginBottom:12}}>Pick 1st and 2nd place for each group.</p>
                           {['G','H','I','J','K','L'].map(g=>(
                             <GroupPicker key={g} letter={g} group={GROUPS[g]}
-                              picks={groupPicks[g]||{}} onChange={p=>setGroupPicks(prev=>({...prev,[g]:p}))} />
+                              stats={groupQualStats} picks={groupPicks[g]||{}} onChange={p=>{
+                                const newGP={...groupPicks,[g]:p};
+                                setGroupPicks(newGP);
+                                const qualified=new Set(Object.values(newGP).flatMap(pk=>[pk.first,pk.second]).filter(Boolean));
+                                setThirdPicks(prev=>prev.filter(tp=>!qualified.has(tp.team)));
+                              }} />
                           ))}
                           <div style={{display:'flex',justifyContent:'space-between',marginTop:8}}>
                             <button style={navBtn} onClick={()=>setBStep(1)}>← Back</button>
@@ -1653,7 +2487,12 @@
                                     <span style={{fontSize:18}}>{fl(t)}</span>
                                     <div>
                                       <div style={{fontSize:12,color:'#e2e8f0',fontWeight:600}}>{t}</div>
-                                      <div style={{fontSize:10,color:'#475569'}}>Group {g} · #{RANKS[t]}</div>
+                                      <div style={{fontSize:10,color:'#475569'}}>
+                                        Group {g} · #{RANKS[t]}
+                                        {groupQualStats[t]?.third>0&&(
+                                          <span style={{color:'#94a3b8',marginLeft:4}}>· 3rd {groupQualStats[t].third}%</span>
+                                        )}
+                                      </div>
                                     </div>
                                     {sel&&<span style={{marginLeft:'auto',color:'#34d399'}}>✓</span>}
                                   </button>
@@ -1699,30 +2538,56 @@
 
                   {/* ---- SAVED BRACKET VIEW ---- */}
                   {sbUser&&savedBracket&&!bracketLoading&&(()=>{
-                    const champion=savedBracket.ko.final?.[0];
                     const ta=assignUserThirds(savedBracket.thirds||[]);
                     const r32=buildUserR32(savedBracket.gp||{},ta);
+                    const ko=savedBracket.ko||{};
+                    const displayName=sbDisplayName||sbUser?.email?.split('@')[0]||'My Bracket';
+                    const downloadBracket=()=>{
+                      const svgEl=document.getElementById('bracket-svg');
+                      if(!svgEl)return;
+                      const svgData=new XMLSerializer().serializeToString(svgEl);
+                      const blob=new Blob([svgData],{type:'image/svg+xml;charset=utf-8'});
+                      const url=URL.createObjectURL(blob);
+                      const img=new Image();
+                      img.onload=()=>{
+                        const c=document.createElement('canvas');
+                        c.width=3920; c.height=1720;
+                        const ctx=c.getContext('2d');
+                        ctx.fillStyle='#ffffff'; ctx.fillRect(0,0,c.width,c.height);
+                        ctx.drawImage(img,0,0,c.width,c.height);
+                        const a=document.createElement('a');
+                        a.download='wc2026-bracket.png'; a.href=c.toDataURL('image/png'); a.click();
+                        URL.revokeObjectURL(url);
+                      };
+                      img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svgData);
+                    };
                     return (
                       <div style={{marginBottom:24}}>
-                        <div style={{background:'#061228',border:'1px solid #16a34a',borderRadius:12,padding:'16px',marginBottom:16}}>
-                          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:8}}>
-                            <div>
-                              <div style={{color:'#34d399',fontWeight:700,fontSize:13,marginBottom:4}}>✓ Bracket saved</div>
-                              <div style={{color:'#94a3b8',fontSize:13}}>
-                                Your champion pick: {champion?<><span style={{fontSize:20}}>{fl(champion)}</span> <strong style={{color:'#f1f5f9'}}>{champion}</strong></>:'not set'}
-                              </div>
-                            </div>
-                            {!locked&&(
-                              <button onClick={()=>setSavedBracket(null)} style={secondaryBtn}>✏️ Edit Bracket</button>
-                            )}
+                        {/* Status bar */}
+                        <div style={{background:'#061228',border:'1px solid #16a34a',borderRadius:12,padding:'14px 16px',marginBottom:16,
+                          display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:8}}>
+                          <div style={{color:'#34d399',fontWeight:700,fontSize:13}}>✓ Bracket saved</div>
+                          <div style={{display:'flex',gap:8}}>
+                            {!locked&&<button onClick={()=>setSavedBracket(null)} style={secondaryBtn}>✏️ Edit</button>}
+                            <button onClick={downloadBracket} style={{...secondaryBtn,color:'#a78bfa',borderColor:'#4c1d95'}}>📸 Save Image</button>
+                            <button onClick={()=>{
+                              navigator.clipboard.writeText(window.location.href).then(()=>alert('Link copied!'));
+                            }} style={{...secondaryBtn,color:'#34d399',borderColor:'#065f46'}}>🔗 Copy Link</button>
+                            <button onClick={()=>{
+                              window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}&quote=${encodeURIComponent(`I picked ${savedBracket?.ko?.final?.[0]||'my team'} to win the 2026 World Cup! Check out debangandey.rbind.io/wc2026 to make your predictions.`)}`, '_blank','width=600,height=400');
+                            }} style={{...secondaryBtn,color:'#93c5fd',borderColor:'#1e40af'}}>📘 Facebook</button>
                           </div>
                         </div>
-                        {/* Summary of picks */}
-                        <div style={{background:'#040d1c',border:'1px solid #1e3a5f',borderRadius:10,padding:'14px'}}>
-                          <div style={{fontWeight:700,fontSize:13,color:'#60a5fa',marginBottom:10}}>Your R32 Bracket</div>
+
+                        {/* Shareable bracket tree */}
+                        <BracketTreeSVG ko={ko} r32Teams={r32} displayName={displayName}/>
+
+                        {/* R32 detail grid */}
+                        <div style={{marginTop:12,background:'#040d1c',border:'1px solid #1e3a5f',borderRadius:10,padding:'14px'}}>
+                          <div style={{fontWeight:700,fontSize:13,color:'#60a5fa',marginBottom:10}}>Full R32 Bracket</div>
                           <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:4}}>
                             {r32.map(([tA,tB],i)=>{
-                              const winner=savedBracket.ko.r32?.[i];
+                              const winner=ko.r32?.[i];
                               return (
                                 <div key={i} style={{background:'#061228',border:'1px solid #0d1f3c',
                                   borderRadius:6,padding:'6px 8px',fontSize:11}}>
@@ -1758,7 +2623,8 @@
                           borderRadius:8,padding:'10px 14px',marginBottom:6,
                           display:'flex',alignItems:'center',gap:12,
                         }}>
-                          <span style={{fontSize:16,minWidth:28}}>{['🥇','🥈','🥉'][i]||`#${i+1}`}</span>
+                          <span style={{fontSize:12,minWidth:28,fontWeight:700,color:'#f59e0b',textAlign:'center',
+                            background:'#1a2744',borderRadius:4,padding:'2px 5px'}}>{`#${i+1}`}</span>
                           <span style={{flex:1,fontWeight:600,fontSize:14,color:'#e2e8f0'}}>{u.name}</span>
                           <div style={{textAlign:'right'}}>
                             <div style={{fontWeight:700,color:'#f59e0b',fontSize:15}}>{u.total} pts</div>
@@ -1891,7 +2757,7 @@
                   return (
                     <div>
                       {/* Team header card */}
-                      <div style={{
+                      <div className="team-header-card" style={{
                         background:"linear-gradient(135deg,#0a1f3f,#061228)",
                         border:`2px solid ${COLORS[trackTeam]||"#1e3a5f"}`,
                         borderRadius:12,padding:"16px 20px",marginBottom:20,
@@ -1899,27 +2765,27 @@
                       }}>
                         <span style={{fontSize:52,lineHeight:1}}>{fl(trackTeam)}</span>
                         <div style={{flex:1,minWidth:160}}>
-                          <div style={{fontSize:22,fontWeight:800,color:"#f1f5f9",marginBottom:4}}>{trackTeam}</div>
+                          <div className="team-header-name" style={{fontSize:22,fontWeight:800,color:"#f1f5f9",marginBottom:4}}>{trackTeam}</div>
                           <div style={{display:"flex",gap:16,flexWrap:"wrap"}}>
                             <div>
-                              <div style={{color:"#64748b",fontSize:11,textTransform:"uppercase",letterSpacing:1}}>ELO Rating</div>
+                              <div className="team-stat-label" style={{color:"#64748b",fontSize:11,textTransform:"uppercase",letterSpacing:1}}>ELO Rating</div>
                               <div style={{color:"#60a5fa",fontWeight:700,fontSize:15}}>{ELO[trackTeam]||"N/A"}</div>
                             </div>
                             <div>
-                              <div style={{color:"#64748b",fontSize:11,textTransform:"uppercase",letterSpacing:1}}>World Rank</div>
+                              <div className="team-stat-label" style={{color:"#64748b",fontSize:11,textTransform:"uppercase",letterSpacing:1}}>World Rank</div>
                               <div style={{color:"#60a5fa",fontWeight:700,fontSize:15}}>#{RANKS[trackTeam]}</div>
                             </div>
                             <div>
-                              <div style={{color:"#64748b",fontSize:11,textTransform:"uppercase",letterSpacing:1}}>Recent Form</div>
-                              <div style={{color:fc(f),fontWeight:700,fontSize:15}}>{fa(f)} {f>0?"+":""}{f.toFixed(2)}</div>
+                              <div className="team-stat-label" style={{color:"#64748b",fontSize:11,textTransform:"uppercase",letterSpacing:1}}>Recent Form</div>
+                              <div className="team-form-value" style={{color:fc(f),fontWeight:700,fontSize:15}}>{fa(f)} {f>0?"+":""}{f.toFixed(2)}</div>
                             </div>
                             <div>
-                              <div style={{color:"#64748b",fontSize:11,textTransform:"uppercase",letterSpacing:1}}>Champion Odds</div>
-                              <div style={{color:"#fbbf24",fontWeight:700,fontSize:15}}>🏆 {champPct.toFixed(1)}%</div>
+                              <div className="team-stat-label" style={{color:"#64748b",fontSize:11,textTransform:"uppercase",letterSpacing:1}}>Champion Odds</div>
+                              <div className="team-champ-odds" style={{color:"#fbbf24",fontWeight:700,fontSize:15}}>🏆 {champPct.toFixed(1)}%</div>
                             </div>
                             <div>
-                              <div style={{color:"#64748b",fontSize:11,textTransform:"uppercase",letterSpacing:1}}>Group</div>
-                              <div style={{color:"#a78bfa",fontWeight:700,fontSize:15}}>Group {teamGroup||"?"}</div>
+                              <div className="team-stat-label" style={{color:"#64748b",fontSize:11,textTransform:"uppercase",letterSpacing:1}}>Group</div>
+                              <div className="team-group-label" style={{color:"#a78bfa",fontWeight:700,fontSize:15}}>Group {teamGroup||"?"}</div>
                             </div>
                           </div>
                         </div>
@@ -1936,14 +2802,14 @@
                             const isProj=groupObj.proj.includes(t);
                             const isThis=t===trackTeam;
                             return (
-                              <div key={t} style={{
+                              <div key={t} className={(isThis||isProj)?"proj-team-row":""} style={{
                                 display:"flex",alignItems:"center",gap:10,
                                 padding:"6px 10px",borderRadius:6,marginBottom:4,
                                 background:isThis?"#0f2d4a":isProj?"#071a30":"transparent",
                                 border:isThis?`1px solid ${COLORS[t]||"#3b82f6"}`:isProj?"1px solid #1e3a5f":"1px solid transparent"
                               }}>
                                 <span style={{fontSize:20}}>{fl(t)}</span>
-                                <span style={{flex:1,fontWeight:isThis?700:400,color:isThis?"#f1f5f9":"#e2e8f0"}}>{t}</span>
+                                <span className="proj-team-name" style={{flex:1,fontWeight:isThis?700:400,color:isThis?"#f1f5f9":"#e2e8f0"}}>{t}</span>
                                 <span style={{color:"#64748b",fontSize:11}}>ELO {ELO[t]}</span>
                                 <span style={{color:"#64748b",fontSize:11}}>#{RANKS[t]}</span>
                                 {isProj&&<span style={{color:"#4ade80",fontSize:11,fontWeight:700}}>✓</span>}
@@ -2307,7 +3173,7 @@
                     tripSort==="cost"?(a.totalLow-b.totalLow):(qScore(b)-qScore(a))
                   );
                   const top3=sorted.slice(0,3);
-                  const MEDAL=["🥇","🥈","🥉"];
+                  const MEDAL=["#1","#2","#3"];
 
                   const ROUND_LABEL={group:"Group Stage",r32:"Round of 32",r16:"Round of 16",qf:"Quarterfinals",sf:"Semifinals",final:"Final"};
 
@@ -2360,7 +3226,8 @@
                             {/* ── Match quality + medal header ── */}
                             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10,flexWrap:"wrap",gap:6}}>
                               <div style={{display:"flex",alignItems:"center",gap:8}}>
-                                <span style={{fontSize:18}}>{MEDAL[i]}</span>
+                                <span style={{fontSize:11,fontWeight:700,color:'#60a5fa',
+                                  background:'#1e3a5f',borderRadius:4,padding:'2px 6px'}}>{MEDAL[i]}</span>
                                 {/* Quality stars */}
                                 <span style={{color:matchColor,fontSize:15,letterSpacing:1}}>
                                   {"★".repeat(stars)}{"☆".repeat(5-stars)}
@@ -2563,7 +3430,9 @@
               Monte Carlo simulation using official FIFA rankings (April 2026) · Built by{" "}
               <a href="https://debangandey.rbind.io" style={{color:"#475569",textDecoration:"none"}}>Debangan Dey</a>
             </div>
-          </div>
+              </div>{/* /tab content */}
+            </div>{/* /main scroll area */}
+          </div>{/* /body row */}
         </div>
       );
     }
