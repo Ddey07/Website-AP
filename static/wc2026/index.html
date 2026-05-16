@@ -1366,10 +1366,16 @@
           })}
 
           {/* ── Footer ── */}
-          <line x1={62} y1={H-BOT+8} x2={W-62} y2={H-BOT+8} stroke='#cbd5e1' strokeWidth='1.5'/>
-          <text x={W/2} y={H-13} textAnchor='middle' fontSize='14' fontWeight='700' fill='#475569'
+          <line x1={62} y1={H-BOT+4} x2={W-62} y2={H-BOT+4} stroke='#cbd5e1' strokeWidth='1.5'/>
+          {/* Challenge CTA */}
+          <text x={W/2} y={H-22} textAnchor='middle' fontSize='15' fontWeight='800' fill='#1d4ed8'
             fontFamily='system-ui,sans-serif' letterSpacing='0.3'>
-            Created using debangandey.rbind.io/wc2026 · FIFA World Cup 2026 Bracket Predictor
+            🏆 Think you can beat me? Make your own predictions → debangandey.rbind.io/wc2026
+          </text>
+          {/* Credit line */}
+          <text x={W/2} y={H-6} textAnchor='middle' fontSize='11' fontWeight='400' fill='#94a3b8'
+            fontFamily='system-ui,sans-serif' letterSpacing='0.2'>
+            FIFA World Cup 2026 Bracket Predictor · Monte Carlo Simulation
           </text>
         </svg>
       );
@@ -2583,7 +2589,8 @@
                     };
                     const shareImage=async()=>{
                       const champion=savedBracket?.ko?.final?.[0]||'my team';
-                      const shareText=`I picked ${champion} to win the 2026 World Cup! Make your own predictions at debangandey.rbind.io/wc2026`;
+                      const inviteUrl='https://debangandey.rbind.io/wc2026/';
+                      const shareText=`🏆 I picked ${champion} to win the 2026 World Cup!\n\nThink you can beat me? Make your own bracket predictions here:\n${inviteUrl}`;
                       try{
                         const blob=await getBracketBlob();
                         const file=new File([blob],'wc2026-bracket.png',{type:'image/png'});
@@ -2596,7 +2603,7 @@
                         } else {
                           // Web Share API not available — copy image + show instructions
                           await navigator.clipboard.write([new ClipboardItem({'image/png':blob})]);
-                          alert('Image copied to clipboard!\n\nOpen Facebook (or any app), create a post, and paste the image. Caption suggestion:\n\n'+shareText);
+                          alert('Image copied to clipboard!\n\nPaste it into Facebook, Instagram, or WhatsApp and add this caption:\n\n'+shareText);
                         }
                       }catch(e){
                         if(e.name!=='AbortError'){
