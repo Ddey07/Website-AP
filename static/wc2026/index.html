@@ -1069,8 +1069,8 @@
     // ── Bracket Tree SVG ──────────────────────────────────────────────
     function BracketTreeSVG({ko,r32Teams,displayName}){
       // Symmetric "butterfly" — maximum size, bold colors
-      const W=1960,H=860;
-      const TOP=84,BOT=40,AVAIL=H-TOP-BOT;
+      const W=1960,H=960;
+      const TOP=84,BOT=130,AVAIL=H-TOP-BOT;
       const BW=190,BH=66,LH=BH/2;   // 33px per team row
       const GAP=16;
 
@@ -1366,15 +1366,20 @@
           })}
 
           {/* ── Footer ── */}
-          <line x1={62} y1={H-BOT+4} x2={W-62} y2={H-BOT+4} stroke='#cbd5e1' strokeWidth='1.5'/>
-          {/* Challenge CTA */}
-          <text x={W/2} y={H-22} textAnchor='middle' fontSize='15' fontWeight='800' fill='#1d4ed8'
+          <line x1={62} y1={H-BOT+12} x2={W-62} y2={H-BOT+12} stroke='#cbd5e1' strokeWidth='2.5'/>
+          {/* Challenge CTA — line 1 */}
+          <text x={W/2} y={H-78} textAnchor='middle' fontSize='42' fontWeight='900' fill='#1d4ed8'
+            fontFamily='system-ui,sans-serif' letterSpacing='0.5'>
+            🏆 Think you can beat me?
+          </text>
+          {/* Challenge CTA — line 2 */}
+          <text x={W/2} y={H-28} textAnchor='middle' fontSize='38' fontWeight='800' fill='#2563eb'
             fontFamily='system-ui,sans-serif' letterSpacing='0.3'>
-            🏆 Think you can beat me? Make your own predictions → debangandey.rbind.io/wc2026
+            Make your predictions → debangandey.rbind.io/wc2026
           </text>
           {/* Credit line */}
-          <text x={W/2} y={H-6} textAnchor='middle' fontSize='11' fontWeight='400' fill='#94a3b8'
-            fontFamily='system-ui,sans-serif' letterSpacing='0.2'>
+          <text x={W/2} y={H-4} textAnchor='middle' fontSize='18' fontWeight='400' fill='#94a3b8'
+            fontFamily='system-ui,sans-serif' letterSpacing='0.3'>
             FIFA World Cup 2026 Bracket Predictor · Monte Carlo Simulation
           </text>
         </svg>
@@ -1571,6 +1576,7 @@
       const [authName,setAuthName]=useState('');
       const [authErr,setAuthErr]=useState('');
       const [authLoading,setAuthLoading]=useState(false);
+      const [sharePanel,setSharePanel]=useState(null); // invite text shown after Share Image on desktop
       const [bStep,setBStep]=useState(1); // 1=grpAF 2=grpGL 3=thirds 4=ko
       const [groupPicks,setGroupPicks]=useState({});
       const [thirdPicks,setThirdPicks]=useState([]);
@@ -1769,15 +1775,25 @@
       };
 
       const handleAuth=async()=>{
-        setAuthErr('');setAuthLoading(true);
+        setAuthErr('');
+        if(authMode==='signup'&&!authName.trim()){
+          setAuthErr('Please enter a display name.');return;
+        }
+        setAuthLoading(true);
         if(authMode==='signup'){
           const{data,error}=await sb.auth.signUp({email:authEmail,password:authPass});
           if(error){setAuthErr(error.message);}
           else if(data.user){
+            const chosenName=authName.trim()||authEmail.split('@')[0];
             const ab_group=Math.random()<0.5?'model':'blind';
+            // Set display name in state immediately — profile upsert may be
+            // blocked by RLS until email is confirmed, so don't rely on fetchProfile.
+            setSbDisplayName(chosenName);
+            setSbAbGroup(ab_group);
+            // Best-effort profile write; will be retried in saveBracket if it fails here.
             await sb.from('profiles').upsert({
               id:data.user.id,
-              display_name:authName||authEmail.split('@')[0],
+              display_name:chosenName,
               ab_group,
               ab_assigned_at:new Date().toISOString(),
             });
@@ -1798,8 +1814,9 @@
         if(!sbUser)return;
         setSaving(true);
         // Guarantee profile row exists — FK on predictions requires it.
+        // Priority: name already in state > signup form > email prefix.
         // ignoreDuplicates:true preserves existing display names on re-saves.
-        const fallbackName=authName||sbUser.email?.split('@')[0]||'Player';
+        const fallbackName=sbDisplayName||authName.trim()||sbUser.email?.split('@')[0]||'Player';
         const{error:profErr}=await sb.from('profiles').upsert(
           {id:sbUser.id,display_name:fallbackName},
           {onConflict:'id',ignoreDuplicates:true}
@@ -1817,7 +1834,11 @@
             if(team)rows.push({user_id:sbUser.id,round:rnd,slot_idx:Number(idx),picked_team:team});
         const{error}=await sb.from('predictions').upsert(rows,{onConflict:'user_id,round,slot_idx'});
         setSaving(false);
-        if(!error){setSavedBracket({gp:groupPicks,thirds:thirdPicks,ko:koPicks});}
+        if(!error){
+          setSavedBracket({gp:groupPicks,thirds:thirdPicks,ko:koPicks});
+          // Ensure display name in state matches what was written to DB
+          if(!sbDisplayName)setSbDisplayName(fallbackName);
+        }
         else alert('Save failed: '+error.message);
       };
 
@@ -2369,8 +2390,14 @@
                         ))}
                       </div>
                       {authMode==='signup'&&(
-                        <input style={inputStyle} placeholder="Display name (shown on leaderboard)"
-                          value={authName} onChange={e=>setAuthName(e.target.value)} />
+                        <>
+                          <input style={{...inputStyle,borderColor:authMode==='signup'&&!authName.trim()?'#7c3aed':inputStyle.border?.replace('1px solid ','')??'#1e3a5f'}}
+                            placeholder="Display name — required (shown on leaderboard)"
+                            value={authName} onChange={e=>setAuthName(e.target.value)} />
+                          {!authName.trim()&&<p style={{color:'#a78bfa',fontSize:11,marginTop:-6,marginBottom:8}}>
+                            ✱ Choose a display name for the leaderboard
+                          </p>}
+                        </>
                       )}
                       <input style={inputStyle} placeholder="Email" type="email"
                         value={authEmail} onChange={e=>setAuthEmail(e.target.value)} />
@@ -2556,7 +2583,7 @@
                       const img=new Image();
                       img.onload=()=>{
                         const c=document.createElement('canvas');
-                        c.width=3920; c.height=1720;
+                        c.width=3920; c.height=1920;
                         const ctx=c.getContext('2d');
                         ctx.fillStyle='#ffffff'; ctx.fillRect(0,0,c.width,c.height);
                         ctx.drawImage(img,0,0,c.width,c.height);
@@ -2595,21 +2622,20 @@
                         const blob=await getBracketBlob();
                         const file=new File([blob],'wc2026-bracket.png',{type:'image/png'});
                         if(navigator.canShare&&navigator.canShare({files:[file]})){
-                          await navigator.share({
-                            files:[file],
-                            title:'My WC 2026 Bracket',
-                            text:shareText,
-                          });
+                          // Mobile: native OS share sheet with image attached
+                          await navigator.share({files:[file],title:'My WC 2026 Bracket',text:shareText});
                         } else {
-                          // Web Share API not available — copy image + show instructions
-                          await navigator.clipboard.write([new ClipboardItem({'image/png':blob})]);
-                          alert('Image copied to clipboard!\n\nPaste it into Facebook, Instagram, or WhatsApp and add this caption:\n\n'+shareText);
+                          // Desktop fallback: download image + show inline share card
+                          const url=URL.createObjectURL(blob);
+                          const a=document.createElement('a');
+                          a.download='wc2026-bracket.png'; a.href=url; a.click();
+                          setTimeout(()=>URL.revokeObjectURL(url),1000);
+                          setSharePanel(shareText);
                         }
                       }catch(e){
                         if(e.name!=='AbortError'){
-                          // Final fallback: just download
-                          alert('Sharing not supported — downloading the image instead. You can post it manually on Facebook or Instagram.');
-                          downloadBracket();
+                          // Cancelled or error — still show the share panel
+                          setSharePanel(shareText);
                         }
                       }
                     };
@@ -2626,6 +2652,40 @@
                             <button onClick={shareImage} style={{...secondaryBtn,color:'#93c5fd',borderColor:'#1e40af'}}>🔗 Share Image</button>
                           </div>
                         </div>
+
+                        {/* Desktop share panel — shown after Share Image on desktop */}
+                        {sharePanel&&(
+                          <div style={{
+                            background:'#0d2a1a',border:'1px solid #16a34a',borderRadius:10,
+                            padding:'14px 16px',marginBottom:16,
+                          }}>
+                            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}}>
+                              <span style={{color:'#34d399',fontWeight:700,fontSize:13}}>
+                                📥 Image downloaded — share this caption:
+                              </span>
+                              <button onClick={()=>setSharePanel(null)} style={{
+                                background:'transparent',border:'none',color:'#475569',
+                                fontSize:16,cursor:'pointer',padding:'0 4px',lineHeight:1,
+                              }}>✕</button>
+                            </div>
+                            <div style={{
+                              background:'#061228',border:'1px solid #1e3a5f',borderRadius:8,
+                              padding:'10px 12px',marginBottom:10,
+                              fontFamily:'monospace',fontSize:13,color:'#e2e8f0',
+                              whiteSpace:'pre-wrap',lineHeight:1.6,
+                            }}>{sharePanel}</div>
+                            <button onClick={()=>{
+                              navigator.clipboard.writeText(sharePanel)
+                                .then(()=>{
+                                  const btn=document.getElementById('copy-caption-btn');
+                                  if(btn){btn.textContent='✓ Copied!';setTimeout(()=>{btn.textContent='📋 Copy Caption';},2000);}
+                                });
+                            }} id="copy-caption-btn" style={{
+                              background:'#16a34a',color:'#fff',border:'none',
+                              borderRadius:8,padding:'8px 18px',fontSize:13,fontWeight:700,cursor:'pointer',
+                            }}>📋 Copy Caption</button>
+                          </div>
+                        )}
 
                         {/* Shareable bracket tree */}
                         <BracketTreeSVG ko={ko} r32Teams={r32} displayName={displayName}/>
