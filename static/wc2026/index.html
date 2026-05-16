@@ -975,7 +975,7 @@
     }
 
     // KnockoutPicker — pick winners for all KO rounds in one scrollable view
-    function KnockoutPicker({groupPicks,thirdPicks,koPicks,setKoPicks}){
+    function KnockoutPicker({groupPicks,thirdPicks,koPicks,setKoPicks,showModel=true}){
       const ta=assignUserThirds(thirdPicks);
       const r32Teams=buildUserR32(groupPicks,ta);
       const rounds=['r32','r16','qf','sf','final'];
@@ -1028,7 +1028,7 @@
                     {t!=='TBD'&&<span style={{fontSize:16}}>{fl(t)}</span>}
                     <div style={{flex:1,textAlign:align}}>
                       <div>{t}</div>
-                      {ready&&<div style={{fontSize:10,color:winner===t?'#60a5fa':'#334155',marginTop:1}}>
+                      {ready&&showModel&&<div style={{fontSize:10,color:winner===t?'#60a5fa':'#334155',marginTop:1}}>
                         {pct}% model win
                       </div>}
                     </div>
@@ -1040,10 +1040,10 @@
                     borderRadius:8,padding:'8px 10px',marginBottom:6}}>
                     <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:5}}>
                       <span style={{fontSize:10,color:'#334155'}}>{slot.m} · {slot.date} · 📍 {slot.venue}</span>
-                      {ready&&<span style={{fontSize:10,color:lc,fontWeight:600}}>{lbl}</span>}
+                      {ready&&showModel&&<span style={{fontSize:10,color:lc,fontWeight:600}}>{lbl}</span>}
                     </div>
                     {/* probability bar */}
-                    {ready&&(
+                    {ready&&showModel&&(
                       <div style={{display:'flex',height:3,borderRadius:2,overflow:'hidden',marginBottom:6,gap:1}}>
                         <div style={{width:`${pA}%`,background:'#3b82f6',borderRadius:'2px 0 0 2px'}}/>
                         <div style={{width:`${pB}%`,background:'#64748b',borderRadius:'0 2px 2px 0'}}/>
@@ -2381,8 +2381,8 @@
                   {/* ---- BRACKET WIZARD ---- */}
                   {sbUser&&!savedBracket&&!bracketLoading&&(
                     <div>
-                      {/* Auto-pick banner */}
-                      {done&&(
+                      {/* Auto-pick banner — hidden for blind A/B group */}
+                      {done&&sbAbGroup!=='blind'&&(
                         <div style={{
                           background:'#0d1f3c',border:'1px solid #1e3a5f',
                           borderRadius:10,padding:'10px 14px',marginBottom:14,
@@ -2419,7 +2419,7 @@
                           <p style={{color:'#64748b',fontSize:12,marginBottom:12}}>Pick 1st and 2nd place for each group.</p>
                           {['A','B','C','D','E','F'].map(g=>(
                             <GroupPicker key={g} letter={g} group={GROUPS[g]}
-                              stats={groupQualStats} picks={groupPicks[g]||{}} onChange={p=>{
+                              stats={groupQualStats} showModel={sbAbGroup!=='blind'} picks={groupPicks[g]||{}} onChange={p=>{
                                 const newGP={...groupPicks,[g]:p};
                                 setGroupPicks(newGP);
                                 const qualified=new Set(Object.values(newGP).flatMap(pk=>[pk.first,pk.second]).filter(Boolean));
@@ -2439,7 +2439,7 @@
                           <p style={{color:'#64748b',fontSize:12,marginBottom:12}}>Pick 1st and 2nd place for each group.</p>
                           {['G','H','I','J','K','L'].map(g=>(
                             <GroupPicker key={g} letter={g} group={GROUPS[g]}
-                              stats={groupQualStats} picks={groupPicks[g]||{}} onChange={p=>{
+                              stats={groupQualStats} showModel={sbAbGroup!=='blind'} picks={groupPicks[g]||{}} onChange={p=>{
                                 const newGP={...groupPicks,[g]:p};
                                 setGroupPicks(newGP);
                                 const qualified=new Set(Object.values(newGP).flatMap(pk=>[pk.first,pk.second]).filter(Boolean));
@@ -2489,7 +2489,7 @@
                                       <div style={{fontSize:12,color:'#e2e8f0',fontWeight:600}}>{t}</div>
                                       <div style={{fontSize:10,color:'#475569'}}>
                                         Group {g} · #{RANKS[t]}
-                                        {groupQualStats[t]?.third>0&&(
+                                        {sbAbGroup!=='blind'&&groupQualStats[t]?.third>0&&(
                                           <span style={{color:'#94a3b8',marginLeft:4}}>· 3rd {groupQualStats[t].third}%</span>
                                         )}
                                       </div>
@@ -2515,7 +2515,7 @@
                             Pick match winners round by round. Picks auto-propagate to the next round.
                           </p>
                           <KnockoutPicker groupPicks={groupPicks} thirdPicks={thirdPicks}
-                            koPicks={koPicks} setKoPicks={setKoPicks} />
+                            koPicks={koPicks} setKoPicks={setKoPicks} showModel={sbAbGroup!=='blind'} />
                           <div style={{position:'sticky',bottom:0,background:'#040d1c',padding:'12px 0',
                             borderTop:'1px solid #1e3a5f',display:'flex',justifyContent:'space-between',gap:8}}>
                             <button style={navBtn} onClick={()=>setBStep(3)}>← Back</button>
