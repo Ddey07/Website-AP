@@ -146,6 +146,27 @@ INSERT INTO results (round, slot_idx, team, opponent) VALUES
 
 
 -- ============================================================
+-- STEP 4a: UPSERT HELPER (used by the nightly scheduled task)
+-- ============================================================
+-- Allows the anon key to write individual results via Supabase RPC.
+-- SECURITY DEFINER means it runs as the DB owner regardless of caller.
+-- Call via: POST /rest/v1/rpc/upsert_result  { "p_round":"r32", "p_slot_idx":0,
+--                                              "p_team":"Germany", "p_opponent":"Sweden" }
+-- For group stage rows (grp1/grp2/grpT), omit p_opponent or pass null.
+CREATE OR REPLACE FUNCTION upsert_result(
+  p_round     text,
+  p_slot_idx  integer,
+  p_team      text,
+  p_opponent  text DEFAULT NULL
+) RETURNS void LANGUAGE sql SECURITY DEFINER AS $$
+  INSERT INTO results (round, slot_idx, team, opponent)
+  VALUES (p_round, p_slot_idx, p_team, p_opponent)
+  ON CONFLICT (round, slot_idx) DO UPDATE
+    SET team = EXCLUDED.team, opponent = EXCLUDED.opponent;
+$$;
+
+
+-- ============================================================
 -- STEP 4: SCORING FUNCTION
 -- ============================================================
 -- Scoring rules (mirrors index.html constants):
