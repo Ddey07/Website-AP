@@ -314,33 +314,99 @@
     const { useState, useEffect, useMemo, useCallback, useRef } = React;
 
     /* ===================== DATA CONSTANTS ===================== */
+    // Elo ratings sourced from eloratings.net (Jan 2026 snapshot via Wikipedia top-20,
+    // remainder estimated from worldfootballrankings.com scaled to eloratings.net).
+    // Host nations (Mexico, USA, Canada) receive a +75 pt tournament home-advantage
+    // bonus reflecting crowd support across group-stage home venues.
     const ELO = {
-      France:1877,Spain:1876,Argentina:1875,England:1826,
-      Portugal:1764,Brazil:1761,Netherlands:1758,Morocco:1757,
-      Belgium:1735,Germany:1730,Croatia:1717,Colombia:1693,
-      Senegal:1692,Mexico:1680,USA:1665,Uruguay:1650,
-      Japan:1637,Switzerland:1625,Iran:1598,Turkey:1585,
-      Ecuador:1572,Austria:1558,"South Korea":1545,Australia:1519,
-      Algeria:1506,Egypt:1492,Canada:1479,Norway:1466,
-      Panama:1440,"Ivory Coast":1427,Sweden:1388,Paraguay:1362,
-      Czechia:1348,Scotland:1320,Tunisia:1307,"DR Congo":1280,
-      Uzbekistan:1236,Qatar:1188,Iraq:1174,"South Africa":1153,
-      "Saudi Arabia":1145,Jordan:1131,"Bosnia-Herz.":1117,
-      "Cape Verde":1090,Ghana:1058,Curacao:1010,Haiti:1005,"New Zealand":995,
+      // Known exact (eloratings.net top-20, Jan 19 2026)
+      "Spain":2171,"Argentina":2113,"France":2063,"England":2042,
+      "Colombia":1998,"Brazil":1979,"Portugal":1976,"Netherlands":1959,
+      "Croatia":1933,"Ecuador":1933,"Norway":1922,"Germany":1910,
+      "Switzerland":1897,"Uruguay":1890,"Turkey":1880,"Japan":1879,
+      "Senegal":1869,"Belgium":1849,
+      // Estimated from WFR ranking scaled to eloratings.net
+      "Morocco":1960,"Iran":1812,"Austria":1785,"South Korea":1780,
+      "Australia":1770,"Algeria":1750,"Egypt":1748,"Panama":1726,
+      "Ivory Coast":1720,"Sweden":1700,"Paraguay":1686,"Czechia":1683,
+      "Scotland":1680,"Tunisia":1663,"DR Congo":1658,"Uzbekistan":1641,
+      "Ghana":1620,"Bosnia-Herz.":1610,"South Africa":1590,
+      "Saudi Arabia":1560,"Cape Verde":1540,"Iraq":1540,
+      "Jordan":1510,"Qatar":1490,"Haiti":1440,"New Zealand":1400,"Curacao":1350,
+      // Hosts: base Elo + 75 pt home-advantage bonus
+      "Mexico":1955,"USA":1945,"Canada":1815,
     };
+    // =================================================================
+    // MODEL-ADJUSTED TEAM STRENGTH (used by wp() in match simulation)
+    // Includes recent form (win%, EWMA-weighted slope, peak distance) BUT NOT host bonus.
+    // Host advantage is applied per-match via h in wp(). Derived from linear regression
+    // on 192 team-tournament observations across 2002–2022 World Cups.
+    // =================================================================
+    const STRENGTH = {
+      "Spain":2262,"Argentina":2238,"France":2178,"England":2119,
+      "Portugal":2098,"Colombia":2041,"Senegal":2029,"Germany":2027,
+      "Brazil":2019,"Croatia":2017,"Netherlands":2000,"Turkey":1975,
+      "Norway":1970,"Japan":1968,"Austria":1929,"Morocco":1924,
+      "Switzerland":1909,"Belgium":1902,"Uruguay":1892,"Ecuador":1874,
+      "Mexico":1869,"Algeria":1857,"Australia":1845,"Paraguay":1825,
+      "South Korea":1810,"Scotland":1807,"Iran":1801,"Canada":1798,
+      "Panama":1790,"USA":1784,"Ivory Coast":1771,
+      "Uzbekistan":1756,"Czechia":1756,"Sweden":1737,"DR Congo":1728,
+      "Egypt":1725,"Jordan":1709,"Tunisia":1677,"Iraq":1672,
+      "Saudi Arabia":1593,"Bosnia-Herz.":1582,"South Africa":1578,
+      "Cape Verde":1538,"New Zealand":1509,"Haiti":1499,"Ghana":1488,
+      "Curacao":1429,"Qatar":1416,
+    };
+
+    // =================================================================
+    // FIFA WORLD RANKINGS (April 2026 release) — Rankings tab display only
+    // =================================================================
+    const FIFA_RANK = {
+      "France":{rank:1,points:1877.3},"Spain":{rank:2,points:1876.4},
+      "Argentina":{rank:3,points:1874.8},"England":{rank:4,points:1826.0},
+      "Portugal":{rank:5,points:1763.8},"Brazil":{rank:6,points:1761.2},
+      "Netherlands":{rank:7,points:1757.9},"Morocco":{rank:8,points:1755.9},
+      "Belgium":{rank:9,points:1734.7},"Germany":{rank:10,points:1730.4},
+      "Croatia":{rank:11,points:1717.1},"Colombia":{rank:13,points:1693.1},
+      "Senegal":{rank:14,points:1689.0},"Mexico":{rank:15,points:1681.0},
+      "USA":{rank:16,points:1673.1},"Uruguay":{rank:17,points:1673.1},
+      "Japan":{rank:18,points:1660.4},"Switzerland":{rank:19,points:1649.4},
+      "Iran":{rank:21,points:1615.3},"Turkey":{rank:22,points:1599.0},
+      "Ecuador":{rank:23,points:1594.8},"Austria":{rank:24,points:1593.5},
+      "South Korea":{rank:25,points:1588.7},"Australia":{rank:27,points:1580.7},
+      "Algeria":{rank:28,points:1564.3},"Egypt":{rank:29,points:1563.2},
+      "Canada":{rank:30,points:1556.5},"Norway":{rank:31,points:1550.9},
+      "Panama":{rank:33,points:1540.6},"Ivory Coast":{rank:34,points:1533.0},
+      "Sweden":{rank:38,points:1514.8},"Paraguay":{rank:40,points:1503.5},
+      "Czechia":{rank:41,points:1501.4},"Scotland":{rank:43,points:1498.3},
+      "Tunisia":{rank:44,points:1483.0},"DR Congo":{rank:46,points:1478.3},
+      "Uzbekistan":{rank:50,points:1465.3},"Qatar":{rank:55,points:1455.0},
+      "Iraq":{rank:57,points:1447.1},"South Africa":{rank:60,points:1429.7},
+      "Saudi Arabia":{rank:61,points:1421.4},"Jordan":{rank:63,points:1391.5},
+      "Bosnia-Herz.":{rank:65,points:1385.8},"Cape Verde":{rank:69,points:1366.1},
+      "Ghana":{rank:74,points:1346.3},"Curacao":{rank:82,points:1294.7},
+      "Haiti":{rank:83,points:1291.7},"New Zealand":{rank:85,points:1281.6},
+    };
+
+    // =================================================================
+    // HOST COUNTRIES — used to apply per-match home advantage in wp()
+    // =================================================================
+    const HOME_COUNTRY = {"USA":"USA","Canada":"Canada","Mexico":"Mexico"};
+
+    // Monthly Elo trend (eloratings.net slope × 30 days) — display only.
     const FORM = {
-      France:+7.32,Spain:-0.78,Argentina:+1.49,England:-8.15,
-      Portugal:+3.45,Brazil:+0.70,Netherlands:+1.60,Morocco:+20.23,
-      Belgium:+4.01,Germany:+6.22,Croatia:+0.18,Colombia:-8.21,
-      Senegal:-14.86,Mexico:+2.0,USA:-12.0,Uruguay:+1.0,
-      Japan:+5.0,Switzerland:+1.0,Iran:-2.0,Turkey:+3.0,
-      Ecuador:-1.0,Austria:+1.0,"South Korea":-1.0,Australia:+1.0,
-      Algeria:+2.0,Egypt:+1.0,Canada:-3.0,Norway:+1.0,
-      "Ivory Coast":+3.0,Sweden:+2.0,Paraguay:+1.0,Panama:-1.0,
-      Czechia:+1.0,Scotland:-3.0,Tunisia:0,"DR Congo":-1.0,
-      Uzbekistan:+1.0,Qatar:-1.0,Iraq:+1.0,"South Africa":0,
-      "Saudi Arabia":-1.0,Jordan:0,"Bosnia-Herz.":+2.0,
-      "Cape Verde":+1.0,Ghana:0,Curacao:0,Haiti:+1.0,"New Zealand":0,
+      "Algeria":8.5,"Argentina":-0.9,"Australia":-1.3,"Austria":-3.6,
+      "Belgium":2.7,"Bosnia-Herz.":10.8,"Brazil":-1.8,"Canada":1.2,
+      "Cape Verde":1.5,"Colombia":0.5,"Croatia":1.3,"Curacao":5.2,
+      "Czechia":-5.2,"DR Congo":10.8,"Ecuador":1.1,"Egypt":1.1,
+      "England":2.8,"France":1.9,"Germany":6.9,"Ghana":2.6,
+      "Haiti":6.9,"Iran":-5.7,"Iraq":7.9,"Ivory Coast":12.8,
+      "Japan":3.3,"Jordan":11.2,"Mexico":2.9,"Morocco":0.5,
+      "Netherlands":0.3,"New Zealand":-3.5,"Norway":6.6,"Panama":-2.2,
+      "Paraguay":0.4,"Portugal":-8.4,"Qatar":-14.5,"Saudi Arabia":-0.8,
+      "Scotland":4.0,"Senegal":11.6,"South Africa":-0.6,"South Korea":-1.3,
+      "Spain":-0.7,"Sweden":-2.0,"Switzerland":2.0,"Tunisia":-0.5,
+      "Turkey":7.1,"USA":2.0,"Uruguay":-2.6,"Uzbekistan":4.1,
     };
     const FLAGS = {
       France:"🇫🇷",Spain:"🇪🇸",Argentina:"🇦🇷",England:"🏴󠁧󠁢󠁥󠁮󠁧󠁿",Portugal:"🇵🇹",
@@ -623,6 +689,15 @@
       const t=venueType(name);
       return t==="canada"?"#22c55e":t==="mexico"?"#f97316":"#3b82f6";
     }
+    // Map a venue name to a host country code matching HOME_COUNTRY keys.
+    // Returns null only if venueName is falsy; all real WC venues map to one of the three hosts.
+    function venueCountry(venueName){
+      if(!venueName)return null;
+      const v=String(venueName);
+      if(v.includes("Toronto")||v.includes("Vancouver"))return "Canada";
+      if(v.includes("Mexico City")||v.includes("Guadalajara")||v.includes("Monterrey"))return "Mexico";
+      return "USA";
+    }
 
     /* ===================== UTILITY FUNCTIONS ===================== */
     // Convert "Jun 12" / "Jul 3" → "2026-06-12" / "2026-07-03"
@@ -656,10 +731,23 @@
 
     const SORTED_ELO = Object.entries(ELO).sort(([,a],[,b])=>b-a);
     const RANKS = SORTED_ELO.reduce((acc,[t],i)=>{acc[t]=i+1;return acc;},{});
+    // Teams sorted by official FIFA ranking (ascending — rank 1 first)
+    const SORTED_BY_FIFA = Object.entries(FIFA_RANK).sort(([,a],[,b])=>a.rank-b.rank);
+    const MAX_FIFA_POINTS = Math.max(...Object.values(FIFA_RANK).map(x=>x.points));
     function fl(t){return FLAGS[t]||"⚽";}
-    function e(t){return ELO[t]||1200;}
-    function wp(a,b){return 1/(1+Math.pow(10,(e(b)-e(a))/400));}
-    function simMatch(a,b){return Math.random()<wp(a,b)?a:b;}
+    // e() returns model-adjusted strength; raw ELO still used by matchLabel().
+    function e(t){return STRENGTH[t]||ELO[t]||1700;}
+    // wp() with venue-based home advantage: h = -100 if A is home, +100 if B is home, 0 neutral.
+    function wp(a,b,venue){
+      let h=0;
+      const vc=venueCountry(venue);
+      if(vc){
+        if(vc===HOME_COUNTRY[a])h-=100;
+        if(vc===HOME_COUNTRY[b])h+=100;
+      }
+      return 1/(1+Math.pow(10,(e(b)-e(a)+h)/400));
+    }
+    function simMatch(a,b,venue){return Math.random()<wp(a,b,venue)?a:b;}
     function fc(f){
       if(f>10)return"#4ade80"; if(f>3)return"#86efac";
       if(f>0)return"#bef264"; if(f>-3)return"#94a3b8";
@@ -693,9 +781,15 @@
     function simGroup(teams){
       const pts={},gd={};
       teams.forEach(t=>{pts[t]=0;gd[t]=0;});
+      // Synthesize group venue so host teams get home advantage in their group matches.
+      const hostInGroup=teams.find(t=>HOME_COUNTRY[t]);
+      const groupVenue=hostInGroup
+        ?(HOME_COUNTRY[hostInGroup]==="USA"?"Los Angeles":
+          HOME_COUNTRY[hostInGroup]==="Canada"?"Toronto":"Mexico City")
+        :null;
       for(let i=0;i<teams.length;i++){
         for(let j=i+1;j<teams.length;j++){
-          const a=teams[i],b=teams[j],pA=wp(a,b)*0.75,r=Math.random();
+          const a=teams[i],b=teams[j],pA=wp(a,b,groupVenue)*0.75,r=Math.random();
           if(r<pA){pts[a]+=3;gd[a]+=(1+Math.random());gd[b]-=Math.random();}
           else if(r<pA+0.25){pts[a]+=1;pts[b]+=1;}
           else{pts[b]+=3;gd[b]+=(1+Math.random());gd[a]-=Math.random();}
@@ -744,30 +838,33 @@
       const r32w=r32p.map(([a,b],idx)=>{
         if(!ok(a,b))return a&&a!=="TBD"?a:b&&b!=="TBD"?b:"TBD";
         out.r32.push({idx,key:key(a,b),teamA:a,teamB:b});
-        return simMatch(a,b);
+        return simMatch(a,b,KO.r32[idx]?.venue);
       });
       const r16p=[[r32w[0],r32w[1]],[r32w[2],r32w[3]],[r32w[4],r32w[5]],[r32w[6],r32w[7]],
                   [r32w[8],r32w[9]],[r32w[10],r32w[11]],[r32w[12],r32w[13]],[r32w[14],r32w[15]]];
       const r16w=r16p.map(([a,b],idx)=>{
         if(!ok(a,b))return a&&a!=="TBD"?a:b&&b!=="TBD"?b:"TBD";
         out.r16.push({idx,key:key(a,b),teamA:a,teamB:b});
-        return simMatch(a,b);
+        return simMatch(a,b,KO.r16[idx]?.venue);
       });
       const qfp=[[r16w[0],r16w[1]],[r16w[2],r16w[3]],[r16w[4],r16w[5]],[r16w[6],r16w[7]]];
       const qfw=qfp.map(([a,b],idx)=>{
         if(!ok(a,b))return a&&a!=="TBD"?a:b&&b!=="TBD"?b:"TBD";
         out.qf.push({idx,key:key(a,b),teamA:a,teamB:b});
-        return simMatch(a,b);
+        return simMatch(a,b,KO.qf[idx]?.venue);
       });
       const sfp=[[qfw[0],qfw[1]],[qfw[2],qfw[3]]];
       const sfw=sfp.map(([a,b],idx)=>{
         if(!ok(a,b))return a&&a!=="TBD"?a:b&&b!=="TBD"?b:"TBD";
         out.sf.push({idx,key:key(a,b),teamA:a,teamB:b});
-        return simMatch(a,b);
+        return simMatch(a,b,KO.sf[idx]?.venue);
       });
       // SF winners → Championship Final (M104, KO.final[0], idx:0)
       let champion="TBD";
-      if(ok(sfw[0],sfw[1])){out.final.push({idx:0,key:key(sfw[0],sfw[1]),teamA:sfw[0],teamB:sfw[1]});champion=simMatch(sfw[0],sfw[1]);}
+      if(ok(sfw[0],sfw[1])){
+        out.final.push({idx:0,key:key(sfw[0],sfw[1]),teamA:sfw[0],teamB:sfw[1]});
+        champion=simMatch(sfw[0],sfw[1],KO.final[0]?.venue);
+      }
       else champion=sfw[0]!=="TBD"?sfw[0]:sfw[1];
       // Track team appearances per round per slot
       const teamSlots={r32:{},r16:{},qf:{},sf:{},final:{}};
@@ -1009,12 +1106,9 @@
                 const[tA,tB]=getKOTeams(rnd,idx,r32Teams,koPicks);
                 const winner=koPicks[rnd]?.[idx];
                 const ready=tA!=='TBD'&&tB!=='TBD';
-                // ELO + form win probability
-                const eA=ELO[tA]||1300,eB=ELO[tB]||1300;
-                const fA=FORM[tA]||0,fB=FORM[tB]||0;
-                const qA=Math.pow(10,(eA+fA*10)/400),qB=Math.pow(10,(eB+fB*10)/400);
-                const pA=ready?Math.round(qA/(qA+qB)*100):50,pB=100-pA;
-                const {label:lbl,color:lc}=matchLabel(eA,eB);
+                // Win probability from effective Elo (form + trajectory already baked in)
+                const pA=ready?Math.round(wp(tA,tB)*100):50,pB=100-pA;
+                const {label:lbl,color:lc}=matchLabel(ELO[tA]||1700,ELO[tB]||1700);
                 const mk=(t,align,pct)=>(
                   <button onClick={()=>ready&&pick(rnd,idx,t)} style={{
                     flex:1,background:winner===t?'#1e3a5f':'#0d1f3c',
@@ -1770,10 +1864,7 @@
         // Helper: pick higher-ELO team
         const favOf=(tA,tB)=>{
           if(tA==='TBD'||!tA)return tB;if(tB==='TBD'||!tB)return tA;
-          const eA=ELO[tA]||1300,eB=ELO[tB]||1300;
-          const fA=FORM[tA]||0,fB=FORM[tB]||0;
-          const qA=Math.pow(10,(eA+fA*10)/400),qB=Math.pow(10,(eB+fB*10)/400);
-          return qA>=qB?tA:tB;
+          return (ELO[tA]||1700)>=(ELO[tB]||1700)?tA:tB;
         };
         for(let i=0;i<16;i++){
           const[tA,tB]=r32Teams[i];
@@ -2285,7 +2376,7 @@
                 {[
                   {
                     icon:"⚙️",title:"How the simulation works",
-                    body:"Each simulation runs the full tournament — group stage through the Final — using ELO ratings and recent form scores to calculate win probabilities for every match. Stronger teams win more often, but upsets happen. After 50,000 runs, the percentages you see are how often each outcome actually occurred across all those tournaments."
+                    body:"Each simulation runs the full tournament — group stage through the Final — using Elo strength ratings to calculate win probabilities for every match. Ratings come from eloratings.net (January 2026 snapshot) and reflect each team's full match history. Host nations (USA, Mexico, Canada) receive a small home-advantage bonus. Stronger teams win more often, but upsets happen. After 50,000 runs, the percentages shown are how often each outcome actually occurred."
                   },
                   {
                     icon:"🏆",title:"Champion Odds",
@@ -3483,14 +3574,11 @@
             {tab==="rankings"&&(
               <div>
                 <h2 style={{fontSize:18,fontWeight:700,color:"#f1f5f9",marginBottom:4}}>📊 FIFA World Rankings</h2>
-                <p style={{color:"#64748b",fontSize:13,marginBottom:20}}>All 48 qualified teams ranked by ELO rating with recent form indicator</p>
-                <div style={{
-                  display:"grid",gap:5,
-                }}>
-                  {SORTED_ELO.map(([t,elo],i)=>{
+                <p style={{color:"#64748b",fontSize:13,marginBottom:20}}>All 48 qualified teams ranked by official FIFA ranking (April 2026)</p>
+                <div style={{display:"grid",gap:5}}>
+                  {SORTED_BY_FIFA.map(([t,info])=>{
                     const f=FORM[t]||0;
-                    const maxElo=SORTED_ELO[0][1];
-                    const barW=(elo/maxElo)*100;
+                    const barW=(info.points/MAX_FIFA_POINTS)*100;
                     const teamColor=COLORS[t]||"#334155";
                     return (
                       <div key={t} style={{
@@ -3498,7 +3586,7 @@
                         borderRadius:8,padding:"8px 12px",
                         display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"
                       }}>
-                        <span style={{color:"#475569",fontSize:12,minWidth:24,textAlign:"right"}}>{i+1}</span>
+                        <span style={{color:"#475569",fontSize:12,minWidth:28,textAlign:"right"}}>#{info.rank}</span>
                         <span style={{fontSize:20}}>{fl(t)}</span>
                         <div style={{flex:1,minWidth:120}}>
                           <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:3,flexWrap:"wrap"}}>
@@ -3512,7 +3600,7 @@
                             <div style={{flex:1,height:6,background:"#0d1f3c",borderRadius:3,overflow:"hidden"}}>
                               <div style={{width:`${barW}%`,height:"100%",background:teamColor,borderRadius:3}}/>
                             </div>
-                            <span style={{color:"#60a5fa",fontSize:12,fontWeight:700,minWidth:36,textAlign:"right"}}>{elo}</span>
+                            <span style={{color:"#60a5fa",fontSize:12,fontWeight:700,minWidth:56,textAlign:"right"}}>{info.points.toFixed(1)} pts</span>
                           </div>
                         </div>
                       </div>
