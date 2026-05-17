@@ -822,7 +822,7 @@
     const SB_URL='https://cfnlnksqnmtscchtugtd.supabase.co';
     const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNmbmxua3Nxbm10c2NjaHR1Z3RkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg5MzM0MzIsImV4cCI6MjA5NDUwOTQzMn0.9HgzuCdTQ61BQY8LsY1KI7vlvypQY4anWBRDVHzbkE4';
     const sb=supabase.createClient(SB_URL,SB_KEY);
-    const BRACKET_LOCK=new Date('2026-06-10T23:59:00-04:00');
+    const BRACKET_LOCK=new Date('2026-06-11T17:00:00-04:00');
     const IS_LOCKED=()=>new Date()>BRACKET_LOCK;
     const THIRD_SLOT_ORD=['M74','M77','M79','M80','M81','M82','M85','M87'];
     const SLOT_ALLOW_C={
@@ -1071,20 +1071,29 @@
       // Symmetric "butterfly" — maximum size, bold colors
       const W=1960,H=960;
       const TOP=84,BOT=130,AVAIL=H-TOP-BOT;
-      const BW=190,BH=66,LH=BH/2;   // 33px per team row
       const GAP=16;
 
-      // Column x (left edge). Step = BW+GAP = 206.
-      // R32L = W/2 - 4*206 - BW/2 = 980-824-95 = 61 → round to 62
-      const R32L=62;
-      const R16L=R32L+BW+GAP;   // 268
-      const QFL =R16L+BW+GAP;   // 474
-      const SFL =QFL +BW+GAP;   // 680
-      const FIN =W/2-BW/2;      // 885  (dead center)
-      const SFR =FIN +BW+GAP;   // 1091
-      const QFR =SFR +BW+GAP;   // 1297
-      const R16R=QFR +BW+GAP;   // 1503
-      const R32R=R16R+BW+GAP;   // 1709
+      // Per-round box dimensions — boxes grow dramatically toward the center
+      // Height ratio R32→FIN ≈ 2.8×, width ratio ≈ 2.0×
+      const D={
+        r32:{bw:130,bh:78, lh:39, fs:14},
+        r16:{bw:162,bh:112,lh:56, fs:18},
+        qf: {bw:196,bh:150,lh:75, fs:23},
+        sf: {bw:228,bh:188,lh:94, fs:28},
+        fin:{bw:260,bh:220,lh:110,fs:34},
+      };
+
+      // Column x (left edge) — derived so each column is separated by GAP=16
+      // and FIN is perfectly centered at W/2
+      const FIN =W/2-D.fin.bw/2;   // 860 (center = 980)
+      const SFL =FIN -GAP-D.sf.bw;  // 628
+      const QFL =SFL -GAP-D.qf.bw;  // 418
+      const R16L=QFL -GAP-D.r16.bw; // 230
+      const R32L=R16L-GAP-D.r32.bw; // 66
+      const SFR =FIN +D.fin.bw+GAP; // 1116
+      const QFR =SFR +D.sf.bw +GAP; // 1348
+      const R16R=QFR +D.qf.bw +GAP; // 1558
+      const R32R=R16R+D.r16.bw+GAP; // 1746
 
       const mY=(i,n)=>TOP+(i+0.5)*(AVAIL/n);
       const finCY=mY(0,1);
@@ -1119,12 +1128,13 @@
       const shadowId='wshadow';
 
       // ── Match box ─────────────────────────────────────────────────
-      const Box=({x,cy,tA,tB,winner,matchNum,rtl=false,isFinal=false})=>{
-        const y=cy-BH/2;
+      const Box=({x,cy,tA,tB,winner,matchNum,rtl=false,isFinal=false,bw=190,bh=66,lh=33,fs=16})=>{
+        const y=cy-bh/2;
         const wA=!!(winner&&winner===tA), wB=!!(winner&&winner===tB);
-        const trunc=s=>(s||'TBD').length>20?(s||'TBD').slice(0,19)+'…':(s||'TBD');
+        const maxCh=Math.floor(bw/7.5);
+        const trunc=s=>(s||'TBD').length>maxCh?(s||'TBD').slice(0,maxCh-1)+'…':(s||'TBD');
         const mnW=46,mnH=18;
-        const mnX=rtl?x+BW-mnW:x;
+        const mnX=rtl?x+bw-mnW:x;
 
         const getBg=(isW)=>isW?(isFinal?C.finWinBg:C.winBg):(isFinal?'#fef3c7':C.normBg);
         const getTxt=(isW)=>isW?(isFinal?C.finWinTxt:C.winTxt):C.loserTxt;
@@ -1142,18 +1152,20 @@
               </g>
             )}
             {/* ─ top row ─ */}
-            <rect x={x} y={y} width={BW} height={LH}
+            <rect x={x} y={y} width={bw} height={lh}
               fill={getBg(wA)} stroke={bd} strokeWidth={bdW}
               filter={wA?`url(#${shadowId})`:'none'}/>
-            <text x={x+9} y={y+LH-10} fontSize='16' fontFamily='system-ui,sans-serif'
+            <text x={x+bw/2} y={y+lh/2+fs*0.36} fontSize={fs} fontFamily='system-ui,sans-serif'
+              textAnchor='middle'
               fill={getTxt(wA)} fontWeight={wA?'700':'500'}>{trunc(tA)}</text>
             {/* ─ divider ─ */}
-            <line x1={x} y1={y+LH} x2={x+BW} y2={y+LH} stroke={bd} strokeWidth='1'/>
+            <line x1={x} y1={y+lh} x2={x+bw} y2={y+lh} stroke={bd} strokeWidth='1'/>
             {/* ─ bottom row ─ */}
-            <rect x={x} y={y+LH} width={BW} height={LH}
+            <rect x={x} y={y+lh} width={bw} height={lh}
               fill={getBg(wB)} stroke={bd} strokeWidth={bdW}
               filter={wB?`url(#${shadowId})`:'none'}/>
-            <text x={x+9} y={y+BH-10} fontSize='16' fontFamily='system-ui,sans-serif'
+            <text x={x+bw/2} y={y+lh+lh/2+fs*0.36} fontSize={fs} fontFamily='system-ui,sans-serif'
+              textAnchor='middle'
               fill={getTxt(wB)} fontWeight={wB?'700':'500'}>{trunc(tB)}</text>
           </g>
         );
@@ -1167,8 +1179,8 @@
       };
 
       // ── Column header pill ────────────────────────────────────────
-      const ColHdr=({x,label,isFinal=false})=>{
-        const cx=x+BW/2;
+      const ColHdr=({x,label,isFinal=false,bw=190})=>{
+        const cx=x+bw/2;
         const pw={'Round of 32':108,'Round of 16':106,'Quarterfinals':116,'Semifinals':100,'⭐ Final':86}[label]||108;
         return (
           <g>
@@ -1181,8 +1193,8 @@
       };
 
       const champ=ko.final?.[0];
-      const cbW=BW+110,cbH=72;
-      const cbX=W/2-cbW/2, cbY=finCY-BH/2-cbH-18;
+      const cbW=370,cbH=96;
+      const cbX=W/2-cbW/2, cbY=finCY-D.fin.bh/2-cbH-28;
 
       return (
         <svg id="bracket-svg" viewBox={`0 0 ${W} ${H}`} width="100%"
@@ -1198,15 +1210,15 @@
           <rect width={W} height={H} fill={C.bg}/>
 
           {/* ── Color-funnel column strips (darkest center, lightest edge) ── */}
-          <rect x={R32L-GAP/2}  y={0} width={BW+GAP} height={H} fill={C.sR32}/>
-          <rect x={R32R-GAP/2}  y={0} width={BW+GAP} height={H} fill={C.sR32}/>
-          <rect x={R16L-GAP/2}  y={0} width={BW+GAP} height={H} fill={C.sR16}/>
-          <rect x={R16R-GAP/2}  y={0} width={BW+GAP} height={H} fill={C.sR16}/>
-          <rect x={QFL-GAP/2}   y={0} width={BW+GAP} height={H} fill={C.sQF}/>
-          <rect x={QFR-GAP/2}   y={0} width={BW+GAP} height={H} fill={C.sQF}/>
-          <rect x={SFL-GAP/2}   y={0} width={BW+GAP} height={H} fill={C.sSF}/>
-          <rect x={SFR-GAP/2}   y={0} width={BW+GAP} height={H} fill={C.sSF}/>
-          <rect x={FIN-GAP/2}   y={0} width={BW+GAP} height={H} fill={C.sFIN}/>
+          <rect x={R32L-GAP/2}  y={0} width={D.r32.bw+GAP} height={H} fill={C.sR32}/>
+          <rect x={R32R-GAP/2}  y={0} width={D.r32.bw+GAP} height={H} fill={C.sR32}/>
+          <rect x={R16L-GAP/2}  y={0} width={D.r16.bw+GAP} height={H} fill={C.sR16}/>
+          <rect x={R16R-GAP/2}  y={0} width={D.r16.bw+GAP} height={H} fill={C.sR16}/>
+          <rect x={QFL-GAP/2}   y={0} width={D.qf.bw +GAP} height={H} fill={C.sQF}/>
+          <rect x={QFR-GAP/2}   y={0} width={D.qf.bw +GAP} height={H} fill={C.sQF}/>
+          <rect x={SFL-GAP/2}   y={0} width={D.sf.bw +GAP} height={H} fill={C.sSF}/>
+          <rect x={SFR-GAP/2}   y={0} width={D.sf.bw +GAP} height={H} fill={C.sSF}/>
+          <rect x={FIN-GAP/2}   y={0} width={D.fin.bw+GAP} height={H} fill={C.sFIN}/>
 
           {/* ══════════════════════════════════════════════════════════
                HOST COUNTRY LANDMARK SILHOUETTES — faint background
@@ -1282,59 +1294,59 @@
           <line x1={62} y1={64} x2={W-62} y2={64} stroke='#e2e8f0' strokeWidth='1.5'/>
 
           {/* ── Column headers ── */}
-          <ColHdr x={R32L} label='Round of 32'/>
-          <ColHdr x={R16L} label='Round of 16'/>
-          <ColHdr x={QFL}  label='Quarterfinals'/>
-          <ColHdr x={SFL}  label='Semifinals'/>
-          <ColHdr x={FIN}  label='⭐ Final' isFinal={true}/>
-          <ColHdr x={SFR}  label='Semifinals'/>
-          <ColHdr x={QFR}  label='Quarterfinals'/>
-          <ColHdr x={R16R} label='Round of 16'/>
-          <ColHdr x={R32R} label='Round of 32'/>
+          <ColHdr x={R32L} label='Round of 32'  bw={D.r32.bw}/>
+          <ColHdr x={R16L} label='Round of 16'  bw={D.r16.bw}/>
+          <ColHdr x={QFL}  label='Quarterfinals' bw={D.qf.bw}/>
+          <ColHdr x={SFL}  label='Semifinals'    bw={D.sf.bw}/>
+          <ColHdr x={FIN}  label='⭐ Final' isFinal={true} bw={D.fin.bw}/>
+          <ColHdr x={SFR}  label='Semifinals'    bw={D.sf.bw}/>
+          <ColHdr x={QFR}  label='Quarterfinals' bw={D.qf.bw}/>
+          <ColHdr x={R16R} label='Round of 16'  bw={D.r16.bw}/>
+          <ColHdr x={R32R} label='Round of 32'  bw={D.r32.bw}/>
 
           {/* ════ LEFT SIDE ════ */}
           {Array.from({length:8},(_,i)=>{
             const[tA,tB]=r32Teams[i]||['TBD','TBD'];
-            return <Box key={`r32l${i}`} x={R32L} cy={mY(i,8)} tA={tA} tB={tB} winner={ko.r32?.[i]} matchNum={KO.r32[i]?.m}/>;
+            return <Box key={`r32l${i}`} x={R32L} cy={mY(i,8)} tA={tA} tB={tB} winner={ko.r32?.[i]} matchNum={KO.r32[i]?.m} {...D.r32}/>;
           })}
           {Array.from({length:4},(_,i)=>(
             <g key={`r16l${i}`}>
-              <Box x={R16L} cy={mY(i,4)} tA={ko.r32?.[i*2]||'TBD'} tB={ko.r32?.[i*2+1]||'TBD'} winner={ko.r16?.[i]} matchNum={KO.r16[i]?.m}/>
-              <Conn fx={R32L+BW} fy={mY(i*2,8)}   tx={R16L} ty={mY(i,4)}/>
-              <Conn fx={R32L+BW} fy={mY(i*2+1,8)} tx={R16L} ty={mY(i,4)}/>
+              <Box x={R16L} cy={mY(i,4)} tA={ko.r32?.[i*2]||'TBD'} tB={ko.r32?.[i*2+1]||'TBD'} winner={ko.r16?.[i]} matchNum={KO.r16[i]?.m} {...D.r16}/>
+              <Conn fx={R32L+D.r32.bw} fy={mY(i*2,8)}   tx={R16L} ty={mY(i,4)}/>
+              <Conn fx={R32L+D.r32.bw} fy={mY(i*2+1,8)} tx={R16L} ty={mY(i,4)}/>
             </g>
           ))}
           {Array.from({length:2},(_,i)=>(
             <g key={`qfl${i}`}>
-              <Box x={QFL} cy={mY(i,2)} tA={ko.r16?.[i*2]||'TBD'} tB={ko.r16?.[i*2+1]||'TBD'} winner={ko.qf?.[i]} matchNum={KO.qf[i]?.m}/>
-              <Conn fx={R16L+BW} fy={mY(i*2,4)}   tx={QFL} ty={mY(i,2)}/>
-              <Conn fx={R16L+BW} fy={mY(i*2+1,4)} tx={QFL} ty={mY(i,2)}/>
+              <Box x={QFL} cy={mY(i,2)} tA={ko.r16?.[i*2]||'TBD'} tB={ko.r16?.[i*2+1]||'TBD'} winner={ko.qf?.[i]} matchNum={KO.qf[i]?.m} {...D.qf}/>
+              <Conn fx={R16L+D.r16.bw} fy={mY(i*2,4)}   tx={QFL} ty={mY(i,2)}/>
+              <Conn fx={R16L+D.r16.bw} fy={mY(i*2+1,4)} tx={QFL} ty={mY(i,2)}/>
             </g>
           ))}
-          <Box x={SFL} cy={finCY} tA={ko.qf?.[0]||'TBD'} tB={ko.qf?.[1]||'TBD'} winner={ko.sf?.[0]} matchNum={KO.sf[0]?.m}/>
-          <Conn fx={QFL+BW} fy={mY(0,2)} tx={SFL} ty={finCY}/>
-          <Conn fx={QFL+BW} fy={mY(1,2)} tx={SFL} ty={finCY}/>
+          <Box x={SFL} cy={finCY} tA={ko.qf?.[0]||'TBD'} tB={ko.qf?.[1]||'TBD'} winner={ko.sf?.[0]} matchNum={KO.sf[0]?.m} {...D.sf}/>
+          <Conn fx={QFL+D.qf.bw} fy={mY(0,2)} tx={SFL} ty={finCY}/>
+          <Conn fx={QFL+D.qf.bw} fy={mY(1,2)} tx={SFL} ty={finCY}/>
 
           {/* ════ FINAL ════ */}
-          <line x1={SFL+BW} y1={finCY} x2={FIN}    y2={finCY} stroke={C.gold} strokeWidth='2.5' strokeDasharray='7,4'/>
-          <line x1={SFR}    y1={finCY} x2={FIN+BW} y2={finCY} stroke={C.gold} strokeWidth='2.5' strokeDasharray='7,4'/>
-          <Box x={FIN} cy={finCY} tA={ko.sf?.[0]||'TBD'} tB={ko.sf?.[1]||'TBD'} winner={ko.final?.[0]} matchNum={KO.final[0]?.m} isFinal={true}/>
+          <line x1={SFL+D.sf.bw}  y1={finCY} x2={FIN}            y2={finCY} stroke={C.gold} strokeWidth='2.5' strokeDasharray='7,4'/>
+          <line x1={SFR}          y1={finCY} x2={FIN+D.fin.bw}   y2={finCY} stroke={C.gold} strokeWidth='2.5' strokeDasharray='7,4'/>
+          <Box x={FIN} cy={finCY} tA={ko.sf?.[0]||'TBD'} tB={ko.sf?.[1]||'TBD'} winner={ko.final?.[0]} matchNum={KO.final[0]?.m} isFinal={true} {...D.fin}/>
 
           {/* ── Champion badge ── */}
           {champ?(
             <g>
-              <line x1={W/2} y1={cbY+cbH} x2={W/2} y2={finCY-BH/2} stroke={C.gold} strokeWidth='2'/>
+              <line x1={W/2} y1={cbY+cbH} x2={W/2} y2={finCY-D.fin.bh/2} stroke={C.gold} strokeWidth='2'/>
               <rect x={cbX} y={cbY} width={cbW} height={cbH} rx='14'
                 fill={C.champBg} stroke={C.champBd} strokeWidth='3'
                 filter={`url(#${shadowId})`}/>
-              <text x={W/2} y={cbY+24} textAnchor='middle' fontSize='12' fontWeight='800'
+              <text x={W/2} y={cbY+28} textAnchor='middle' fontSize='14' fontWeight='800'
                 fill={C.champLabel} letterSpacing='2.5' fontFamily='system-ui,sans-serif'>🏆  CHAMPION</text>
-              <text x={W/2} y={cbY+56} textAnchor='middle' fontSize='24' fontWeight='900'
+              <text x={W/2} y={cbY+70} textAnchor='middle' fontSize='30' fontWeight='900'
                 fill={C.champName} fontFamily='system-ui,sans-serif'>{champ}</text>
             </g>
           ):(
             <g>
-              <line x1={W/2} y1={cbY+cbH} x2={W/2} y2={finCY-BH/2} stroke={C.gold} strokeWidth='1.5' strokeDasharray='5,3'/>
+              <line x1={W/2} y1={cbY+cbH} x2={W/2} y2={finCY-D.fin.bh/2} stroke={C.gold} strokeWidth='1.5' strokeDasharray='5,3'/>
               <rect x={cbX} y={cbY} width={cbW} height={cbH} rx='14'
                 fill={C.champBg} stroke={C.champBd} strokeWidth='2' opacity='0.65'/>
               <text x={W/2} y={cbY+42} textAnchor='middle' fontSize='15' fill='#94a3b8'
@@ -1343,26 +1355,26 @@
           )}
 
           {/* ════ RIGHT SIDE ════ */}
-          <Box x={SFR} cy={finCY} tA={ko.qf?.[2]||'TBD'} tB={ko.qf?.[3]||'TBD'} winner={ko.sf?.[1]} matchNum={KO.sf[1]?.m} rtl={true}/>
-          <Conn fx={QFR} fy={mY(0,2)} tx={SFR+BW} ty={finCY}/>
-          <Conn fx={QFR} fy={mY(1,2)} tx={SFR+BW} ty={finCY}/>
+          <Box x={SFR} cy={finCY} tA={ko.qf?.[2]||'TBD'} tB={ko.qf?.[3]||'TBD'} winner={ko.sf?.[1]} matchNum={KO.sf[1]?.m} rtl={true} {...D.sf}/>
+          <Conn fx={QFR} fy={mY(0,2)} tx={SFR+D.sf.bw} ty={finCY}/>
+          <Conn fx={QFR} fy={mY(1,2)} tx={SFR+D.sf.bw} ty={finCY}/>
           {Array.from({length:2},(_,i)=>(
             <g key={`qfr${i}`}>
-              <Box x={QFR} cy={mY(i,2)} tA={ko.r16?.[4+i*2]||'TBD'} tB={ko.r16?.[4+i*2+1]||'TBD'} winner={ko.qf?.[2+i]} matchNum={KO.qf[2+i]?.m} rtl={true}/>
-              <Conn fx={R16R} fy={mY(i*2,4)}   tx={QFR+BW} ty={mY(i,2)}/>
-              <Conn fx={R16R} fy={mY(i*2+1,4)} tx={QFR+BW} ty={mY(i,2)}/>
+              <Box x={QFR} cy={mY(i,2)} tA={ko.r16?.[4+i*2]||'TBD'} tB={ko.r16?.[4+i*2+1]||'TBD'} winner={ko.qf?.[2+i]} matchNum={KO.qf[2+i]?.m} rtl={true} {...D.qf}/>
+              <Conn fx={R16R} fy={mY(i*2,4)}   tx={QFR+D.qf.bw} ty={mY(i,2)}/>
+              <Conn fx={R16R} fy={mY(i*2+1,4)} tx={QFR+D.qf.bw} ty={mY(i,2)}/>
             </g>
           ))}
           {Array.from({length:4},(_,i)=>(
             <g key={`r16r${i}`}>
-              <Box x={R16R} cy={mY(i,4)} tA={ko.r32?.[8+i*2]||'TBD'} tB={ko.r32?.[8+i*2+1]||'TBD'} winner={ko.r16?.[4+i]} matchNum={KO.r16[4+i]?.m} rtl={true}/>
-              <Conn fx={R32R} fy={mY(i*2,8)}   tx={R16R+BW} ty={mY(i,4)}/>
-              <Conn fx={R32R} fy={mY(i*2+1,8)} tx={R16R+BW} ty={mY(i,4)}/>
+              <Box x={R16R} cy={mY(i,4)} tA={ko.r32?.[8+i*2]||'TBD'} tB={ko.r32?.[8+i*2+1]||'TBD'} winner={ko.r16?.[4+i]} matchNum={KO.r16[4+i]?.m} rtl={true} {...D.r16}/>
+              <Conn fx={R32R} fy={mY(i*2,8)}   tx={R16R+D.r16.bw} ty={mY(i,4)}/>
+              <Conn fx={R32R} fy={mY(i*2+1,8)} tx={R16R+D.r16.bw} ty={mY(i,4)}/>
             </g>
           ))}
           {Array.from({length:8},(_,i)=>{
             const[tA,tB]=r32Teams[8+i]||['TBD','TBD'];
-            return <Box key={`r32r${i}`} x={R32R} cy={mY(i,8)} tA={tA} tB={tB} winner={ko.r32?.[8+i]} matchNum={KO.r32[8+i]?.m} rtl={true}/>;
+            return <Box key={`r32r${i}`} x={R32R} cy={mY(i,8)} tA={tA} tB={tB} winner={ko.r32?.[8+i]} matchNum={KO.r32[8+i]?.m} rtl={true} {...D.r32}/>;
           })}
 
           {/* ── Footer ── */}
@@ -1563,7 +1575,7 @@
 
     function App(){
       // --- Bracket Challenge state ---
-      const [darkMode,setDarkMode]=useState(true);
+      const [darkMode,setDarkMode]=useState(false);
       useEffect(()=>{
         document.body.classList.toggle('light-mode',!darkMode);
       },[darkMode]);
@@ -1582,6 +1594,7 @@
       const [thirdPicks,setThirdPicks]=useState([]);
       const [koPicks,setKoPicks]=useState({r32:{},r16:{},qf:{},sf:{},final:{}});
       const [savedBracket,setSavedBracket]=useState(null);
+      const [userLocked,setUserLocked]=useState(false);
       const [leaderboard,setLeaderboard]=useState([]);
       const [saving,setSaving]=useState(false);
       const [bracketLoading,setBracketLoading]=useState(false);
@@ -1685,6 +1698,7 @@
             }
             setGroupPicks(gp);setThirdPicks(thirds);setKoPicks(ko);
             setSavedBracket({gp,thirds,ko});
+            if(localStorage.getItem('wc2026_locked_'+uid))setUserLocked(true);
           }
           setBracketLoading(false);
         };
@@ -1715,7 +1729,7 @@
         const{data:{subscription}}=sb.auth.onAuthStateChange((_,session)=>{
           setSbUser(session?.user||null);
           if(session?.user){loadBracket(session.user.id);fetchProfile(session.user.id);}
-          else{setSavedBracket(null);setSbDisplayName('');setSbAbGroup(null);setGroupPicks({});setThirdPicks([]);setKoPicks({r32:{},r16:{},qf:{},sf:{},final:{}});}
+          else{setSavedBracket(null);setSbDisplayName('');setSbAbGroup(null);setUserLocked(false);setGroupPicks({});setThirdPicks([]);setKoPicks({r32:{},r16:{},qf:{},sf:{},final:{}});}
         });
         loadLeaderboard();
         return()=>subscription.unsubscribe();
@@ -2373,7 +2387,7 @@
                   <p style={{color:'#64748b',fontSize:13,marginBottom:20}}>
                     {locked
                       ?'Predictions are locked — the tournament has started!'
-                      :`Predict the full bracket before ${BRACKET_LOCK.toLocaleDateString('en-US',{month:'long',day:'numeric'})}. Compete against the Monte Carlo model.`}
+                      :`Predictions lock on ${BRACKET_LOCK.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})} at ${BRACKET_LOCK.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',timeZoneName:'short'})} — 1 hour before the opening game. Compete against the Monte Carlo model.`}
                   </p>
 
                   {/* ---- AUTH ---- */}
@@ -2639,14 +2653,27 @@
                         }
                       }
                     };
+                    const lockBracket=()=>{
+                      if(!sbUser)return;
+                      localStorage.setItem('wc2026_locked_'+sbUser.id,'1');
+                      setUserLocked(true);
+                    };
+                    const effectiveLocked=locked||userLocked;
                     return (
                       <div style={{marginBottom:24}}>
                         {/* Status bar */}
                         <div style={{background:'#061228',border:'1px solid #16a34a',borderRadius:12,padding:'14px 16px',marginBottom:16,
                           display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:8}}>
-                          <div style={{color:'#34d399',fontWeight:700,fontSize:13}}>✓ Bracket saved</div>
-                          <div style={{display:'flex',gap:8}}>
-                            {!locked&&<button onClick={()=>setSavedBracket(null)} style={secondaryBtn}>✏️ Edit</button>}
+                          <div style={{display:'flex',alignItems:'center',gap:10}}>
+                            <div style={{color:'#34d399',fontWeight:700,fontSize:13}}>✓ Bracket saved</div>
+                            {userLocked&&<span style={{background:'#1c0a00',border:'1px solid #92400e',color:'#fbbf24',
+                              fontSize:11,fontWeight:700,padding:'2px 10px',borderRadius:20,letterSpacing:'0.5px'}}>
+                              🔒 Picks locked
+                            </span>}
+                          </div>
+                          <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+                            {!effectiveLocked&&<button onClick={()=>setSavedBracket(null)} style={secondaryBtn}>✏️ Edit</button>}
+                            {!effectiveLocked&&<button onClick={lockBracket} style={{...secondaryBtn,color:'#fbbf24',borderColor:'#92400e'}}>🔒 Lock picks</button>}
                             <button onClick={downloadBracket} style={{...secondaryBtn,color:'#a78bfa',borderColor:'#4c1d95'}}>📸 Save Image</button>
                             <button onClick={copyImage} style={{...secondaryBtn,color:'#34d399',borderColor:'#065f46'}}>📋 Copy Image</button>
                             <button onClick={shareImage} style={{...secondaryBtn,color:'#93c5fd',borderColor:'#1e40af'}}>🔗 Share Image</button>
