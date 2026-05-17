@@ -211,6 +211,40 @@
       background: #e2e8f0 !important;
     }
 
+    /* 3rd-place picker buttons */
+    .third-btn { transition: background 0.12s, border-color 0.12s; }
+    body.light-mode .third-btn {
+      background: #f8fafc !important;
+      border-color: #cbd5e1 !important;
+    }
+    body.light-mode .third-btn.third-btn-sel {
+      background: #bbf7d0 !important;
+      border: 2px solid #16a34a !important;
+    }
+    body.light-mode .third-btn .third-name { color: #0f172a !important; }
+    body.light-mode .third-btn .third-meta { color: #475569 !important; }
+    body.light-mode .third-btn.third-btn-sel .third-name { color: #14532d !important; font-weight: 700 !important; }
+    body.light-mode .third-btn.third-btn-sel .third-check { color: #16a34a !important; }
+
+    /* Bracket challenge step tabs */
+    .bstep-tab { transition: background 0.15s, border-color 0.15s; }
+    body.light-mode .bstep-tab-inactive {
+      background: #f1f5f9 !important;
+      border-color: #cbd5e1 !important;
+    }
+    body.light-mode .bstep-tab-done {
+      background: #dcfce7 !important;
+      border-color: #86efac !important;
+    }
+    body.light-mode .bstep-tab-active {
+      background: #dbeafe !important;
+      border-color: #3b82f6 !important;
+    }
+    body.light-mode .bstep-tab-inactive .bstep-num { color: #64748b !important; }
+    body.light-mode .bstep-tab-done .bstep-num    { color: #16a34a !important; }
+    body.light-mode .bstep-tab-active .bstep-num  { color: #1d4ed8 !important; }
+    body.light-mode .bstep-label { color: #374151 !important; }
+
     /* Map border */
     body.light-mode #wc-map {
       border-bottom-color: #bfdbfe !important;
@@ -1986,12 +2020,21 @@
         if(!sbUser)return;
         if(IS_LOCKED()){alert('Predictions are locked — the tournament has started!');return;}
         setSaving(true);
+        // Verify the session is still live (guards against deleted-account sessions)
+        const{data:{user:liveUser},error:sessionErr}=await sb.auth.getUser();
+        if(sessionErr||!liveUser){
+          setSaving(false);
+          await sb.auth.signOut();
+          setSbUser(null);setSbDisplayName('');setSbAbGroup(null);setSavedBracket(null);
+          alert('Your session has expired or this account no longer exists. Please sign in again.');
+          return;
+        }
         // Guarantee profile row exists — FK on predictions requires it.
         // Priority: name already in state > signup form > email prefix.
         // ignoreDuplicates:true preserves existing display names on re-saves.
         const fallbackName=sbDisplayName||authName.trim()||sbUser.email?.split('@')[0]||'Player';
         const{error:profErr}=await sb.from('profiles').upsert(
-          {id:sbUser.id,display_name:fallbackName},
+          {id:sbUser.id,display_name:fallbackName,...(sbAbGroup?{ab_group:sbAbGroup}:{})},
           {onConflict:'id',ignoreDuplicates:true}
         );
         if(profErr){setSaving(false);alert('Profile error: '+profErr.message);return;}
@@ -2597,7 +2640,7 @@
                   {sbUser&&!savedBracket&&!bracketLoading&&(
                     <div>
                       {/* Auto-pick banner — hidden for blind A/B group */}
-                      {done&&sbAbGroup!=='blind'&&(
+                      {done&&sbAbGroup==='model'&&(
                         <div style={{
                           background:'#0d1f3c',border:'1px solid #1e3a5f',
                           borderRadius:10,padding:'10px 14px',marginBottom:14,
@@ -2616,16 +2659,20 @@
 
                       {/* Progress steps */}
                       <div style={{display:'flex',gap:4,marginBottom:20}}>
-                        {[['1','Groups A–F',grpAFDone],['2','Groups G–L',grpGLDone],['3','3rd Place',thirdsDone],['4','Knockouts',allKODone]].map(([n,label,done],i)=>(
-                          <div key={n} onClick={()=>setBStep(i+1)} style={{
-                            flex:1,background:bStep===i+1?'#1e3a5f':done?'#0d2a1a':'#061228',
-                            border:`1px solid ${bStep===i+1?'#3b82f6':done?'#16a34a':'#1e3a5f'}`,
+                        {[['1','Groups A–F',grpAFDone],['2','Groups G–L',grpGLDone],['3','3rd Place',thirdsDone],['4','Knockouts',allKODone]].map(([n,label,done],i)=>{
+                          const isActive=bStep===i+1;
+                          const tabClass=`bstep-tab ${isActive?'bstep-tab-active':done?'bstep-tab-done':'bstep-tab-inactive'}`;
+                          return (
+                          <div key={n} className={tabClass} onClick={()=>setBStep(i+1)} style={{
+                            flex:1,background:isActive?'#1e3a5f':done?'#0d2a1a':'#061228',
+                            border:`1px solid ${isActive?'#3b82f6':done?'#16a34a':'#1e3a5f'}`,
                             borderRadius:8,padding:'6px 4px',textAlign:'center',cursor:'pointer',
                           }}>
-                            <div style={{fontSize:11,fontWeight:700,color:done?'#34d399':bStep===i+1?'#60a5fa':'#475569'}}>{done?'✓':n}</div>
-                            <div style={{fontSize:10,color:'#475569'}}>{label}</div>
+                            <div className="bstep-num" style={{fontSize:11,fontWeight:700,color:done?'#34d399':isActive?'#60a5fa':'#475569'}}>{done?'✓':n}</div>
+                            <div className="bstep-label" style={{fontSize:10,color:'#475569'}}>{label}</div>
                           </div>
-                        ))}
+                          );
+                        })}
                       </div>
 
                       {/* Step 1: Groups A–F */}
@@ -2634,7 +2681,7 @@
                           <p style={{color:'#64748b',fontSize:12,marginBottom:12}}>Pick 1st and 2nd place for each group.</p>
                           {['A','B','C','D','E','F'].map(g=>(
                             <GroupPicker key={g} letter={g} group={GROUPS[g]}
-                              stats={groupQualStats} showModel={sbAbGroup!=='blind'} picks={groupPicks[g]||{}} onChange={p=>{
+                              stats={groupQualStats} showModel={sbAbGroup==='model'} picks={groupPicks[g]||{}} onChange={p=>{
                                 const newGP={...groupPicks,[g]:p};
                                 setGroupPicks(newGP);
                                 const qualified=new Set(Object.values(newGP).flatMap(pk=>[pk.first,pk.second]).filter(Boolean));
@@ -2654,7 +2701,7 @@
                           <p style={{color:'#64748b',fontSize:12,marginBottom:12}}>Pick 1st and 2nd place for each group.</p>
                           {['G','H','I','J','K','L'].map(g=>(
                             <GroupPicker key={g} letter={g} group={GROUPS[g]}
-                              stats={groupQualStats} showModel={sbAbGroup!=='blind'} picks={groupPicks[g]||{}} onChange={p=>{
+                              stats={groupQualStats} showModel={sbAbGroup==='model'} picks={groupPicks[g]||{}} onChange={p=>{
                                 const newGP={...groupPicks,[g]:p};
                                 setGroupPicks(newGP);
                                 const qualified=new Set(Object.values(newGP).flatMap(pk=>[pk.first,pk.second]).filter(Boolean));
@@ -2689,7 +2736,7 @@
                                 const sel=thirdPicks.some(tp=>tp.team===t);
                                 const disabled=!sel&&thirdPicks.length===8;
                                 return (
-                                  <button key={t} onClick={()=>{
+                                  <button key={t} className={`third-btn${sel?' third-btn-sel':''}`} onClick={()=>{
                                     if(sel)setThirdPicks(prev=>prev.filter(tp=>tp.team!==t));
                                     else if(thirdPicks.length<8)setThirdPicks(prev=>[...prev,{group:g,team:t}]);
                                   }} style={{
@@ -2701,15 +2748,15 @@
                                   }}>
                                     <span style={{fontSize:18}}>{fl(t)}</span>
                                     <div>
-                                      <div style={{fontSize:12,color:'#e2e8f0',fontWeight:600}}>{t}</div>
-                                      <div style={{fontSize:10,color:'#475569'}}>
+                                      <div className="third-name" style={{fontSize:12,color:'#e2e8f0',fontWeight:600}}>{t}</div>
+                                      <div className="third-meta" style={{fontSize:10,color:'#475569'}}>
                                         Group {g} · #{RANKS[t]}
-                                        {sbAbGroup!=='blind'&&groupQualStats[t]?.third>0&&(
+                                        {sbAbGroup==='model'&&groupQualStats[t]?.third>0&&(
                                           <span style={{color:'#94a3b8',marginLeft:4}}>· 3rd {groupQualStats[t].third}%</span>
                                         )}
                                       </div>
                                     </div>
-                                    {sel&&<span style={{marginLeft:'auto',color:'#34d399'}}>✓</span>}
+                                    {sel&&<span className="third-check" style={{marginLeft:'auto',color:'#34d399'}}>✓</span>}
                                   </button>
                                 );
                               })}
@@ -2730,7 +2777,7 @@
                             Pick match winners round by round. Picks auto-propagate to the next round.
                           </p>
                           <KnockoutPicker groupPicks={groupPicks} thirdPicks={thirdPicks}
-                            koPicks={koPicks} setKoPicks={setKoPicks} showModel={sbAbGroup!=='blind'} />
+                            koPicks={koPicks} setKoPicks={setKoPicks} showModel={sbAbGroup==='model'} />
                           <div style={{position:'sticky',bottom:0,background:'#040d1c',padding:'12px 0',
                             borderTop:'1px solid #1e3a5f',display:'flex',justifyContent:'space-between',gap:8}}>
                             <button style={navBtn} onClick={()=>setBStep(3)}>← Back</button>
