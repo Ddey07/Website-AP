@@ -1807,7 +1807,8 @@
       const [bracketLoading,setBracketLoading]=useState(false);
       // --- End Bracket Challenge state ---
 
-      const [tab,setTab]=useState("guide");
+      // Read #bracket-challenge hash on first load so shared links open the right tab
+      const [tab,setTab]=useState(()=>window.location.hash==='#bracket-challenge'?'challenge':'guide');
       const [progress,setProgress]=useState(0);
       const [done,setDone]=useState(false);
       const [simData,setSimData]=useState({r32:{},r16:{},qf:{},sf:{},final:{}});
@@ -1829,6 +1830,22 @@
       const mapDivRef=useRef(null);
       const markersRef=useRef({});
       const tileRef=useRef(null);
+
+      // Sync URL hash with tab — keeps #bracket-challenge in address bar while on that tab
+      useEffect(()=>{
+        if(tab==='challenge'){
+          window.history.replaceState(null,'','#bracket-challenge');
+        } else if(window.location.hash==='#bracket-challenge'){
+          window.history.replaceState(null,'',window.location.pathname+window.location.search);
+        }
+      },[tab]);
+
+      // Handle external hash navigation (e.g. browser back/forward)
+      useEffect(()=>{
+        const onHash=()=>{if(window.location.hash==='#bracket-challenge')setTab('challenge');};
+        window.addEventListener('hashchange',onHash);
+        return()=>window.removeEventListener('hashchange',onHash);
+      },[]);
 
       // Simulation useEffect
       useEffect(()=>{
@@ -2980,7 +2997,7 @@
                     };
                     const shareImage=async()=>{
                       const champion=savedBracket?.ko?.final?.[0]||'my team';
-                      const inviteUrl='https://debangandey.rbind.io/wc2026/';
+                      const inviteUrl='https://debangandey.rbind.io/wc2026/#bracket-challenge';
                       const shareText=`🏆 I picked ${champion} to win the 2026 World Cup!\n\nThink you can beat me? Make your own bracket predictions here:\n${inviteUrl}`;
                       try{
                         const blob=await getBracketBlob();
