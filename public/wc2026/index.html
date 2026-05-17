@@ -1029,7 +1029,18 @@
       M81:['B','E','F','I','J'],M82:['A','E','H','I','J'],
       M85:['E','F','G','I','J'],M87:['D','E','I','J','L'],
     };
-    const ROUND_PTS={grp1:3,grp2:2,grpT:2,r32:5,r16:10,qf:20,sf:40,final:80};
+    // Scoring tiers for KO rounds (all additive):
+    //   Trajectory = your pick WON their match (any opponent): TRAJ_PTS
+    //   Matchup    = both predicted teams actually face each other (any slot): MATCH_PTS
+    //   Exact slot = correct bracket position (R32–SF only): SLOT_PTS
+    // Group stage: grp1=3, grp2=2, grpT=2. Bonuses: perfectGroup=5, perfectRound=10, champion=10.
+    const TRAJ_PTS  = {r32:2, r16:3,  qf:4,  sf:6,  final:10};
+    const MATCH_PTS = {r32:3, r16:5,  qf:8,  sf:11, final:25};
+    const SLOT_PTS  = {r32:5, r16:8,  qf:13, sf:18, final:0 };
+    const GRP_PTS   = {grp1:3, grp2:2, grpT:2};
+    const BONUS_PTS = {perfectGroup:5, perfectRound:10, champion:10};
+    // Legacy alias used by leaderboard display
+    const ROUND_PTS = {grp1:3,grp2:2,grpT:2,r32:10,r16:16,qf:25,sf:35,final:35,champion:10};
 
     // Assign 8 qualifying 3rd-place teams to valid slots.
     // Uses constraint-sorted backtracking: slots with fewest valid candidates
@@ -1790,6 +1801,7 @@
       const [koPicks,setKoPicks]=useState({r32:{},r16:{},qf:{},sf:{},final:{}});
       const [savedBracket,setSavedBracket]=useState(null);
       const [userLocked,setUserLocked]=useState(false);
+      const [scoringOpen,setScoringOpen]=useState(false);
       const [leaderboard,setLeaderboard]=useState([]);
       const [saving,setSaving]=useState(false);
       const [bracketLoading,setBracketLoading]=useState(false);
@@ -2595,11 +2607,134 @@
                       </div>
                     )}
                   </div>
-                  <p style={{color:'#64748b',fontSize:13,marginBottom:20}}>
+                  <p style={{color:'#64748b',fontSize:13,marginBottom:16}}>
                     {locked
                       ?'Predictions are locked — the tournament has started!'
                       :`Predictions lock on ${BRACKET_LOCK.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})} at ${BRACKET_LOCK.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',timeZoneName:'short'})} — 1 hour before the opening game. Compete against the Monte Carlo model.`}
                   </p>
+
+                  {/* ---- SCORING RULES ---- */}
+                  {(()=>{
+                    const row=(label,pts)=>(
+                      <div style={{display:'flex',alignItems:'baseline',justifyContent:'space-between',
+                        padding:'5px 0',borderBottom:'1px solid #1e3a5f',gap:8}}>
+                        <span style={{color:'#94a3b8',fontSize:12}}>{label}</span>
+                        <span style={{color:'#60a5fa',fontWeight:700,fontSize:13,minWidth:48,textAlign:'right'}}>{pts}</span>
+                      </div>
+                    );
+                    return (
+                      <div style={{background:'#061228',border:'1px solid #1e3a5f',borderRadius:10,marginBottom:20}}>
+                        <button onClick={()=>setScoringOpen(o=>!o)} style={{
+                          width:'100%',background:'transparent',border:'none',cursor:'pointer',
+                          padding:'10px 14px',display:'flex',justifyContent:'space-between',alignItems:'center',
+                        }}>
+                          <span style={{color:'#f1f5f9',fontWeight:700,fontSize:13}}>📋 How scoring works</span>
+                          <span style={{color:'#475569',fontSize:13}}>{scoringOpen?'▲':'▼'}</span>
+                        </button>
+                        {scoringOpen&&(
+                          <div style={{padding:'0 14px 14px'}}>
+
+                            {/* Group stage */}
+                            <div style={{color:'#64748b',fontSize:11,fontWeight:700,marginBottom:6,marginTop:10,textTransform:'uppercase',letterSpacing:'0.05em'}}>Group stage</div>
+                            {row('Correct group winner (1st)','3 pts')}
+                            {row('Correct group runner-up (2nd)','2 pts')}
+                            {row('Correct 3rd-place qualifier','2 pts')}
+                            {row('Perfect group — both 1st & 2nd correct','＋5 bonus')}
+
+                            {/* Knockout table */}
+                            <div style={{color:'#64748b',fontSize:11,fontWeight:700,marginBottom:6,marginTop:18,textTransform:'uppercase',letterSpacing:'0.05em'}}>Knockout rounds</div>
+                            <div style={{display:'grid',gridTemplateColumns:'1fr auto auto auto',gap:'0 10px',alignItems:'center',marginBottom:10}}>
+                              {[
+                                ['Round','Traj.','+ Matchup','+ Exact slot'],
+                                ['R32','2','+3','+5'],
+                                ['R16','3','+5','+8'],
+                                ['QF','4','+8','+13'],
+                                ['SF','6','+11','+18'],
+                                ['Final','10','+25','—'],
+                              ].map(([r,t,m,e],i)=>{
+                                const pad=i===0?'0 0 6px':'9px 0 5px';
+                                const bt=i>1?'1px solid #0d1f3c':'none';
+                                return (
+                                  <React.Fragment key={r}>
+                                    <span style={{fontSize:i===0?10:12,color:i===0?'#475569':'#94a3b8',fontWeight:i===0?700:400,padding:pad,borderTop:bt}}>{r}</span>
+                                    <span style={{fontSize:i===0?10:12,color:i===0?'#475569':'#6ee7b7',fontWeight:i===0?700:600,textAlign:'right',padding:pad,borderTop:bt}}>{t}</span>
+                                    <span style={{fontSize:i===0?10:12,color:i===0?'#475569':'#93c5fd',fontWeight:i===0?700:600,textAlign:'right',padding:pad,borderTop:bt}}>{m}</span>
+                                    <span style={{fontSize:i===0?10:12,color:i===0?'#475569':e==='—'?'#334155':'#60a5fa',fontWeight:i===0?700:600,textAlign:'right',padding:pad,borderTop:bt}}>{e}</span>
+                                  </React.Fragment>
+                                );
+                              })}
+                            </div>
+
+                            {/* Tier definitions */}
+                            <div style={{background:'#0a1f3f',borderRadius:8,padding:'10px 12px',marginBottom:12}}>
+                              <div style={{marginBottom:5}}>
+                                <span style={{color:'#6ee7b7',fontWeight:700,fontSize:11}}>Trajectory: </span>
+                                <span style={{color:'#64748b',fontSize:11}}>Your pick WON their match in that round — opponent doesn't matter.</span>
+                              </div>
+                              <div style={{marginBottom:5}}>
+                                <span style={{color:'#93c5fd',fontWeight:700,fontSize:11}}>Matchup: </span>
+                                <span style={{color:'#64748b',fontSize:11}}>Both teams you predicted to face each other actually meet — any slot.</span>
+                              </div>
+                              <div>
+                                <span style={{color:'#60a5fa',fontWeight:700,fontSize:11}}>Exact slot: </span>
+                                <span style={{color:'#64748b',fontSize:11}}>That match happened in the correct bracket position (requires correct group picks).</span>
+                              </div>
+                            </div>
+
+                            {/* Examples */}
+                            <div style={{color:'#64748b',fontSize:11,fontWeight:700,marginBottom:6,textTransform:'uppercase',letterSpacing:'0.05em'}}>Examples (R32)</div>
+                            {[
+                              {
+                                label:'You pick Spain to beat Germany. Spain beats Portugal instead.',
+                                result:'Spain won → Trajectory only',
+                                pts:'+2 pts',
+                                col:'#6ee7b7',
+                              },
+                              {
+                                label:'Spain and Germany meet in R32 (wrong slot), Germany wins.',
+                                result:'Correct matchup, wrong winner',
+                                pts:'+3 pts',
+                                col:'#93c5fd',
+                              },
+                              {
+                                label:'Spain and Germany meet in R32 (wrong slot), Spain wins.',
+                                result:'Trajectory + Matchup',
+                                pts:'+5 pts',
+                                col:'#93c5fd',
+                              },
+                              {
+                                label:'Spain beats Germany in the exact predicted slot.',
+                                result:'All three tiers — perfect prediction',
+                                pts:'+10 pts',
+                                col:'#60a5fa',
+                              },
+                              {
+                                label:'Spain is eliminated in the group stage.',
+                                result:'Pick never reached R32',
+                                pts:'0 pts',
+                                col:'#f87171',
+                              },
+                            ].map((ex,i)=>(
+                              <div key={i} style={{background:'#061228',border:'1px solid #1e3a5f',borderRadius:7,padding:'8px 10px',marginBottom:6}}>
+                                <div style={{fontSize:11,color:'#94a3b8',marginBottom:3}}>{ex.label}</div>
+                                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                                  <span style={{fontSize:11,color:'#475569'}}>{ex.result}</span>
+                                  <span style={{fontSize:13,fontWeight:700,color:ex.col}}>{ex.pts}</span>
+                                </div>
+                              </div>
+                            ))}
+
+                            {/* Bonuses */}
+                            <div style={{color:'#64748b',fontSize:11,fontWeight:700,marginBottom:6,marginTop:14,textTransform:'uppercase',letterSpacing:'0.05em'}}>Bonuses</div>
+                            <div style={{background:'#052e16',border:'1px solid #16a34a',borderRadius:8,padding:'10px 12px'}}>
+                              {row('Champion correctly predicted','＋10 pts')}
+                              <div style={{marginTop:4}}>{row('Perfect round — every KO round winner correct','＋10 pts')}</div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
 
                   {/* ---- AUTH ---- */}
                   {!sbUser&&(
