@@ -214,14 +214,18 @@ VENUE_NAME_MAP = {
     "Estadio BBVA":                     "Monterrey (BBVA)",
 }
 
-# Fallback ticket prices
+# VividSeats adds a ~34% service fee on top of listed prices.
+# All ticket prices stored in prices.json are all-in (fee already included).
+VIVID_FEE_FACTOR = 1.34
+
+# Fallback ticket prices — already include the 34% VividSeats service fee
 FALLBACK_TIERS = {
-    "group": {"low":   95, "high":   420},
-    "r32":   {"low":  150, "high":   620},
-    "r16":   {"low":  220, "high":   900},
-    "qf":    {"low":  380, "high":  1800},
-    "sf":    {"low":  600, "high":  3500},
-    "final": {"low": 1200, "high": 12000},
+    "group": {"low":   127, "high":   563},
+    "r32":   {"low":  201, "high":   831},
+    "r16":   {"low":  295, "high":  1206},
+    "qf":    {"low":  509, "high":  2412},
+    "sf":    {"low":  804, "high":  4690},
+    "final": {"low": 1608, "high": 16080},
 }
 
 # Fallback hotel prices per venue per round
@@ -532,8 +536,9 @@ def fetch_vividseats_prices() -> tuple[dict | None, dict | None, str]:
         if min_p is None:
             continue
 
-        min_p = float(min_p)
-        max_p = float(max_p) if max_p else min_p * 5
+        min_p = float(min_p) * VIVID_FEE_FACTOR   # include 34% VividSeats service fee
+        raw_max = float(max_p) if max_p else float(min_p) / VIVID_FEE_FACTOR * 5
+        max_p = raw_max * VIVID_FEE_FACTOR
 
         # Venue key: pre-tagged by venue-based fetch takes priority;
         # otherwise fall back to venue name → key lookup (Hermes / performer path).
