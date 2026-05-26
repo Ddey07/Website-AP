@@ -17,7 +17,7 @@ sections:
       # Show a call-to-action button under your biography? (optional)
       button:
         text: Download CV
-        url: uploads/cv_dd_0326.pdf
+        url: uploads/cv-llt.pdf
     design:
       css_class: light
       background:
@@ -84,6 +84,7 @@ sections:
       title: News
       text: |
         - **🚨 Looking for motivated students to work on statistical and machine learning methods for analyzing data from wearables ⌚️, smartphones 📱, with contextual location information📍!**
+        - 🏆 **2026**: Awarded the **NIH Director's Challenge Innovation Award** — *Biologic Rhythms and Environmental Contexts in Human Health: Integrating Epidemiology and Circadian Science* (PI: K. Merikangas, NIMH). Role: Biostatistician Consultant, leading data management and analytic strategies for multilevel circadian and metabolic data integration.
         - ⚽ **2026**: Built a *[FIFA World Cup 2026 Bracket Predictor](https://debangandey.rbind.io/wc2026/)* with Claude — Monte Carlo bracket odds, live ticket & hotel prices, and a trip planner that ranks your 3 cheapest venues (with day-trip detection and Google Flights links) so you can finally settle the "go or not go" debate.
         - 📰 **2025**: Published *[Associations between daily outdoor temperature and subjective real-time ratings of emotional states and sleep in mood disorder subtypes](https://www.sciencedirect.com/science/article/pii/S0165032725023602)* in **Journal of Affective Disorders** — Featured by Texas A&M: *[Warmer Days, Better Moods? It's Complicated.](https://artsci.tamu.edu/news/2026/03/warmer-days-better-moods-its-complicated.html)*
         - 📄 **2026**: New preprint — *[Doubly-Unlinked Regression for Dependent Data](https://arxiv.org/abs/2603.19506)* with A. Burman and S. Choudhury.
