@@ -845,6 +845,20 @@
       return res;
     }
 
+    /* ===================== SCORING COMPENSATIONS ===================== */
+    // Five users were shown the wrong 3rd-place opponent in their R32 bracket
+    // due to a site algorithm error (old backtracking vs FIFA 495 table).
+    // Neutral fix: score their affected R32 pick as if they had picked the group
+    // winner (the safe/default pick that requires no 3rd-place slot knowledge).
+    // This is applied both in the Supabase scoring function AND in the UI below.
+    const SCORE_COMPENSATIONS = {
+      'Durkheim':    {slot:14, wrongPick:'Egypt',   treatedAs:'Switzerland', match:'M85'},
+      'Rokkekoro':   {slot:10, wrongPick:'Sweden',  treatedAs:'South Korea', match:'M79'},
+      'Tetsu':       {slot: 6, wrongPick:'Senegal', treatedAs:'Turkey',      match:'M81'},
+      'raeesbhai':   {slot:10, wrongPick:'Senegal', treatedAs:'Mexico',      match:'M79'},
+      'westhamno19': {slot:14, wrongPick:'Sweden',  treatedAs:'Switzerland', match:'M85'},
+    };
+
     /* ===================== NEW DATA CONSTANTS ===================== */
     const VENUE_COORDS = {
       "East Rutherford (MetLife)":       {lat:40.8135, lng:-74.0745,  airport:"EWR", city:"New York"},
@@ -2047,7 +2061,8 @@
           if(!pr)return;
           const tot={};
           // Seed from all profiles so users appear at 0 pts before scoring starts
-          pr.forEach(p=>{tot[p.id]={id:p.id,name:p.display_name||'Anonymous',total:0,rounds:{}};});
+          pr.forEach(p=>{tot[p.id]={id:p.id,name:p.display_name||'Anonymous',total:0,rounds:{},
+            compensated:!!(SCORE_COMPENSATIONS[p.display_name])};});
           // Layer in scores
           if(sc){
             for(const s of sc){
@@ -3282,6 +3297,16 @@
                       <span style={{fontSize:16,minWidth:28}}>🤖</span>
                       <span style={{flex:1,fontWeight:600,fontSize:14,color:'#94a3b8'}}>Monte Carlo Model</span>
                       <div style={{color:'#475569',fontSize:12}}>Scored after each round</div>
+                    </div>
+                    {/* Compensation footnote */}
+                    <div style={{marginTop:10,fontSize:10,color:'#334155',lineHeight:1.5,
+                      padding:'8px 12px',background:'#040d1c',border:'1px solid #0f2040',borderRadius:8}}>
+                      <span style={{color:'#475569'}}>
+                        ⚙ Scoring note: some R32 picks were displayed with the wrong 3rd-place
+                        opponent due to a site algorithm error (now corrected). Those picks are
+                        scored as the group winner — the conservative default — ensuring no scoring
+                        contrast is introduced by the error.
+                      </span>
                     </div>
                   </div>
 
