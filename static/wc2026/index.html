@@ -3319,46 +3319,73 @@
                       display:'flex',alignItems:'center',justifyContent:'center',padding:16,
                     }}>
                       <div style={{
-                        background:'#040d1c',border:'1px solid #1e3a5f',borderRadius:12,
-                        width:'100%',maxWidth:480,maxHeight:'90vh',overflowY:'auto',padding:20,
+                        background:darkMode?'#061228':'#ffffff',
+                        border:`1px solid ${darkMode?'#1e3a5f':'#e2e8f0'}`,
+                        borderRadius:14,boxShadow:'0 8px 40px rgba(0,0,0,0.45)',
+                        width:'100%',maxWidth:500,maxHeight:'90vh',overflowY:'auto',padding:22,
                       }}>
                         {/* Header */}
-                        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:16}}>
-                          <div style={{fontWeight:700,fontSize:15,color:'#f1f5f9'}}>
-                            📋 {viewBracket.name}'s Bracket
+                        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:18}}>
+                          <div style={{fontWeight:800,fontSize:16,color:darkMode?'#f1f5f9':'#0f172a',
+                            display:'flex',alignItems:'center',gap:8}}>
+                            <span style={{fontSize:20}}>📋</span>
+                            <span>{viewBracket.name}'s Bracket</span>
                           </div>
                           <button onClick={()=>setViewBracket(null)} style={{
-                            background:'none',border:'none',color:'#475569',fontSize:20,cursor:'pointer',padding:'0 4px',lineHeight:1,
+                            background:darkMode?'#0d1f3c':'#f1f5f9',
+                            border:`1px solid ${darkMode?'#1e3a5f':'#e2e8f0'}`,
+                            color:darkMode?'#94a3b8':'#64748b',
+                            borderRadius:8,width:32,height:32,fontSize:16,cursor:'pointer',
+                            display:'flex',alignItems:'center',justifyContent:'center',lineHeight:1,
                           }}>✕</button>
                         </div>
 
                         {viewBracketLoading||!viewBracket.picks?(
-                          <div style={{textAlign:'center',color:'#475569',padding:'30px 0',fontSize:13}}>
-                            {viewBracketLoading?'Loading bracket…':'No bracket data — this user may not have submitted picks yet.'}
+                          <div style={{textAlign:'center',color:darkMode?'#475569':'#94a3b8',padding:'40px 0',fontSize:13}}>
+                            {viewBracketLoading?'Loading bracket…':'No bracket submitted yet.'}
                           </div>
                         ):(()=>{
                           const p=viewBracket.picks;
                           const champion=p.final[0];
                           const sfVals=Object.values(p.sf).filter(Boolean);
                           const finalist=sfVals.find(t=>t&&t!==champion);
-                          const Pill=({team,gold})=>(
-                            <span style={{
-                              background:gold?'#1a2744':'#0a1628',
-                              border:`1px solid ${gold?'#f59e0b':'#1e3a5f'}`,
-                              borderRadius:20,padding:'3px 10px',fontSize:12,
-                              color:gold?'#fbbf24':'#cbd5e1',fontWeight:gold?700:400,
-                              display:'inline-block',
-                            }}>{team}</span>
+                          const dk=darkMode;
+                          // Three-tier pill system: champion (gold), finalist (blue), other (neutral)
+                          const Pill=({team,tier='other'})=>{
+                            const S={
+                              champion:{bg:dk?'#451a03':'#fffbeb',bd:'#d97706',txt:dk?'#fbbf24':'#92400e',fw:800,sz:13},
+                              finalist:{bg:dk?'#1e3a5f':'#dbeafe',bd:'#3b82f6',txt:dk?'#93c5fd':'#1d4ed8',fw:700,sz:12},
+                              other:   {bg:dk?'#0d1f3c':'#f1f5f9',bd:dk?'#1e3a5f':'#e2e8f0',txt:dk?'#cbd5e1':'#374151',fw:400,sz:12},
+                            };
+                            const s=S[tier]||S.other;
+                            return (
+                              <span style={{background:s.bg,border:`1.5px solid ${s.bd}`,borderRadius:20,
+                                padding:'4px 11px 4px 8px',fontSize:s.sz,color:s.txt,fontWeight:s.fw,
+                                display:'inline-flex',alignItems:'center',gap:4,lineHeight:1.4}}>
+                                <span style={{fontSize:15,lineHeight:1}}>{fl(team)}</span>
+                                <span>{team}</span>
+                              </span>
+                            );
+                          };
+                          const SecHdr=({label,accent})=>(
+                            <div style={{display:'flex',alignItems:'center',gap:7,marginBottom:8}}>
+                              <div style={{width:3,height:13,background:accent,borderRadius:2,flexShrink:0}}/>
+                              <span style={{fontSize:11,fontWeight:700,color:accent,letterSpacing:'0.12em',textTransform:'uppercase'}}>{label}</span>
+                            </div>
                           );
-                          const Section=({label,slots})=>{
+                          const Section=({label,slots,accent})=>{
                             const teams=Object.keys(slots).sort((a,b)=>Number(a)-Number(b)).map(k=>slots[k]).filter(Boolean);
                             if(!teams.length)return null;
+                            const ac=accent||'#64748b';
                             return (
-                              <div style={{marginBottom:14}}>
-                                <div style={{fontSize:10,fontWeight:700,color:'#475569',letterSpacing:'0.08em',
-                                  textTransform:'uppercase',marginBottom:7}}>{label}</div>
-                                <div style={{display:'flex',flexWrap:'wrap',gap:5}}>
-                                  {teams.map((t,i)=><Pill key={i} team={t} gold={t===champion}/>)}
+                              <div style={{marginBottom:12,background:dk?'#040d1c':'#f8fafc',
+                                border:`1px solid ${dk?'#0f2040':'#e8ecf1'}`,borderRadius:10,padding:'10px 13px'}}>
+                                <SecHdr label={label} accent={ac}/>
+                                <div style={{display:'flex',flexWrap:'wrap',gap:6}}>
+                                  {teams.map((t,i)=>(
+                                    <Pill key={i} team={t}
+                                      tier={t===champion?'champion':t===finalist?'finalist':'other'}/>
+                                  ))}
                                 </div>
                               </div>
                             );
@@ -3368,39 +3395,45 @@
                           const grpTTeams=Object.values(p.grpT).filter(Boolean).map(t=>t.includes(':')?t.split(':')[1]:t);
                           return (
                             <div>
-                              {/* Champion */}
+                              {/* Champion hero */}
                               {champion&&(
-                                <div style={{textAlign:'center',marginBottom:18}}>
-                                  <div style={{fontSize:10,fontWeight:700,color:'#f59e0b',letterSpacing:'0.1em',
-                                    textTransform:'uppercase',marginBottom:8}}>🏆 Champion Pick</div>
-                                  <div style={{display:'inline-block',background:'#1a2744',
-                                    border:'2px solid #f59e0b',borderRadius:10,
-                                    padding:'10px 28px',fontSize:17,fontWeight:700,color:'#fbbf24',
-                                  }}>{champion}</div>
+                                <div style={{textAlign:'center',marginBottom:14,
+                                  background:dk?'linear-gradient(135deg,#1c0a00,#0a1225)':'linear-gradient(135deg,#fffbeb,#fef3c7)',
+                                  border:'2px solid #d97706',borderRadius:12,padding:'16px 20px'}}>
+                                  <div style={{fontSize:11,fontWeight:700,color:'#d97706',letterSpacing:'0.14em',
+                                    textTransform:'uppercase',marginBottom:10}}>🏆 Champion Pick</div>
+                                  <div style={{display:'inline-flex',alignItems:'center',gap:10,
+                                    background:dk?'#78350f':'#fffbeb',
+                                    border:'2px solid #f59e0b',borderRadius:12,
+                                    padding:'10px 22px'}}>
+                                    <span style={{fontSize:32,lineHeight:1}}>{fl(champion)}</span>
+                                    <span style={{fontSize:20,fontWeight:800,color:dk?'#fcd34d':'#92400e',letterSpacing:0.3}}>{champion}</span>
+                                  </div>
                                 </div>
                               )}
                               {/* Final matchup */}
                               {champion&&finalist&&(
-                                <div style={{textAlign:'center',marginBottom:18}}>
-                                  <div style={{fontSize:10,fontWeight:700,color:'#475569',letterSpacing:'0.08em',
-                                    textTransform:'uppercase',marginBottom:8}}>Final</div>
-                                  <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:10}}>
-                                    <Pill team={champion} gold={true}/>
-                                    <span style={{color:'#334155',fontSize:11}}>vs</span>
-                                    <Pill team={finalist} gold={false}/>
+                                <div style={{marginBottom:12,background:dk?'#040d1c':'#f8fafc',
+                                  border:`1px solid ${dk?'#0f2040':'#e8ecf1'}`,borderRadius:10,padding:'10px 13px'}}>
+                                  <SecHdr label="Final" accent="#d97706"/>
+                                  <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:12}}>
+                                    <Pill team={champion} tier='champion'/>
+                                    <span style={{color:dk?'#334155':'#94a3b8',fontSize:13,fontWeight:700}}>vs</span>
+                                    <Pill team={finalist} tier='finalist'/>
                                   </div>
                                 </div>
                               )}
-                              <Section label="Semi-Finals" slots={p.sf}/>
-                              <Section label="Quarter-Finals" slots={p.qf}/>
-                              <Section label="Round of 16" slots={p.r16}/>
-                              <Section label="Round of 32" slots={p.r32}/>
+                              <Section label="Semi-Finals"    slots={p.sf}  accent="#a78bfa"/>
+                              <Section label="Quarter-Finals" slots={p.qf}  accent="#60a5fa"/>
+                              <Section label="Round of 16"    slots={p.r16} accent="#34d399"/>
+                              <Section label="Round of 32"    slots={p.r32} accent="#64748b"/>
                               {/* Group picks collapsible */}
                               {(grpRows.length>0||grpTTeams.length>0)&&(
-                                <div style={{borderTop:'1px solid #0f2040',paddingTop:12,marginTop:4}}>
+                                <div style={{borderTop:`1px solid ${dk?'#0f2040':'#e8ecf1'}`,paddingTop:12,marginTop:4}}>
                                   <button onClick={()=>setViewGroupsOpen(v=>!v)} style={{
-                                    background:'none',border:'none',color:'#475569',fontSize:12,
-                                    cursor:'pointer',padding:0,display:'flex',alignItems:'center',gap:5,
+                                    background:'none',border:'none',color:dk?'#475569':'#64748b',
+                                    fontSize:12,cursor:'pointer',padding:0,
+                                    display:'flex',alignItems:'center',gap:6,
                                   }}>
                                     <span style={{fontSize:9}}>{viewGroupsOpen?'▼':'▶'}</span>
                                     Group Stage Picks
@@ -3409,20 +3442,39 @@
                                     <div style={{marginTop:10}}>
                                       <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:4,marginBottom:8}}>
                                         {grpRows.map(({g,first,second})=>(
-                                          <div key={g} style={{background:'#0a1628',borderRadius:6,padding:'5px 8px',fontSize:11}}>
-                                            <span style={{color:'#334155',marginRight:4,fontWeight:700}}>Grp {g}</span>
-                                            <span style={{color:'#94a3b8'}}>{first||'?'}</span>
-                                            <span style={{color:'#1e3a5f',margin:'0 3px'}}>/</span>
-                                            <span style={{color:'#64748b'}}>{second||'?'}</span>
+                                          <div key={g} style={{
+                                            background:dk?'#0a1628':'#f1f5f9',
+                                            border:`1px solid ${dk?'#1e3a5f':'#e2e8f0'}`,
+                                            borderRadius:7,padding:'5px 9px',fontSize:11,
+                                            display:'flex',alignItems:'center',gap:4,
+                                          }}>
+                                            <span style={{color:dk?'#475569':'#94a3b8',fontWeight:700,minWidth:38}}>Grp {g}</span>
+                                            <span style={{color:dk?'#94a3b8':'#374151',fontWeight:600,flex:1,
+                                              whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{first||'?'}</span>
+                                            <span style={{color:dk?'#334155':'#cbd5e1',margin:'0 2px'}}>/</span>
+                                            <span style={{color:dk?'#64748b':'#64748b',flex:1,
+                                              whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{second||'?'}</span>
                                           </div>
                                         ))}
                                       </div>
                                       {grpTTeams.length>0&&(
                                         <div>
-                                          <div style={{fontSize:10,fontWeight:700,color:'#475569',letterSpacing:'0.08em',
-                                            textTransform:'uppercase',marginBottom:6}}>Third-Place Qualifiers</div>
+                                          <div style={{fontSize:10,fontWeight:700,color:dk?'#475569':'#64748b',
+                                            letterSpacing:'0.1em',textTransform:'uppercase',marginBottom:6}}>
+                                            3rd-Place Qualifiers
+                                          </div>
                                           <div style={{display:'flex',flexWrap:'wrap',gap:5}}>
-                                            {grpTTeams.map((t,i)=><Pill key={i} team={t} gold={false}/>)}
+                                            {grpTTeams.map((t,i)=>(
+                                              <span key={i} style={{
+                                                background:dk?'#0a1628':'#f1f5f9',
+                                                border:`1px solid ${dk?'#1e3a5f':'#e2e8f0'}`,
+                                                borderRadius:16,padding:'3px 10px 3px 7px',fontSize:11,
+                                                color:dk?'#94a3b8':'#374151',
+                                                display:'inline-flex',alignItems:'center',gap:4,
+                                              }}>
+                                                <span style={{fontSize:13}}>{fl(t)}</span>{t}
+                                              </span>
+                                            ))}
                                           </div>
                                         </div>
                                       )}
