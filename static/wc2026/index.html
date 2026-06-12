@@ -2026,6 +2026,20 @@
         runChunk();
       },[]);
 
+      // openBracketView must be at component level so the leaderboard JSX can call it.
+      const openBracketView=useCallback(async(userId,name)=>{
+        setViewBracket({id:userId,name,picks:null});
+        setViewBracketLoading(true);
+        setViewGroupsOpen(false);
+        const{data}=await sb.from('predictions').select('round,slot_idx,picked_team').eq('user_id',userId);
+        if(data){
+          const p={grp1:{},grp2:{},grpT:{},r32:{},r16:{},qf:{},sf:{},final:{}};
+          data.forEach(r=>{if(p[r.round]!==undefined)p[r.round][r.slot_idx]=r.picked_team;});
+          setViewBracket({id:userId,name,picks:p});
+        }
+        setViewBracketLoading(false);
+      },[]);
+
       // Bracket Challenge auth + data useEffect
       useEffect(()=>{
         const loadBracket=async(uid)=>{
@@ -2072,18 +2086,6 @@
             }
           }
           setLeaderboard(Object.values(tot).sort((a,b)=>b.total-a.total));
-        };
-        const openBracketView=async(userId,name)=>{
-          setViewBracket({id:userId,name,picks:null});
-          setViewBracketLoading(true);
-          setViewGroupsOpen(false);
-          const{data}=await sb.from('predictions').select('round,slot_idx,picked_team').eq('user_id',userId);
-          if(data){
-            const p={grp1:{},grp2:{},grpT:{},r32:{},r16:{},qf:{},sf:{},final:{}};
-            data.forEach(r=>{if(p[r.round]!==undefined)p[r.round][r.slot_idx]=r.picked_team;});
-            setViewBracket({id:userId,name,picks:p});
-          }
-          setViewBracketLoading(false);
         };
         const fetchProfile=async(uid)=>{
           const{data}=await sb.from('profiles').select('display_name,ab_group').eq('id',uid).single();
