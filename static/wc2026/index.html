@@ -1803,6 +1803,9 @@
       const [userLocked,setUserLocked]=useState(false);
       const [scoringOpen,setScoringOpen]=useState(false);
       const [leaderboard,setLeaderboard]=useState([]);
+      const [viewBracket,setViewBracket]=useState(null);       // {id,name,picks} | null
+      const [viewBracketLoading,setViewBracketLoading]=useState(false);
+      const [viewGroupsOpen,setViewGroupsOpen]=useState(false);
       const [saving,setSaving]=useState(false);
       const [bracketLoading,setBracketLoading]=useState(false);
       // --- End Bracket Challenge state ---
@@ -1931,15 +1934,31 @@
             sb.from('scores').select('user_id,round,points'),
             sb.from('profiles').select('id,display_name'),
           ]);
-          if(!sc||!pr)return;
-          const nm={};pr.forEach(p=>nm[p.id]=p.display_name);
+          if(!pr)return;
           const tot={};
-          for(const s of sc){
-            if(!tot[s.user_id])tot[s.user_id]={name:nm[s.user_id]||'Anonymous',total:0,rounds:{}};
-            tot[s.user_id].total+=s.points;
-            tot[s.user_id].rounds[s.round]=(tot[s.user_id].rounds[s.round]||0)+s.points;
+          // Seed from all profiles so users appear at 0 pts before scoring starts
+          pr.forEach(p=>{tot[p.id]={id:p.id,name:p.display_name||'Anonymous',total:0,rounds:{}};});
+          // Layer in scores
+          if(sc){
+            for(const s of sc){
+              if(!tot[s.user_id])tot[s.user_id]={id:s.user_id,name:'Anonymous',total:0,rounds:{}};
+              tot[s.user_id].total+=s.points;
+              tot[s.user_id].rounds[s.round]=(tot[s.user_id].rounds[s.round]||0)+s.points;
+            }
           }
           setLeaderboard(Object.values(tot).sort((a,b)=>b.total-a.total));
+        };
+        const openBracketView=async(userId,name)=>{
+          setViewBracket({id:userId,name,picks:null});
+          setViewBracketLoading(true);
+          setViewGroupsOpen(false);
+          const{data}=await sb.from('predictions').select('round,slot_idx,picked_team').eq('user_id',userId);
+          if(data){
+            const p={grp1:{},grp2:{},grpT:{},r32:{},r16:{},qf:{},sf:{},final:{}};
+            data.forEach(r=>{if(p[r.round]!==undefined)p[r.round][r.slot_idx]=r.picked_team;});
+            setViewBracket({id:userId,name,picks:p});
+          }
+          setViewBracketLoading(false);
         };
         const fetchProfile=async(uid)=>{
           const{data}=await sb.from('profiles').select('display_name,ab_group').eq('id',uid).single();
@@ -3116,23 +3135,34 @@
                     {leaderboard.length===0?(
                       <div style={{background:'#061228',border:'1px solid #1e3a5f',borderRadius:10,
                         padding:'20px',textAlign:'center',color:'#475569',fontSize:13}}>
-                        No scores yet — tournament kicks off June 11. Submit your bracket to join!
+                        No bracket submissions yet — be the first!
                       </div>
                     ):(
                       leaderboard.map((u,i)=>(
-                        <div key={u.name} style={{
+                        <div key={u.id||u.name} style={{
                           background:'#061228',border:`1px solid ${i===0?'#f59e0b':'#1e3a5f'}`,
                           borderRadius:8,padding:'10px 14px',marginBottom:6,
                           display:'flex',alignItems:'center',gap:12,
                         }}>
                           <span style={{fontSize:12,minWidth:28,fontWeight:700,color:'#f59e0b',textAlign:'center',
                             background:'#1a2744',borderRadius:4,padding:'2px 5px'}}>{`#${i+1}`}</span>
-                          <span style={{flex:1,fontWeight:600,fontSize:14,color:'#e2e8f0'}}>{u.name}</span>
-                          <div style={{textAlign:'right'}}>
-                            <div style={{fontWeight:700,color:'#f59e0b',fontSize:15}}>{u.total} pts</div>
-                            <div style={{fontSize:10,color:'#475569'}}>
-                              {Object.entries(u.rounds).map(([r,p])=>`${r}: ${p}`).join(' · ')}
+                          <span style={{flex:1,fontWeight:600,fontSize:14,color:'#e2e8f0'}}>{u.name}{u.id===sbUser?.id?' (you)':''}</span>
+                          <div style={{display:'flex',alignItems:'center',gap:8}}>
+                            <div style={{textAlign:'right'}}>
+                              <div style={{fontWeight:700,color:'#f59e0b',fontSize:15}}>{u.total} pts</div>
+                              {Object.keys(u.rounds).length>0&&(
+                                <div style={{fontSize:10,color:'#475569'}}>
+                                  {Object.entries(u.rounds).map(([r,p])=>`${r}: ${p}`).join(' · ')}
+                                </div>
+                              )}
                             </div>
+                            {u.id&&(
+                              <button onClick={()=>openBracketView(u.id,u.name)} style={{
+                                background:'#0f2040',border:'1px solid #1e3a5f',borderRadius:6,
+                                color:'#94a3b8',fontSize:11,padding:'4px 8px',cursor:'pointer',
+                                whiteSpace:'nowrap',flexShrink:0,lineHeight:1.3,
+                              }}>📋 View</button>
+                            )}
                           </div>
                         </div>
                       ))
@@ -3144,6 +3174,131 @@
                       <div style={{color:'#475569',fontSize:12}}>Scored after each round</div>
                     </div>
                   </div>
+
+                  {/* ---- BRACKET VIEW MODAL ---- */}
+                  {viewBracket&&(
+                    <div onClick={e=>{if(e.target===e.currentTarget)setViewBracket(null);}} style={{
+                      position:'fixed',inset:0,background:'rgba(0,0,0,0.85)',zIndex:1000,
+                      display:'flex',alignItems:'center',justifyContent:'center',padding:16,
+                    }}>
+                      <div style={{
+                        background:'#040d1c',border:'1px solid #1e3a5f',borderRadius:12,
+                        width:'100%',maxWidth:480,maxHeight:'90vh',overflowY:'auto',padding:20,
+                      }}>
+                        {/* Header */}
+                        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:16}}>
+                          <div style={{fontWeight:700,fontSize:15,color:'#f1f5f9'}}>
+                            📋 {viewBracket.name}'s Bracket
+                          </div>
+                          <button onClick={()=>setViewBracket(null)} style={{
+                            background:'none',border:'none',color:'#475569',fontSize:20,cursor:'pointer',padding:'0 4px',lineHeight:1,
+                          }}>✕</button>
+                        </div>
+
+                        {viewBracketLoading||!viewBracket.picks?(
+                          <div style={{textAlign:'center',color:'#475569',padding:'30px 0',fontSize:13}}>
+                            {viewBracketLoading?'Loading bracket…':'No bracket data — this user may not have submitted picks yet.'}
+                          </div>
+                        ):(()=>{
+                          const p=viewBracket.picks;
+                          const champion=p.final[0];
+                          const sfVals=Object.values(p.sf).filter(Boolean);
+                          const finalist=sfVals.find(t=>t&&t!==champion);
+                          const Pill=({team,gold})=>(
+                            <span style={{
+                              background:gold?'#1a2744':'#0a1628',
+                              border:`1px solid ${gold?'#f59e0b':'#1e3a5f'}`,
+                              borderRadius:20,padding:'3px 10px',fontSize:12,
+                              color:gold?'#fbbf24':'#cbd5e1',fontWeight:gold?700:400,
+                              display:'inline-block',
+                            }}>{team}</span>
+                          );
+                          const Section=({label,slots})=>{
+                            const teams=Object.keys(slots).sort((a,b)=>Number(a)-Number(b)).map(k=>slots[k]).filter(Boolean);
+                            if(!teams.length)return null;
+                            return (
+                              <div style={{marginBottom:14}}>
+                                <div style={{fontSize:10,fontWeight:700,color:'#475569',letterSpacing:'0.08em',
+                                  textTransform:'uppercase',marginBottom:7}}>{label}</div>
+                                <div style={{display:'flex',flexWrap:'wrap',gap:5}}>
+                                  {teams.map((t,i)=><Pill key={i} team={t} gold={t===champion}/>)}
+                                </div>
+                              </div>
+                            );
+                          };
+                          const ALPHA='ABCDEFGHIJKL';
+                          const grpRows=ALPHA.split('').map((g,i)=>({g,first:p.grp1[i],second:p.grp2[i]})).filter(r=>r.first||r.second);
+                          const grpTTeams=Object.values(p.grpT).filter(Boolean).map(t=>t.includes(':')?t.split(':')[1]:t);
+                          return (
+                            <div>
+                              {/* Champion */}
+                              {champion&&(
+                                <div style={{textAlign:'center',marginBottom:18}}>
+                                  <div style={{fontSize:10,fontWeight:700,color:'#f59e0b',letterSpacing:'0.1em',
+                                    textTransform:'uppercase',marginBottom:8}}>🏆 Champion Pick</div>
+                                  <div style={{display:'inline-block',background:'#1a2744',
+                                    border:'2px solid #f59e0b',borderRadius:10,
+                                    padding:'10px 28px',fontSize:17,fontWeight:700,color:'#fbbf24',
+                                  }}>{champion}</div>
+                                </div>
+                              )}
+                              {/* Final matchup */}
+                              {champion&&finalist&&(
+                                <div style={{textAlign:'center',marginBottom:18}}>
+                                  <div style={{fontSize:10,fontWeight:700,color:'#475569',letterSpacing:'0.08em',
+                                    textTransform:'uppercase',marginBottom:8}}>Final</div>
+                                  <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:10}}>
+                                    <Pill team={champion} gold={true}/>
+                                    <span style={{color:'#334155',fontSize:11}}>vs</span>
+                                    <Pill team={finalist} gold={false}/>
+                                  </div>
+                                </div>
+                              )}
+                              <Section label="Semi-Finals" slots={p.sf}/>
+                              <Section label="Quarter-Finals" slots={p.qf}/>
+                              <Section label="Round of 16" slots={p.r16}/>
+                              <Section label="Round of 32" slots={p.r32}/>
+                              {/* Group picks collapsible */}
+                              {(grpRows.length>0||grpTTeams.length>0)&&(
+                                <div style={{borderTop:'1px solid #0f2040',paddingTop:12,marginTop:4}}>
+                                  <button onClick={()=>setViewGroupsOpen(v=>!v)} style={{
+                                    background:'none',border:'none',color:'#475569',fontSize:12,
+                                    cursor:'pointer',padding:0,display:'flex',alignItems:'center',gap:5,
+                                  }}>
+                                    <span style={{fontSize:9}}>{viewGroupsOpen?'▼':'▶'}</span>
+                                    Group Stage Picks
+                                  </button>
+                                  {viewGroupsOpen&&(
+                                    <div style={{marginTop:10}}>
+                                      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:4,marginBottom:8}}>
+                                        {grpRows.map(({g,first,second})=>(
+                                          <div key={g} style={{background:'#0a1628',borderRadius:6,padding:'5px 8px',fontSize:11}}>
+                                            <span style={{color:'#334155',marginRight:4,fontWeight:700}}>Grp {g}</span>
+                                            <span style={{color:'#94a3b8'}}>{first||'?'}</span>
+                                            <span style={{color:'#1e3a5f',margin:'0 3px'}}>/</span>
+                                            <span style={{color:'#64748b'}}>{second||'?'}</span>
+                                          </div>
+                                        ))}
+                                      </div>
+                                      {grpTTeams.length>0&&(
+                                        <div>
+                                          <div style={{fontSize:10,fontWeight:700,color:'#475569',letterSpacing:'0.08em',
+                                            textTransform:'uppercase',marginBottom:6}}>Third-Place Qualifiers</div>
+                                          <div style={{display:'flex',flexWrap:'wrap',gap:5}}>
+                                            {grpTTeams.map((t,i)=><Pill key={i} team={t} gold={false}/>)}
+                                          </div>
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })()}
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
             })()}
