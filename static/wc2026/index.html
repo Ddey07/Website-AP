@@ -1173,7 +1173,7 @@
     const SB_URL='https://cfnlnksqnmtscchtugtd.supabase.co';
     const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNmbmxua3Nxbm10c2NjaHR1Z3RkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg5MzM0MzIsImV4cCI6MjA5NDUwOTQzMn0.9HgzuCdTQ61BQY8LsY1KI7vlvypQY4anWBRDVHzbkE4';
     const sb=supabase.createClient(SB_URL,SB_KEY);
-    const BRACKET_LOCK=new Date('2026-06-13T17:00:00-04:00');
+    const BRACKET_LOCK=new Date('2026-06-13T19:59:00-04:00');
     const IS_LOCKED=()=>new Date()>BRACKET_LOCK;
     const THIRD_SLOT_ORD=['M74','M77','M79','M80','M81','M82','M85','M87'];
     const SLOT_ALLOW_C={
@@ -2775,7 +2775,7 @@
                   <p style={{color:'#64748b',fontSize:13,marginBottom:16}}>
                     {locked
                       ?'Predictions are locked — the tournament has started!'
-                      :`Predictions lock on ${BRACKET_LOCK.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})} at ${BRACKET_LOCK.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',timeZoneName:'short'})} — 1 hour before the opening game. Compete against the Monte Carlo model.`}
+                      :`Predictions lock on ${BRACKET_LOCK.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})} at ${BRACKET_LOCK.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',timeZoneName:'short'})}. Compete against the Monte Carlo model.`}
                   </p>
 
                   {/* ---- SCORING RULES ---- */}
@@ -3177,9 +3177,34 @@
                       localStorage.setItem('wc2026_locked_'+sbUser.id,'1');
                       setUserLocked(true);
                     };
+                    const unlockBracket=()=>{
+                      if(!sbUser)return;
+                      localStorage.removeItem('wc2026_locked_'+sbUser.id);
+                      setUserLocked(false);
+                    };
                     const effectiveLocked=locked||userLocked;
                     return (
                       <div style={{marginBottom:24}}>
+                        {/* Resubmit banner — shown when user-locked but global window is still open */}
+                        {userLocked&&!locked&&(
+                          <div style={{background:'#1c1400',border:'1px solid #d97706',borderRadius:12,
+                            padding:'14px 16px',marginBottom:12,display:'flex',alignItems:'center',
+                            justifyContent:'space-between',flexWrap:'wrap',gap:10}}>
+                            <div>
+                              <div style={{color:'#fbbf24',fontWeight:700,fontSize:13,marginBottom:2}}>
+                                🔓 Picks reopened — you can resubmit
+                              </div>
+                              <div style={{color:'#92400e',fontSize:11}}>
+                                We fixed a third-place slot display error. Click to unlock and update your bracket if you'd like. Your current picks are safe if you do nothing.
+                              </div>
+                            </div>
+                            <button onClick={unlockBracket} style={{
+                              background:'#d97706',border:'none',borderRadius:8,
+                              color:'#fff',fontWeight:700,fontSize:12,padding:'8px 16px',
+                              cursor:'pointer',whiteSpace:'nowrap',flexShrink:0,
+                            }}>🔓 Unlock &amp; Edit picks</button>
+                          </div>
+                        )}
                         {/* Status bar */}
                         <div style={{background:'#061228',border:'1px solid #16a34a',borderRadius:12,padding:'14px 16px',marginBottom:16,
                           display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:8}}>

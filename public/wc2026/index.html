@@ -690,6 +690,175 @@
       M85:["E","F","G","I","J"],M87:["D","E","I","J","L"],
     };
 
+    /* ===================== FIFA 495 COMBINATION TABLE ===================== */
+    // Official FIFA 3rd-place slot assignments for all C(12,8)=495 qualifying-group combos.
+    // Key: 8 group letters sorted alphabetically (e.g. "ABCDEFGH").
+    // Val: 8 chars = group letter for each slot in order [M74,M77,M79,M80,M81,M82,M85,M87].
+    const COMBO495={
+      "ABCDEFGH":"CFHEBAGD","ABCDEFGI":"DFCIBAGE","ABCDEFGJ":"DFCJBAGE","ABCDEFGK":"DFCKBAGE","ABCDEFGL":"DFCEBAGL",
+      "ABCDEFHI":"CFHIBAED","ABCDEFHJ":"CFHEBAJD","ABCDEFHK":"CFHKBAED","ABCDEFHL":"CDHEBAFL","ABCDEFIJ":"DFCIBAJE",
+      "ABCDEFIK":"DFCKBAEI","ABCDEFIL":"DFCIBAEL","ABCDEFJK":"DFCKBAJE","ABCDEFJL":"DFCEBAJL","ABCDEFKL":"DFCKBAEL",
+      "ABCDEGHI":"CDHIBAGE","ABCDEGHJ":"CDHJBAGE","ABCDEGHK":"CDHKBAGE","ABCDEGHL":"CDHEBAGL","ABCDEGIJ":"CDEJBAGI",
+      "ABCDEGIK":"CDEKBAGI","ABCDEGIL":"CDEIBAGL","ABCDEGJK":"CDEKBAGJ","ABCDEGJL":"CDEJBAGL","ABCDEGKL":"CDEKBAGL",
+      "ABCDEHIJ":"CDHIBAJE","ABCDEHIK":"CDHKBAEI","ABCDEHIL":"CDHIBAEL","ABCDEHJK":"CDHKBAJE","ABCDEHJL":"CDHEBAJL",
+      "ABCDEHKL":"CDHKBAEL","ABCDEIJK":"CDEKBAJI","ABCDEIJL":"CDEIBAJL","ABCDEIKL":"CDEKBAIL","ABCDEJKL":"CDEKBAJL",
+      "ABCDFGHI":"CFHIBAGD","ABCDFGHJ":"CFHJBAGD","ABCDFGHK":"CFHKBAGD","ABCDFGHL":"DFCHBAGL","ABCDFGIJ":"DFCJBAGI",
+      "ABCDFGIK":"DFCKBAGI","ABCDFGIL":"DFCIBAGL","ABCDFGJK":"DFCKBAGJ","ABCDFGJL":"DFCJBAGL","ABCDFGKL":"DFCKBAGL",
+      "ABCDFHIJ":"CFHIBAJD","ABCDFHIK":"CDHKBAFI","ABCDFHIL":"CDHIBAFL","ABCDFHJK":"CFHKBAJD","ABCDFHJL":"DFCHBAJL",
+      "ABCDFHKL":"CDHKBAFL","ABCDFIJK":"DFCKBAJI","ABCDFIJL":"DFCIBAJL","ABCDFIKL":"DFCKBAIL","ABCDFJKL":"DFCKBAJL",
+      "ABCDGHIJ":"CDHJBAGI","ABCDGHIK":"CDHKBAGI","ABCDGHIL":"CDHIBAGL","ABCDGHJK":"CDHKBAGJ","ABCDGHJL":"CDHJBAGL",
+      "ABCDGHKL":"CDHKBAGL","ABCDGIJK":"DGCKBAJI","ABCDGIJL":"DGCIBAJL","ABCDGIKL":"CDIKBAGL","ABCDGJKL":"DGCKBAJL",
+      "ABCDHIJK":"CDHKBAJI","ABCDHIJL":"CDHIBAJL","ABCDHIKL":"CDHKBAIL","ABCDHJKL":"CDHKBAJL","ABCDIJKL":"CDIKBAJL",
+      "ABCEFGHI":"CFHIBAGE","ABCEFGHJ":"CFHJBAGE","ABCEFGHK":"CFHKBAGE","ABCEFGHL":"CFHEBAGL","ABCEFGIJ":"CFEJBAGI",
+      "ABCEFGIK":"CFEKBAGI","ABCEFGIL":"CFEIBAGL","ABCEFGJK":"CFEKBAGJ","ABCEFGJL":"CFEJBAGL","ABCEFGKL":"CFEKBAGL",
+      "ABCEFHIJ":"CFHIBAJE","ABCEFHIK":"CFHKBAEI","ABCEFHIL":"CFHIBAEL","ABCEFHJK":"CFHKBAJE","ABCEFHJL":"CFHEBAJL",
+      "ABCEFHKL":"CFHKBAEL","ABCEFIJK":"CFEKBAJI","ABCEFIJL":"CFEIBAJL","ABCEFIKL":"CFEKBAIL","ABCEFJKL":"CFEKBAJL",
+      "ABCEGHIJ":"CGHIBAJE","ABCEGHIK":"CHEKBAGI","ABCEGHIL":"CHEIBAGL","ABCEGHJK":"CGHKBAJE","ABCEGHJL":"CGHEBAJL",
+      "ABCEGHKL":"CHEKBAGL","ABCEGIJK":"CGEKBAJI","ABCEGIJL":"CGEIBAJL","ABCEGIKL":"ACEKBIGL","ABCEGJKL":"CGEKBAJL",
+      "ABCEHIJK":"CHEKBAJI","ABCEHIJL":"CHEIBAJL","ABCEHIKL":"CHEKBAIL","ABCEHJKL":"CHEKBAJL","ABCEIJKL":"ACEKBIJL",
+      "ABCFGHIJ":"CFHJBAGI","ABCFGHIK":"CFHKBAGI","ABCFGHIL":"CFHIBAGL","ABCFGHJK":"CFHKBAGJ","ABCFGHJL":"CFHJBAGL",
+      "ABCFGHKL":"CFHKBAGL","ABCFGIJK":"FGCKBAJI","ABCFGIJL":"FGCIBAJL","ABCFGIKL":"CFIKBAGL","ABCFGJKL":"FGCKBAJL",
+      "ABCFHIJK":"CFHKBAJI","ABCFHIJL":"CFHIBAJL","ABCFHIKL":"CFHKBAIL","ABCFHJKL":"CFHKBAJL","ABCFIJKL":"CFIKBAJL",
+      "ABCGHIJK":"CGHKBAJI","ABCGHIJL":"CGHIBAJL","ABCGHIKL":"CHIKBAGL","ABCGHJKL":"CGHKBAJL","ABCGIJKL":"CGIKBAJL",
+      "ABCHIJKL":"CHIKBAJL","ABDEFGHI":"DFHIBAGE","ABDEFGHJ":"DFHJBAGE","ABDEFGHK":"DFHKBAGE","ABDEFGHL":"DFHEBAGL",
+      "ABDEFGIJ":"DFEJBAGI","ABDEFGIK":"DFEKBAGI","ABDEFGIL":"DFEIBAGL","ABDEFGJK":"DFEKBAGJ","ABDEFGJL":"DFEJBAGL",
+      "ABDEFGKL":"DFEKBAGL","ABDEFHIJ":"DFHIBAJE","ABDEFHIK":"DFHKBAEI","ABDEFHIL":"DFHIBAEL","ABDEFHJK":"DFHKBAJE",
+      "ABDEFHJL":"DFHEBAJL","ABDEFHKL":"DFHKBAEL","ABDEFIJK":"DFEKBAJI","ABDEFIJL":"DFEIBAJL","ABDEFIKL":"DFEKBAIL",
+      "ABDEFJKL":"DFEKBAJL","ABDEGHIJ":"DGHIBAJE","ABDEGHIK":"DHEKBAGI","ABDEGHIL":"DHEIBAGL","ABDEGHJK":"DGHKBAJE",
+      "ABDEGHJL":"DGHEBAJL","ABDEGHKL":"DHEKBAGL","ABDEGIJK":"DGEKBAJI","ABDEGIJL":"DGEIBAJL","ABDEGIKL":"ADEKBIGL",
+      "ABDEGJKL":"DGEKBAJL","ABDEHIJK":"DHEKBAJI","ABDEHIJL":"DHEIBAJL","ABDEHIKL":"DHEKBAIL","ABDEHJKL":"DHEKBAJL",
+      "ABDEIJKL":"ADEKBIJL","ABDFGHIJ":"DFHJBAGI","ABDFGHIK":"DFHKBAGI","ABDFGHIL":"DFHIBAGL","ABDFGHJK":"DFHKBAGJ",
+      "ABDFGHJL":"DFHJBAGL","ABDFGHKL":"DFHKBAGL","ABDFGIJK":"DGFKBAJI","ABDFGIJL":"DGFIBAJL","ABDFGIKL":"DFIKBAGL",
+      "ABDFGJKL":"DGFKBAJL","ABDFHIJK":"DFHKBAJI","ABDFHIJL":"DFHIBAJL","ABDFHIKL":"DFHKBAIL","ABDFHJKL":"DFHKBAJL",
+      "ABDFIJKL":"DFIKBAJL","ABDGHIJK":"DGHKBAJI","ABDGHIJL":"DGHIBAJL","ABDGHIKL":"DHIKBAGL","ABDGHJKL":"DGHKBAJL",
+      "ABDGIJKL":"DGIKBAJL","ABDHIJKL":"DHIKBAJL","ABEFGHIJ":"FGHIBAJE","ABEFGHIK":"FHEKBAGI","ABEFGHIL":"FHEIBAGL",
+      "ABEFGHJK":"FGHKBAJE","ABEFGHJL":"FGHEBAJL","ABEFGHKL":"FHEKBAGL","ABEFGIJK":"FGEKBAJI","ABEFGIJL":"FGEIBAJL",
+      "ABEFGIKL":"AFEKBIGL","ABEFGJKL":"FGEKBAJL","ABEFHIJK":"FHEKBAJI","ABEFHIJL":"FHEIBAJL","ABEFHIKL":"FHEKBAIL",
+      "ABEFHJKL":"FHEKBAJL","ABEFIJKL":"AFEKBIJL","ABEGHIJK":"AGEKBHJI","ABEGHIJL":"AGEIBHJL","ABEGHIKL":"AHEKBIGL",
+      "ABEGHJKL":"AGEKBHJL","ABEGIJKL":"AGEKBIJL","ABEHIJKL":"AHEKBIJL","ABFGHIJK":"FGHKBAJI","ABFGHIJL":"FGHIBAJL",
+      "ABFGHIKL":"AFHKBIGL","ABFGHJKL":"FGHKBAJL","ABFGIJKL":"FGIKBAJL","ABFHIJKL":"AFHKBIJL","ABGHIJKL":"AGHKBIJL",
+      "ACDEFGHI":"CFHIEAGD","ACDEFGHJ":"CFHEJAGD","ACDEFGHK":"CFHKEAGD","ACDEFGHL":"CDHEFAGL","ACDEFGIJ":"DFCIJAGE",
+      "ACDEFGIK":"DFCKEAGI","ACDEFGIL":"DFCIEAGL","ACDEFGJK":"DFCKJAGE","ACDEFGJL":"DFCEJAGL","ACDEFGKL":"DFCKEAGL",
+      "ACDEFHIJ":"CFHIEAJD","ACDEFHIK":"CDHKFAEI","ACDEFHIL":"CDHIFAEL","ACDEFHJK":"CFHKEAJD","ACDEFHJL":"CDHEFAJL",
+      "ACDEFHKL":"CDHKFAEL","ACDEFIJK":"DFCKEAJI","ACDEFIJL":"DFCIEAJL","ACDEFIKL":"DFCKIAEL","ACDEFJKL":"DFCKEAJL",
+      "ACDEGHIJ":"CDHIJAGE","ACDEGHIK":"CDHKEAGI","ACDEGHIL":"CDHIEAGL","ACDEGHJK":"CDHKJAGE","ACDEGHJL":"CDHEJAGL",
+      "ACDEGHKL":"CDHKEAGL","ACDEGIJK":"CDEKJAGI","ACDEGIJL":"CDEIJAGL","ACDEGIKL":"CDEKIAGL","ACDEGJKL":"CDEKJAGL",
+      "ACDEHIJK":"CDHKEAJI","ACDEHIJL":"CDHIEAJL","ACDEHIKL":"CDHKIAEL","ACDEHJKL":"CDHKEAJL","ACDEIJKL":"CDEKIAJL",
+      "ACDFGHIJ":"CFHIJAGD","ACDFGHIK":"CDHKFAGI","ACDFGHIL":"CDHIFAGL","ACDFGHJK":"CFHKJAGD","ACDFGHJL":"DFCHJAGL",
+      "ACDFGHKL":"CDHKFAGL","ACDFGIJK":"DFCKJAGI","ACDFGIJL":"DFCIJAGL","ACDFGIKL":"DFCKIAGL","ACDFGJKL":"DFCKJAGL",
+      "ACDFHIJK":"CDHKFAJI","ACDFHIJL":"CDHIFAJL","ACDFHIKL":"CDHKIAFL","ACDFHJKL":"CDHKFAJL","ACDFIJKL":"DFCKIAJL",
+      "ACDGHIJK":"CDHKJAGI","ACDGHIJL":"CDHIJAGL","ACDGHIKL":"CDHKIAGL","ACDGHJKL":"CDHKJAGL","ACDGIJKL":"CDIKJAGL",
+      "ACDHIJKL":"CDHKIAJL","ACEFGHIJ":"CFHIJAGE","ACEFGHIK":"CFHKEAGI","ACEFGHIL":"CFHIEAGL","ACEFGHJK":"CFHKJAGE",
+      "ACEFGHJL":"CFHEJAGL","ACEFGHKL":"CFHKEAGL","ACEFGIJK":"CFEKJAGI","ACEFGIJL":"CFEIJAGL","ACEFGIKL":"CFEKIAGL",
+      "ACEFGJKL":"CFEKJAGL","ACEFHIJK":"CFHKEAJI","ACEFHIJL":"CFHIEAJL","ACEFHIKL":"CFHKIAEL","ACEFHJKL":"CFHKEAJL",
+      "ACEFIJKL":"CFEKIAJL","ACEGHIJK":"CHEKJAGI","ACEGHIJL":"CHEIJAGL","ACEGHIKL":"CHEKIAGL","ACEGHJKL":"CHEKJAGL",
+      "ACEGIJKL":"CGEKIAJL","ACEHIJKL":"CHEKIAJL","ACFGHIJK":"CFHKJAGI","ACFGHIJL":"CFHIJAGL","ACFGHIKL":"CFHKIAGL",
+      "ACFGHJKL":"CFHKJAGL","ACFGIJKL":"CFIKJAGL","ACFHIJKL":"CFHKIAJL","ACGHIJKL":"CGHKIAJL","ADEFGHIJ":"DFHIJAGE",
+      "ADEFGHIK":"DFHKEAGI","ADEFGHIL":"DFHIEAGL","ADEFGHJK":"DFHKJAGE","ADEFGHJL":"DFHEJAGL","ADEFGHKL":"DFHKEAGL",
+      "ADEFGIJK":"DFEKJAGI","ADEFGIJL":"DFEIJAGL","ADEFGIKL":"DFEKIAGL","ADEFGJKL":"DFEKJAGL","ADEFHIJK":"DFHKEAJI",
+      "ADEFHIJL":"DFHIEAJL","ADEFHIKL":"DFHKIAEL","ADEFHJKL":"DFHKEAJL","ADEFIJKL":"DFEKIAJL","ADEGHIJK":"DHEKJAGI",
+      "ADEGHIJL":"DHEIJAGL","ADEGHIKL":"DHEKIAGL","ADEGHJKL":"DHEKJAGL","ADEGIJKL":"DGEKIAJL","ADEHIJKL":"DHEKIAJL",
+      "ADFGHIJK":"DFHKJAGI","ADFGHIJL":"DFHIJAGL","ADFGHIKL":"DFHKIAGL","ADFGHJKL":"DFHKJAGL","ADFGIJKL":"DFIKJAGL",
+      "ADFHIJKL":"DFHKIAJL","ADGHIJKL":"DGHKIAJL","AEFGHIJK":"FHEKJAGI","AEFGHIJL":"FHEIJAGL","AEFGHIKL":"FHEKIAGL",
+      "AEFGHJKL":"FHEKJAGL","AEFGIJKL":"FGEKIAJL","AEFHIJKL":"FHEKIAJL","AEGHIJKL":"AGEKIHJL","AFGHIJKL":"FGHKIAJL",
+      "BCDEFGHI":"DFCIBHGE","BCDEFGHJ":"CFHEBJGD","BCDEFGHK":"DFCKBHGE","BCDEFGHL":"DFCEBHGL","BCDEFGIJ":"DFCIBJGE",
+      "BCDEFGIK":"DFCKBEGI","BCDEFGIL":"DFCIBEGL","BCDEFGJK":"DFCKBJGE","BCDEFGJL":"DFCEBJGL","BCDEFGKL":"DFCKBEGL",
+      "BCDEFHIJ":"DFCIBHJE","BCDEFHIK":"DFCKBHEI","BCDEFHIL":"DFCIBHEL","BCDEFHJK":"DFCKBHJE","BCDEFHJL":"DFCEBHJL",
+      "BCDEFHKL":"DFCKBHEL","BCDEFIJK":"DFCKBEJI","BCDEFIJL":"DFCIBEJL","BCDEFIKL":"DFCKBIEL","BCDEFJKL":"DFCKBEJL",
+      "BCDEGHIJ":"CDHIBJGE","BCDEGHIK":"CDEKBHGI","BCDEGHIL":"CDEIBHGL","BCDEGHJK":"CDHKBJGE","BCDEGHJL":"CDHEBJGL",
+      "BCDEGHKL":"CDEKBHGL","BCDEGIJK":"CDEKBJGI","BCDEGIJL":"CDEIBJGL","BCDEGIKL":"CDEKBIGL","BCDEGJKL":"CDEKBJGL",
+      "BCDEHIJK":"CDEKBHJI","BCDEHIJL":"CDEIBHJL","BCDEHIKL":"CDEKBHIL","BCDEHJKL":"CDEKBHJL","BCDEIJKL":"CDEKBIJL",
+      "BCDFGHIJ":"CFHIBJGD","BCDFGHIK":"DFCKBHGI","BCDFGHIL":"DFCIBHGL","BCDFGHJK":"CFHKBJGD","BCDFGHJL":"DFCJBHGL",
+      "BCDFGHKL":"DFCKBHGL","BCDFGIJK":"DFCKBJGI","BCDFGIJL":"DFCIBJGL","BCDFGIKL":"DFCKBIGL","BCDFGJKL":"DFCKBJGL",
+      "BCDFHIJK":"DFCKBHJI","BCDFHIJL":"DFCIBHJL","BCDFHIKL":"DFCKBHIL","BCDFHJKL":"DFCKBHJL","BCDFIJKL":"DFCKBIJL",
+      "BCDGHIJK":"CDHKBJGI","BCDGHIJL":"CDHIBJGL","BCDGHIKL":"CDHKBIGL","BCDGHJKL":"CDHKBJGL","BCDGIJKL":"CDIKBJGL",
+      "BCDHIJKL":"CDHKBIJL","BCEFGHIJ":"CFHIBJGE","BCEFGHIK":"CFEKBHGI","BCEFGHIL":"CFEIBHGL","BCEFGHJK":"CFHKBJGE",
+      "BCEFGHJL":"CFHEBJGL","BCEFGHKL":"CFEKBHGL","BCEFGIJK":"CFEKBJGI","BCEFGIJL":"CFEIBJGL","BCEFGIKL":"CFEKBIGL",
+      "BCEFGJKL":"CFEKBJGL","BCEFHIJK":"CFEKBHJI","BCEFHIJL":"CFEIBHJL","BCEFHIKL":"CFEKBHIL","BCEFHJKL":"CFEKBHJL",
+      "BCEFIJKL":"CFEKBIJL","BCEGHIJK":"CGEKBHJI","BCEGHIJL":"CGEIBHJL","BCEGHIKL":"CHEKBIGL","BCEGHJKL":"CGEKBHJL",
+      "BCEGIJKL":"CGEKBIJL","BCEHIJKL":"CHEKBIJL","BCFGHIJK":"CFHKBJGI","BCFGHIJL":"CFHIBJGL","BCFGHIKL":"CFHKBIGL",
+      "BCFGHJKL":"CFHKBJGL","BCFGIJKL":"CFIKBJGL","BCFHIJKL":"CFHKBIJL","BCGHIJKL":"CGHKBIJL","BDEFGHIJ":"DFHIBJGE",
+      "BDEFGHIK":"DFEKBHGI","BDEFGHIL":"DFEIBHGL","BDEFGHJK":"DFHKBJGE","BDEFGHJL":"DFHEBJGL","BDEFGHKL":"DFEKBHGL",
+      "BDEFGIJK":"DFEKBJGI","BDEFGIJL":"DFEIBJGL","BDEFGIKL":"DFEKBIGL","BDEFGJKL":"DFEKBJGL","BDEFHIJK":"DFEKBHJI",
+      "BDEFHIJL":"DFEIBHJL","BDEFHIKL":"DFEKBHIL","BDEFHJKL":"DFEKBHJL","BDEFIJKL":"DFEKBIJL","BDEGHIJK":"DGEKBHJI",
+      "BDEGHIJL":"DGEIBHJL","BDEGHIKL":"DHEKBIGL","BDEGHJKL":"DGEKBHJL","BDEGIJKL":"DGEKBIJL","BDEHIJKL":"DHEKBIJL",
+      "BDFGHIJK":"DFHKBJGI","BDFGHIJL":"DFHIBJGL","BDFGHIKL":"DFHKBIGL","BDFGHJKL":"DFHKBJGL","BDFGIJKL":"DFIKBJGL",
+      "BDFHIJKL":"DFHKBIJL","BDGHIJKL":"DGHKBIJL","BEFGHIJK":"FGEKBHJI","BEFGHIJL":"FGEIBHJL","BEFGHIKL":"FHEKBIGL",
+      "BEFGHJKL":"FGEKBHJL","BEFGIJKL":"FGEKBIJL","BEFHIJKL":"FHEKBIJL","BEGHIJKL":"BGEKIHJL","BFGHIJKL":"FGHKBIJL",
+      "CDEFGHIJ":"DFCIJHGE","CDEFGHIK":"DFCKEHGI","CDEFGHIL":"DFCIEHGL","CDEFGHJK":"DFCKJHGE","CDEFGHJL":"DFCEJHGL",
+      "CDEFGHKL":"DFCKEHGL","CDEFGIJK":"DFCKEJGI","CDEFGIJL":"DFCIEJGL","CDEFGIKL":"DFCKEIGL","CDEFGJKL":"DFCKEJGL",
+      "CDEFHIJK":"DFCKEHJI","CDEFHIJL":"DFCIEHJL","CDEFHIKL":"DFCKIHEL","CDEFHJKL":"DFCKEHJL","CDEFIJKL":"DFCKEIJL",
+      "CDEGHIJK":"CDEKJHGI","CDEGHIJL":"CDEIJHGL","CDEGHIKL":"CDEKIHGL","CDEGHJKL":"CDEKJHGL","CDEGIJKL":"CDEKIJGL",
+      "CDEHIJKL":"CDEKIHJL","CDFGHIJK":"DFCKJHGI","CDFGHIJL":"DFCIJHGL","CDFGHIKL":"DFCKIHGL","CDFGHJKL":"DFCKJHGL",
+      "CDFGIJKL":"DFCKIJGL","CDFHIJKL":"DFCKIHJL","CDGHIJKL":"CDHKIJGL","CEFGHIJK":"CFEKJHGI","CEFGHIJL":"CFEIJHGL",
+      "CEFGHIKL":"CFEKIHGL","CEFGHJKL":"CFEKJHGL","CEFGIJKL":"CFEKIJGL","CEFHIJKL":"CFEKIHJL","CEGHIJKL":"CGEKIHJL",
+      "CFGHIJKL":"CFHKIJGL","DEFGHIJK":"DFEKJHGI","DEFGHIJL":"DFEIJHGL","DEFGHIKL":"DFEKIHGL","DEFGHJKL":"DFEKJHGL",
+      "DEFGIJKL":"DFEKIJGL","DEFHIJKL":"DFEKIHJL","DEGHIJKL":"DGEKIHJL","DFGHIJKL":"DFHKIJGL","EFGHIJKL":"FGEKIHJL"
+    };
+    const SLOT_ORDER_495=['M74','M77','M79','M80','M81','M82','M85','M87'];
+    // Assign 8 3rd-place teams to R32 slots using the FIFA 495 official lookup.
+    // thirds: array of {group, team, ...} — iteration order does not matter.
+    // Falls back to constraint-sorted backtracking for invalid combos (e.g. duplicate groups).
+    function fifa495assign(thirds){
+      const grps=[...new Set(thirds.map(t=>t.group))].sort().join('');
+      const enc=COMBO495[grps];
+      if(enc){
+        const res={};
+        for(let i=0;i<8;i++){
+          const slot=SLOT_ORDER_495[i];
+          const grp=enc[i];
+          const t=thirds.find(x=>x.group===grp);
+          res[slot]=t?t.team:'TBD';
+        }
+        return res;
+      }
+      // Fallback: constraint-sorted backtracking for invalid/duplicate group combos
+      const SLOTS_FB=['M74','M77','M79','M80','M81','M82','M85','M87'];
+      const ALLOW_FB={M74:['A','B','C','D','F'],M77:['C','D','F','G','H'],
+        M79:['C','E','F','H','I'],M80:['E','H','I','J','K'],
+        M81:['B','E','F','I','J'],M82:['A','E','H','I','J'],
+        M85:['E','F','G','I','J'],M87:['D','E','I','J','L']};
+      const srtd=[...SLOTS_FB].sort((a,b)=>
+        thirds.filter(t=>ALLOW_FB[a].includes(t.group)).length-
+        thirds.filter(t=>ALLOW_FB[b].includes(t.group)).length
+      );
+      const res={};
+      function bt(i,used){
+        if(i===srtd.length)return true;
+        const slot=srtd[i];
+        for(const t of thirds){
+          if(!used.has(t.team)&&ALLOW_FB[slot].includes(t.group)){
+            used.add(t.team);res[slot]=t.team;
+            if(bt(i+1,used))return true;
+            used.delete(t.team);delete res[slot];
+          }
+        }
+        return false;
+      }
+      if(!bt(0,new Set())){
+        const used=new Set();
+        for(const s of SLOTS_FB){
+          const c=thirds.find(t=>!used.has(t.team)&&ALLOW_FB[s].includes(t.group));
+          res[s]=c?(used.add(c.team),c.team):'TBD';
+        }
+      }
+      return res;
+    }
+
+    /* ===================== SCORING COMPENSATIONS ===================== */
+    // Five users were shown the wrong 3rd-place opponent in their R32 bracket
+    // due to a site algorithm error (old backtracking vs FIFA 495 table).
+    // Neutral fix: score their affected R32 pick as if they had picked the group
+    // winner (the safe/default pick that requires no 3rd-place slot knowledge).
+    // This is applied both in the Supabase scoring function AND in the UI below.
+    const SCORE_COMPENSATIONS = {
+      'Durkheim':    {slot:14, wrongPick:'Egypt',   treatedAs:'Switzerland', match:'M85'},
+      'Rokkekoro':   {slot:10, wrongPick:'Sweden',  treatedAs:'South Korea', match:'M79'},
+      'Tetsu':       {slot: 6, wrongPick:'Senegal', treatedAs:'Turkey',      match:'M81'},
+      'raeesbhai':   {slot:10, wrongPick:'Senegal', treatedAs:'Mexico',      match:'M79'},
+      'westhamno19': {slot:14, wrongPick:'Sweden',  treatedAs:'Switzerland', match:'M85'},
+    };
+
     /* ===================== NEW DATA CONSTANTS ===================== */
     const VENUE_COORDS = {
       "East Rutherford (MetLife)":       {lat:40.8135, lng:-74.0745,  airport:"EWR", city:"New York"},
@@ -898,25 +1067,9 @@
       }
       return [...teams].sort((a,b)=>pts[b]-pts[a]||gd[b]-gd[a]||Math.random()-.5);
     }
-    function assign3rd(thirds){
-      const slots=Object.keys(SLOT_ALLOW),res={},used=new Set();
-      let changed=true;
-      while(changed){
-        changed=false;
-        for(const s of slots){
-          if(res[s])continue;
-          const v=thirds.filter(t=>!used.has(t.team)&&SLOT_ALLOW[s].includes(t.group));
-          if(v.length===1){res[s]=v[0].team;used.add(v[0].team);changed=true;}
-        }
-      }
-      for(const s of slots){
-        if(res[s])continue;
-        const v=thirds.filter(t=>!used.has(t.team)&&SLOT_ALLOW[s].includes(t.group));
-        if(v.length>0){res[s]=v[0].team;used.add(v[0].team);}
-        else res[s]="TBD";
-      }
-      return res;
-    }
+    // assign3rd: thirds is all 12 (one per group), sorted by strength desc.
+    // Select the 8 strongest 3rd-place qualifiers, then look up the FIFA 495 slot assignment.
+    function assign3rd(thirds){ return fifa495assign(thirds.slice(0,8)); }
     function runOnce(){
       const W={},R={},thirds=[];
       for(const[g,{teams}]of Object.entries(GROUPS)){
@@ -1020,7 +1173,7 @@
     const SB_URL='https://cfnlnksqnmtscchtugtd.supabase.co';
     const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNmbmxua3Nxbm10c2NjaHR1Z3RkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg5MzM0MzIsImV4cCI6MjA5NDUwOTQzMn0.9HgzuCdTQ61BQY8LsY1KI7vlvypQY4anWBRDVHzbkE4';
     const sb=supabase.createClient(SB_URL,SB_KEY);
-    const BRACKET_LOCK=new Date('2026-06-11T17:00:00-04:00');
+    const BRACKET_LOCK=new Date('2026-06-13T19:59:00-04:00');
     const IS_LOCKED=()=>new Date()>BRACKET_LOCK;
     const THIRD_SLOT_ORD=['M74','M77','M79','M80','M81','M82','M85','M87'];
     const SLOT_ALLOW_C={
@@ -1042,38 +1195,9 @@
     // Legacy alias used by leaderboard display
     const ROUND_PTS = {grp1:3,grp2:2,grpT:2,r32:10,r16:16,qf:25,sf:35,final:35,champion:10};
 
-    // Assign 8 qualifying 3rd-place teams to valid slots.
-    // Uses constraint-sorted backtracking: slots with fewest valid candidates
-    // are filled first, preventing greedy from blocking later slots like M85.
-    function assignUserThirds(thirds){
-      // Sort slots: most constrained (fewest valid teams) first
-      const sorted=[...THIRD_SLOT_ORD].sort((a,b)=>
-        thirds.filter(t=>SLOT_ALLOW_C[a].includes(t.group)).length-
-        thirds.filter(t=>SLOT_ALLOW_C[b].includes(t.group)).length
-      );
-      const res={};
-      function bt(i,used){
-        if(i===sorted.length)return true;
-        const slot=sorted[i];
-        for(const t of thirds){
-          if(!used.has(t.team)&&SLOT_ALLOW_C[slot].includes(t.group)){
-            used.add(t.team);res[slot]=t.team;
-            if(bt(i+1,used))return true;
-            used.delete(t.team);delete res[slot];
-          }
-        }
-        return false;
-      }
-      if(!bt(0,new Set())){
-        // Fallback greedy if selection has no complete solution (invalid combo)
-        const used=new Set();
-        for(const s of THIRD_SLOT_ORD){
-          const c=thirds.find(t=>!used.has(t.team)&&SLOT_ALLOW_C[s].includes(t.group));
-          res[s]=c?(used.add(c.team),c.team):'TBD';
-        }
-      }
-      return res;
-    }
+    // Assign 8 3rd-place teams to R32 slots via FIFA 495 official combinations.
+    // Falls back to constraint backtracking for invalid combos (e.g. duplicate groups).
+    function assignUserThirds(thirds){ return fifa495assign(thirds); }
 
     // Build 16 R32 matchup pairs from group picks + third assignments
     function buildUserR32(gp,ta){
@@ -1803,6 +1927,9 @@
       const [userLocked,setUserLocked]=useState(false);
       const [scoringOpen,setScoringOpen]=useState(false);
       const [leaderboard,setLeaderboard]=useState([]);
+      const [viewBracket,setViewBracket]=useState(null);       // {id,name,picks} | null
+      const [viewBracketLoading,setViewBracketLoading]=useState(false);
+      const [viewGroupsOpen,setViewGroupsOpen]=useState(false);
       const [saving,setSaving]=useState(false);
       const [bracketLoading,setBracketLoading]=useState(false);
       // --- End Bracket Challenge state ---
@@ -1899,6 +2026,20 @@
         runChunk();
       },[]);
 
+      // openBracketView must be at component level so the leaderboard JSX can call it.
+      const openBracketView=useCallback(async(userId,name)=>{
+        setViewBracket({id:userId,name,picks:null});
+        setViewBracketLoading(true);
+        setViewGroupsOpen(false);
+        const{data}=await sb.from('predictions').select('round,slot_idx,picked_team').eq('user_id',userId);
+        if(data){
+          const p={grp1:{},grp2:{},grpT:{},r32:{},r16:{},qf:{},sf:{},final:{}};
+          data.forEach(r=>{if(p[r.round]!==undefined)p[r.round][r.slot_idx]=r.picked_team;});
+          setViewBracket({id:userId,name,picks:p});
+        }
+        setViewBracketLoading(false);
+      },[]);
+
       // Bracket Challenge auth + data useEffect
       useEffect(()=>{
         const loadBracket=async(uid)=>{
@@ -1927,17 +2068,24 @@
           setBracketLoading(false);
         };
         const loadLeaderboard=async()=>{
-          const[{data:sc},{data:pr}]=await Promise.all([
+          const[{data:sc},{data:pr},{data:preds}]=await Promise.all([
             sb.from('scores').select('user_id,round,points'),
             sb.from('profiles').select('id,display_name'),
+            sb.from('predictions').select('user_id'),
           ]);
-          if(!sc||!pr)return;
-          const nm={};pr.forEach(p=>nm[p.id]=p.display_name);
+          if(!pr)return;
+          // Only show users who actually submitted predictions
+          const submitted=new Set((preds||[]).map(r=>r.user_id));
           const tot={};
-          for(const s of sc){
-            if(!tot[s.user_id])tot[s.user_id]={name:nm[s.user_id]||'Anonymous',total:0,rounds:{}};
-            tot[s.user_id].total+=s.points;
-            tot[s.user_id].rounds[s.round]=(tot[s.user_id].rounds[s.round]||0)+s.points;
+          pr.filter(p=>submitted.has(p.id)).forEach(p=>{tot[p.id]={id:p.id,name:p.display_name||'Anonymous',total:0,rounds:{},
+            compensated:!!(SCORE_COMPENSATIONS[p.display_name])};});
+          // Layer in scores
+          if(sc){
+            for(const s of sc){
+              if(!tot[s.user_id])tot[s.user_id]={id:s.user_id,name:'Anonymous',total:0,rounds:{}};
+              tot[s.user_id].total+=s.points;
+              tot[s.user_id].rounds[s.round]=(tot[s.user_id].rounds[s.round]||0)+s.points;
+            }
           }
           setLeaderboard(Object.values(tot).sort((a,b)=>b.total-a.total));
         };
@@ -2627,7 +2775,7 @@
                   <p style={{color:'#64748b',fontSize:13,marginBottom:16}}>
                     {locked
                       ?'Predictions are locked — the tournament has started!'
-                      :`Predictions lock on ${BRACKET_LOCK.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})} at ${BRACKET_LOCK.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',timeZoneName:'short'})} — 1 hour before the opening game. Compete against the Monte Carlo model.`}
+                      :`Predictions lock on ${BRACKET_LOCK.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})} at ${BRACKET_LOCK.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',timeZoneName:'short'})}. Compete against the Monte Carlo model.`}
                   </p>
 
                   {/* ---- SCORING RULES ---- */}
@@ -2886,21 +3034,24 @@
                             <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:6}}>
                               {allThirds.map(({group:g,team:t})=>{
                                 const sel=thirdPicks.some(tp=>tp.team===t);
-                                const disabled=!sel&&thirdPicks.length===8;
+                                // Disable if: already 8 picked (and not this one), OR another team from the same group is already selected
+                                const groupTaken=!sel&&thirdPicks.some(tp=>tp.group===g);
+                                const limitReached=!sel&&thirdPicks.length>=8;
+                                const disabled=limitReached||groupTaken;
                                 return (
                                   <button key={t} className={`third-btn${sel?' third-btn-sel':''}`} onClick={()=>{
                                     if(sel)setThirdPicks(prev=>prev.filter(tp=>tp.team!==t));
-                                    else if(thirdPicks.length<8)setThirdPicks(prev=>[...prev,{group:g,team:t}]);
+                                    else if(!disabled)setThirdPicks(prev=>[...prev,{group:g,team:t}]);
                                   }} style={{
-                                    background:sel?'#0d2a1a':'#061228',
-                                    border:`1px solid ${sel?'#16a34a':'#1e3a5f'}`,
+                                    background:sel?'#0d2a1a':groupTaken?'#1a1a1a':'#061228',
+                                    border:`1px solid ${sel?'#16a34a':groupTaken?'#2a2a2a':'#1e3a5f'}`,
                                     borderRadius:8,padding:'8px 10px',cursor:disabled?'not-allowed':'pointer',
-                                    opacity:disabled?0.4:1,
+                                    opacity:disabled?0.3:1,
                                     display:'flex',alignItems:'center',gap:6,textAlign:'left',
                                   }}>
                                     <span style={{fontSize:18}}>{fl(t)}</span>
                                     <div>
-                                      <div className="third-name" style={{fontSize:12,color:'#e2e8f0',fontWeight:600}}>{t}</div>
+                                      <div className="third-name" style={{fontSize:12,color:groupTaken?'#334155':'#e2e8f0',fontWeight:600}}>{t}</div>
                                       <div className="third-meta" style={{fontSize:10,color:'#475569'}}>
                                         Group {g} · #{RANKS[t]}
                                         {sbAbGroup==='model'&&groupQualStats[t]?.third>0&&(
@@ -2909,6 +3060,7 @@
                                       </div>
                                     </div>
                                     {sel&&<span className="third-check" style={{marginLeft:'auto',color:'#34d399'}}>✓</span>}
+                                    {groupTaken&&<span style={{marginLeft:'auto',color:'#334155',fontSize:10}}>grp taken</span>}
                                   </button>
                                 );
                               })}
@@ -3025,9 +3177,34 @@
                       localStorage.setItem('wc2026_locked_'+sbUser.id,'1');
                       setUserLocked(true);
                     };
+                    const unlockBracket=()=>{
+                      if(!sbUser)return;
+                      localStorage.removeItem('wc2026_locked_'+sbUser.id);
+                      setUserLocked(false);
+                    };
                     const effectiveLocked=locked||userLocked;
                     return (
                       <div style={{marginBottom:24}}>
+                        {/* Resubmit banner — shown when user-locked but global window is still open */}
+                        {userLocked&&!locked&&(
+                          <div style={{background:'#1c1400',border:'1px solid #d97706',borderRadius:12,
+                            padding:'14px 16px',marginBottom:12,display:'flex',alignItems:'center',
+                            justifyContent:'space-between',flexWrap:'wrap',gap:10}}>
+                            <div>
+                              <div style={{color:'#fbbf24',fontWeight:700,fontSize:13,marginBottom:2}}>
+                                🔓 Picks reopened — you can resubmit
+                              </div>
+                              <div style={{color:'#92400e',fontSize:11}}>
+                                We fixed a third-place slot display error. Click to unlock and update your bracket if you'd like. Your current picks are safe if you do nothing.
+                              </div>
+                            </div>
+                            <button onClick={unlockBracket} style={{
+                              background:'#d97706',border:'none',borderRadius:8,
+                              color:'#fff',fontWeight:700,fontSize:12,padding:'8px 16px',
+                              cursor:'pointer',whiteSpace:'nowrap',flexShrink:0,
+                            }}>🔓 Unlock &amp; Edit picks</button>
+                          </div>
+                        )}
                         {/* Status bar */}
                         <div style={{background:'#061228',border:'1px solid #16a34a',borderRadius:12,padding:'14px 16px',marginBottom:16,
                           display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:8}}>
@@ -3116,34 +3293,249 @@
                     {leaderboard.length===0?(
                       <div style={{background:'#061228',border:'1px solid #1e3a5f',borderRadius:10,
                         padding:'20px',textAlign:'center',color:'#475569',fontSize:13}}>
-                        No scores yet — tournament kicks off June 11. Submit your bracket to join!
+                        No bracket submissions yet — be the first!
                       </div>
                     ):(
-                      leaderboard.map((u,i)=>(
-                        <div key={u.name} style={{
-                          background:'#061228',border:`1px solid ${i===0?'#f59e0b':'#1e3a5f'}`,
+                      leaderboard.map((u,i)=>{
+                        const rankColors=[
+                          {bg:'#d97706',txt:'#ffffff'},// gold  — #1
+                          {bg:'#64748b',txt:'#ffffff'},// silver — #2
+                          {bg:'#b45309',txt:'#ffffff'},// bronze — #3
+                        ];
+                        const rc=rankColors[i]||{bg:darkMode?'#1e3a5f':'#e2e8f0',txt:darkMode?'#94a3b8':'#64748b'};
+                        const isTop=i===0;
+                        return(
+                        <div key={u.id||u.name} style={{
+                          background:darkMode?'#061228':'#ffffff',
+                          border:`1px solid ${isTop?(darkMode?'#d97706':'#f59e0b'):darkMode?'#1e3a5f':'#e2e8f0'}`,
                           borderRadius:8,padding:'10px 14px',marginBottom:6,
                           display:'flex',alignItems:'center',gap:12,
+                          boxShadow:isTop?`0 0 0 1px ${darkMode?'#92400e':'#fde68a'}`:'none',
                         }}>
-                          <span style={{fontSize:12,minWidth:28,fontWeight:700,color:'#f59e0b',textAlign:'center',
-                            background:'#1a2744',borderRadius:4,padding:'2px 5px'}}>{`#${i+1}`}</span>
-                          <span style={{flex:1,fontWeight:600,fontSize:14,color:'#e2e8f0'}}>{u.name}</span>
-                          <div style={{textAlign:'right'}}>
-                            <div style={{fontWeight:700,color:'#f59e0b',fontSize:15}}>{u.total} pts</div>
-                            <div style={{fontSize:10,color:'#475569'}}>
-                              {Object.entries(u.rounds).map(([r,p])=>`${r}: ${p}`).join(' · ')}
+                          <span style={{fontSize:12,minWidth:30,fontWeight:800,color:rc.txt,textAlign:'center',
+                            background:rc.bg,borderRadius:5,padding:'3px 6px',flexShrink:0}}>{`#${i+1}`}</span>
+                          <span style={{flex:1,fontWeight:600,fontSize:14,color:darkMode?'#e2e8f0':'#0f172a'}}>
+                            {u.name}{u.id===sbUser?.id&&<span style={{color:darkMode?'#60a5fa':'#3b82f6',fontWeight:400,fontSize:12}}> (you)</span>}
+                          </span>
+                          <div style={{display:'flex',alignItems:'center',gap:8}}>
+                            <div style={{textAlign:'right'}}>
+                              <div style={{fontWeight:700,color:darkMode?'#fbbf24':'#d97706',fontSize:15}}>{u.total} pts</div>
+                              {Object.keys(u.rounds).length>0&&(
+                                <div style={{fontSize:10,color:darkMode?'#475569':'#94a3b8'}}>
+                                  {Object.entries(u.rounds).map(([r,p])=>`${r}: ${p}`).join(' · ')}
+                                </div>
+                              )}
                             </div>
+                            {u.id&&(
+                              <button onClick={()=>openBracketView(u.id,u.name)} style={{
+                                background:darkMode?'#1e3a5f':'#0f172a',
+                                border:`1px solid ${darkMode?'#2d4f7c':'#1e293b'}`,
+                                borderRadius:6,color:'#f1f5f9',fontSize:11,
+                                padding:'5px 10px',cursor:'pointer',
+                                whiteSpace:'nowrap',flexShrink:0,lineHeight:1.3,fontWeight:600,
+                              }}>📋 View</button>
+                            )}
                           </div>
                         </div>
-                      ))
+                        );
+                      })
                     )}
-                    <div style={{marginTop:12,background:'#040d1c',border:'1px solid #1e3a5f',
-                      borderRadius:8,padding:'10px 14px',display:'flex',alignItems:'center',gap:12,opacity:0.6}}>
+                    <div style={{marginTop:12,background:darkMode?'#040d1c':'#f8fafc',
+                      border:`1px solid ${darkMode?'#1e3a5f':'#e2e8f0'}`,
+                      borderRadius:8,padding:'10px 14px',display:'flex',alignItems:'center',gap:12,opacity:0.7}}>
                       <span style={{fontSize:16,minWidth:28}}>🤖</span>
-                      <span style={{flex:1,fontWeight:600,fontSize:14,color:'#94a3b8'}}>Monte Carlo Model</span>
-                      <div style={{color:'#475569',fontSize:12}}>Scored after each round</div>
+                      <span style={{flex:1,fontWeight:600,fontSize:14,color:darkMode?'#94a3b8':'#64748b'}}>Monte Carlo Model</span>
+                      <div style={{color:darkMode?'#475569':'#94a3b8',fontSize:12}}>Scored after each round</div>
+                    </div>
+                    {/* Compensation footnote */}
+                    <div style={{marginTop:10,fontSize:10,lineHeight:1.5,
+                      padding:'8px 12px',background:darkMode?'#040d1c':'#f8fafc',
+                      border:`1px solid ${darkMode?'#0f2040':'#e2e8f0'}`,borderRadius:8}}>
+                      <span style={{color:darkMode?'#475569':'#94a3b8'}}>
+                        ⚙ Scoring note: some R32 picks were displayed with the wrong 3rd-place
+                        opponent due to a site algorithm error (now corrected). Those picks are
+                        scored as the group winner — the conservative default — ensuring no scoring
+                        contrast is introduced by the error.
+                      </span>
                     </div>
                   </div>
+
+                  {/* ---- BRACKET VIEW MODAL ---- */}
+                  {viewBracket&&(
+                    <div onClick={e=>{if(e.target===e.currentTarget)setViewBracket(null);}} style={{
+                      position:'fixed',inset:0,background:'rgba(0,0,0,0.85)',zIndex:1000,
+                      display:'flex',alignItems:'center',justifyContent:'center',padding:16,
+                    }}>
+                      <div style={{
+                        background:darkMode?'#061228':'#ffffff',
+                        border:`1px solid ${darkMode?'#1e3a5f':'#e2e8f0'}`,
+                        borderRadius:14,boxShadow:'0 8px 40px rgba(0,0,0,0.45)',
+                        width:'100%',maxWidth:500,maxHeight:'90vh',overflowY:'auto',padding:22,
+                      }}>
+                        {/* Header */}
+                        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:18}}>
+                          <div style={{fontWeight:800,fontSize:16,color:darkMode?'#f1f5f9':'#0f172a',
+                            display:'flex',alignItems:'center',gap:8}}>
+                            <span style={{fontSize:20}}>📋</span>
+                            <span>{viewBracket.name}'s Bracket</span>
+                          </div>
+                          <button onClick={()=>setViewBracket(null)} style={{
+                            background:darkMode?'#0d1f3c':'#f1f5f9',
+                            border:`1px solid ${darkMode?'#1e3a5f':'#e2e8f0'}`,
+                            color:darkMode?'#94a3b8':'#64748b',
+                            borderRadius:8,width:32,height:32,fontSize:16,cursor:'pointer',
+                            display:'flex',alignItems:'center',justifyContent:'center',lineHeight:1,
+                          }}>✕</button>
+                        </div>
+
+                        {viewBracketLoading||!viewBracket.picks?(
+                          <div style={{textAlign:'center',color:darkMode?'#475569':'#94a3b8',padding:'40px 0',fontSize:13}}>
+                            {viewBracketLoading?'Loading bracket…':'No bracket submitted yet.'}
+                          </div>
+                        ):(()=>{
+                          const p=viewBracket.picks;
+                          const champion=p.final[0];
+                          const sfVals=Object.values(p.sf).filter(Boolean);
+                          const finalist=sfVals.find(t=>t&&t!==champion);
+                          const dk=darkMode;
+                          // Three-tier pill system: champion (gold), finalist (blue), other (neutral)
+                          const Pill=({team,tier='other'})=>{
+                            const S={
+                              champion:{bg:dk?'#451a03':'#fffbeb',bd:'#d97706',txt:dk?'#fbbf24':'#92400e',fw:800,sz:13},
+                              finalist:{bg:dk?'#1e3a5f':'#dbeafe',bd:'#3b82f6',txt:dk?'#93c5fd':'#1d4ed8',fw:700,sz:12},
+                              other:   {bg:dk?'#0d1f3c':'#f1f5f9',bd:dk?'#1e3a5f':'#e2e8f0',txt:dk?'#cbd5e1':'#374151',fw:400,sz:12},
+                            };
+                            const s=S[tier]||S.other;
+                            return (
+                              <span style={{background:s.bg,border:`1.5px solid ${s.bd}`,borderRadius:20,
+                                padding:'4px 11px 4px 8px',fontSize:s.sz,color:s.txt,fontWeight:s.fw,
+                                display:'inline-flex',alignItems:'center',gap:4,lineHeight:1.4}}>
+                                <span style={{fontSize:15,lineHeight:1}}>{fl(team)}</span>
+                                <span>{team}</span>
+                              </span>
+                            );
+                          };
+                          const SecHdr=({label,accent})=>(
+                            <div style={{display:'flex',alignItems:'center',gap:7,marginBottom:8}}>
+                              <div style={{width:3,height:13,background:accent,borderRadius:2,flexShrink:0}}/>
+                              <span style={{fontSize:11,fontWeight:700,color:accent,letterSpacing:'0.12em',textTransform:'uppercase'}}>{label}</span>
+                            </div>
+                          );
+                          const Section=({label,slots,accent})=>{
+                            const teams=Object.keys(slots).sort((a,b)=>Number(a)-Number(b)).map(k=>slots[k]).filter(Boolean);
+                            if(!teams.length)return null;
+                            const ac=accent||'#64748b';
+                            return (
+                              <div style={{marginBottom:12,background:dk?'#040d1c':'#f8fafc',
+                                border:`1px solid ${dk?'#0f2040':'#e8ecf1'}`,borderRadius:10,padding:'10px 13px'}}>
+                                <SecHdr label={label} accent={ac}/>
+                                <div style={{display:'flex',flexWrap:'wrap',gap:6}}>
+                                  {teams.map((t,i)=>(
+                                    <Pill key={i} team={t}
+                                      tier={t===champion?'champion':t===finalist?'finalist':'other'}/>
+                                  ))}
+                                </div>
+                              </div>
+                            );
+                          };
+                          const ALPHA='ABCDEFGHIJKL';
+                          const grpRows=ALPHA.split('').map((g,i)=>({g,first:p.grp1[i],second:p.grp2[i]})).filter(r=>r.first||r.second);
+                          const grpTTeams=Object.values(p.grpT).filter(Boolean).map(t=>t.includes(':')?t.split(':')[1]:t);
+                          return (
+                            <div>
+                              {/* Champion hero */}
+                              {champion&&(
+                                <div style={{textAlign:'center',marginBottom:14,
+                                  background:dk?'linear-gradient(135deg,#1c0a00,#0a1225)':'linear-gradient(135deg,#fffbeb,#fef3c7)',
+                                  border:'2px solid #d97706',borderRadius:12,padding:'16px 20px'}}>
+                                  <div style={{fontSize:11,fontWeight:700,color:'#d97706',letterSpacing:'0.14em',
+                                    textTransform:'uppercase',marginBottom:10}}>🏆 Champion Pick</div>
+                                  <div style={{display:'inline-flex',alignItems:'center',gap:10,
+                                    background:dk?'#78350f':'#fffbeb',
+                                    border:'2px solid #f59e0b',borderRadius:12,
+                                    padding:'10px 22px'}}>
+                                    <span style={{fontSize:32,lineHeight:1}}>{fl(champion)}</span>
+                                    <span style={{fontSize:20,fontWeight:800,color:dk?'#fcd34d':'#92400e',letterSpacing:0.3}}>{champion}</span>
+                                  </div>
+                                </div>
+                              )}
+                              {/* Final matchup */}
+                              {champion&&finalist&&(
+                                <div style={{marginBottom:12,background:dk?'#040d1c':'#f8fafc',
+                                  border:`1px solid ${dk?'#0f2040':'#e8ecf1'}`,borderRadius:10,padding:'10px 13px'}}>
+                                  <SecHdr label="Final" accent="#d97706"/>
+                                  <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:12}}>
+                                    <Pill team={champion} tier='champion'/>
+                                    <span style={{color:dk?'#334155':'#94a3b8',fontSize:13,fontWeight:700}}>vs</span>
+                                    <Pill team={finalist} tier='finalist'/>
+                                  </div>
+                                </div>
+                              )}
+                              <Section label="Semi-Finals"    slots={p.sf}  accent="#a78bfa"/>
+                              <Section label="Quarter-Finals" slots={p.qf}  accent="#60a5fa"/>
+                              <Section label="Round of 16"    slots={p.r16} accent="#34d399"/>
+                              <Section label="Round of 32"    slots={p.r32} accent="#64748b"/>
+                              {/* Group picks collapsible */}
+                              {(grpRows.length>0||grpTTeams.length>0)&&(
+                                <div style={{borderTop:`1px solid ${dk?'#0f2040':'#e8ecf1'}`,paddingTop:12,marginTop:4}}>
+                                  <button onClick={()=>setViewGroupsOpen(v=>!v)} style={{
+                                    background:'none',border:'none',color:dk?'#475569':'#64748b',
+                                    fontSize:12,cursor:'pointer',padding:0,
+                                    display:'flex',alignItems:'center',gap:6,
+                                  }}>
+                                    <span style={{fontSize:9}}>{viewGroupsOpen?'▼':'▶'}</span>
+                                    Group Stage Picks
+                                  </button>
+                                  {viewGroupsOpen&&(
+                                    <div style={{marginTop:10}}>
+                                      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:4,marginBottom:8}}>
+                                        {grpRows.map(({g,first,second})=>(
+                                          <div key={g} style={{
+                                            background:dk?'#0a1628':'#f1f5f9',
+                                            border:`1px solid ${dk?'#1e3a5f':'#e2e8f0'}`,
+                                            borderRadius:7,padding:'5px 9px',fontSize:11,
+                                            display:'flex',alignItems:'center',gap:4,
+                                          }}>
+                                            <span style={{color:dk?'#475569':'#94a3b8',fontWeight:700,minWidth:38}}>Grp {g}</span>
+                                            <span style={{color:dk?'#94a3b8':'#374151',fontWeight:600,flex:1,
+                                              whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{first||'?'}</span>
+                                            <span style={{color:dk?'#334155':'#cbd5e1',margin:'0 2px'}}>/</span>
+                                            <span style={{color:dk?'#64748b':'#64748b',flex:1,
+                                              whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>{second||'?'}</span>
+                                          </div>
+                                        ))}
+                                      </div>
+                                      {grpTTeams.length>0&&(
+                                        <div>
+                                          <div style={{fontSize:10,fontWeight:700,color:dk?'#475569':'#64748b',
+                                            letterSpacing:'0.1em',textTransform:'uppercase',marginBottom:6}}>
+                                            3rd-Place Qualifiers
+                                          </div>
+                                          <div style={{display:'flex',flexWrap:'wrap',gap:5}}>
+                                            {grpTTeams.map((t,i)=>(
+                                              <span key={i} style={{
+                                                background:dk?'#0a1628':'#f1f5f9',
+                                                border:`1px solid ${dk?'#1e3a5f':'#e2e8f0'}`,
+                                                borderRadius:16,padding:'3px 10px 3px 7px',fontSize:11,
+                                                color:dk?'#94a3b8':'#374151',
+                                                display:'inline-flex',alignItems:'center',gap:4,
+                                              }}>
+                                                <span style={{fontSize:13}}>{fl(t)}</span>{t}
+                                              </span>
+                                            ))}
+                                          </div>
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })()}
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
             })()}
