@@ -852,11 +852,13 @@
     // winner (the safe/default pick that requires no 3rd-place slot knowledge).
     // This is applied both in the Supabase scoring function AND in the UI below.
     const SCORE_COMPENSATIONS = {
-      'Durkheim':    {slot:14, wrongPick:'Egypt',   treatedAs:'Switzerland', match:'M85'},
+      // Durkheim resubmitted (Egypt→Austria) — scored normally, no compensation needed
+      // westhamno19 resubmitted (Sweden→Senegal) — scored normally, no compensation needed
       'Rokkekoro':   {slot:10, wrongPick:'Sweden',  treatedAs:'South Korea', match:'M79'},
       'Tetsu':       {slot: 6, wrongPick:'Senegal', treatedAs:'Turkey',      match:'M81'},
       'raeesbhai':   {slot:10, wrongPick:'Senegal', treatedAs:'Mexico',      match:'M79'},
-      'westhamno19': {slot:14, wrongPick:'Sweden',  treatedAs:'Switzerland', match:'M85'},
+      // Yellowstone had duplicate Group D in grpT (pre-fix bug) — Ecuador unverifiable in M79, treated as W-A winner
+      'Yellowstone': {slot:10, wrongPick:'Ecuador', treatedAs:'Mexico',      match:'M79'},
     };
 
     /* ===================== NEW DATA CONSTANTS ===================== */
