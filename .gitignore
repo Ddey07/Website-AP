@@ -6,3 +6,9 @@
 # API keys — never commit this
 .env
 Academic_CV_Debangan_Stadtman/
+
+# Hugo build output — Netlify runs hugo on deploy, no need to commit
+public/
+
+# macOS metadata
+.DS_Store
