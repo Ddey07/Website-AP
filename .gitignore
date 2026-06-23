@@ -12,3 +12,19 @@ public/
 
 # macOS metadata
 .DS_Store
+
+# Hugo Blox template demo/placeholder content — not real content
+content/post/data-visualization/
+content/post/get-started/
+content/post/project-management/
+content/post/second-brain/
+content/post/teach-courses/
+content/project/pandas/
+content/project/pytorch/
+content/project/scikit/
+content/publication/conference-paper/
+content/publication/journal-article/
+content/publication/preprint/
+
+# Accidental files with bad names
+static/uploads/resume*AM.pdf
