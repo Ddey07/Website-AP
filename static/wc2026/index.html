@@ -1146,10 +1146,11 @@
         else if(r<pA+0.25){pts[a]+=1;pts[b]+=1;}
         else{pts[b]+=3;gd[b]+=(1+Math.random());gd[a]-=Math.random();}
       }
-      return [...teams].sort((a,b)=>pts[b]-pts[a]||gd[b]-gd[a]||Math.random()-.5);
+      const rank=[...teams].sort((a,b)=>pts[b]-pts[a]||gd[b]-gd[a]||Math.random()-.5);
+      return {rank, pts, gd};
     }
-    // assign3rd: thirds is all 12 (one per group), sorted by strength desc.
-    // Select the 8 strongest 3rd-place qualifiers, then look up the FIFA 495 slot assignment.
+    // assign3rd: thirds is all 12 (one per group), sorted by simulated pts+GD desc.
+    // Select the 8 best 3rd-place qualifiers (FIFA criteria: pts, then GD), then look up the FIFA 495 slot assignment.
     function assign3rd(thirds){ return fifa495assign(thirds.slice(0,8)); }
     function runOnce(){
       const W={},R={},thirds=[];
@@ -1160,10 +1161,10 @@
         // If md matchdays are done, skip the first md*2 entries.
         const remaining=md>0?GS[g].slice(md*2).map(m=>[m.a,m.b]):null;
         const rk=simGroup(teams,liveData,remaining);
-        W[g]=rk[0];R[g]=rk[1];
-        thirds.push({team:rk[2],group:g,pts:e(rk[2])});
+        W[g]=rk.rank[0];R[g]=rk.rank[1];
+        thirds.push({team:rk.rank[2],group:g,pts:rk.pts[rk.rank[2]],gd:rk.gd[rk.rank[2]]});
       }
-      thirds.sort((a,b)=>b.pts-a.pts);
+      thirds.sort((a,b)=>b.pts-a.pts||b.gd-a.gd);
       const sg=assign3rd(thirds);
       const gv=k=>sg[k]||"TBD";
       const ok=(a,b)=>a&&b&&a!=="TBD"&&b!=="TBD"&&a!==b;
