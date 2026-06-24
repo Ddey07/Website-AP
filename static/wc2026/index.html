@@ -530,17 +530,17 @@
     };
     const GROUPS = {
       A:{teams:["Mexico","South Africa","South Korea","Czechia"],proj:["Mexico","South Korea"]},
-      B:{teams:["Canada","Bosnia-Herz.","Qatar","Switzerland"],proj:["Switzerland","Canada"]},
+      B:{teams:["Canada","Bosnia-Herz.","Qatar","Switzerland"],proj:["Canada","Switzerland"]},
       C:{teams:["Brazil","Morocco","Haiti","Scotland"],proj:["Brazil","Morocco"]},
-      D:{teams:["USA","Paraguay","Australia","Turkey"],proj:["USA","Turkey"]},
-      E:{teams:["Germany","Curacao","Ivory Coast","Ecuador"],proj:["Germany","Ecuador"]},
+      D:{teams:["USA","Paraguay","Australia","Turkey"],proj:["USA","Australia"]},
+      E:{teams:["Germany","Curacao","Ivory Coast","Ecuador"],proj:["Germany","Ivory Coast"]},
       F:{teams:["Netherlands","Japan","Sweden","Tunisia"],proj:["Netherlands","Japan"]},
-      G:{teams:["Belgium","Egypt","Iran","New Zealand"],proj:["Belgium","Iran"]},
+      G:{teams:["Belgium","Egypt","Iran","New Zealand"],proj:["Egypt","Belgium"]},
       H:{teams:["Spain","Cape Verde","Saudi Arabia","Uruguay"],proj:["Spain","Uruguay"]},
-      I:{teams:["France","Senegal","Iraq","Norway"],proj:["France","Senegal"]},
+      I:{teams:["France","Senegal","Iraq","Norway"],proj:["France","Norway"]},
       J:{teams:["Argentina","Algeria","Austria","Jordan"],proj:["Argentina","Austria"]},
-      K:{teams:["Portugal","DR Congo","Uzbekistan","Colombia"],proj:["Portugal","Colombia"]},
-      L:{teams:["England","Croatia","Ghana","Panama"],proj:["England","Croatia"]},
+      K:{teams:["Portugal","DR Congo","Uzbekistan","Colombia"],proj:["Colombia","Portugal"]},
+      L:{teams:["England","Croatia","Ghana","Panama"],proj:["England","Ghana"]},
     };
     const GS = {
       A:[
@@ -688,6 +688,79 @@
       M79:["C","E","F","H","I"],M80:["E","H","I","J","K"],
       M81:["B","E","F","I","J"],M82:["A","E","H","I","J"],
       M85:["E","F","G","I","J"],M87:["D","E","I","J","L"],
+    };
+
+    /* ===================== LIVE GROUP STAGE STANDINGS ===================== */
+    // Actual standings after MD2 (groups A–J) or MD1 (groups K, L — MD2 in progress Jun 23).
+    // md = matchdays completed; remaining MD games are simulated to project final standings.
+    const LIVE_STANDINGS = {
+      A:{md:2,pts:{Mexico:6,'South Korea':3,Czechia:1,'South Africa':1},    gd:{Mexico:3,'South Korea':0,Czechia:-1,'South Africa':-2}},
+      B:{md:2,pts:{Canada:4,Switzerland:4,'Bosnia-Herz.':1,Qatar:1},         gd:{Canada:6,Switzerland:3,'Bosnia-Herz.':-3,Qatar:-6}},
+      C:{md:2,pts:{Brazil:4,Morocco:4,Scotland:3,Haiti:0},                   gd:{Brazil:3,Morocco:1,Scotland:0,Haiti:-4}},
+      D:{md:2,pts:{USA:6,Australia:3,Paraguay:3,Turkey:0},                   gd:{USA:5,Australia:0,Paraguay:-2,Turkey:-3}},
+      E:{md:2,pts:{Germany:6,'Ivory Coast':3,Ecuador:1,Curacao:1},           gd:{Germany:7,'Ivory Coast':0,Ecuador:-1,Curacao:-6}},
+      F:{md:2,pts:{Netherlands:4,Japan:4,Sweden:3,Tunisia:0},                gd:{Netherlands:4,Japan:4,Sweden:0,Tunisia:-8}},
+      G:{md:2,pts:{Egypt:4,Iran:2,Belgium:2,'New Zealand':1},                gd:{Egypt:2,Iran:0,Belgium:0,'New Zealand':-2}},
+      H:{md:2,pts:{Spain:4,Uruguay:2,'Cape Verde':2,'Saudi Arabia':1},       gd:{Spain:4,Uruguay:0,'Cape Verde':0,'Saudi Arabia':-4}},
+      I:{md:2,pts:{France:6,Norway:6,Senegal:0,Iraq:0},                      gd:{France:5,Norway:4,Senegal:-3,Iraq:-6}},
+      J:{md:2,pts:{Argentina:6,Austria:3,Algeria:3,Jordan:0},                gd:{Argentina:5,Austria:0,Algeria:-2,Jordan:-3}},
+      K:{md:1,pts:{Colombia:3,Portugal:1,'DR Congo':1,Uzbekistan:0},         gd:{Colombia:2,Portugal:0,'DR Congo':0,Uzbekistan:-2}},
+      L:{md:1,pts:{England:3,Ghana:3,Panama:0,Croatia:0},                    gd:{England:2,Ghana:1,Panama:-1,Croatia:-2}},
+    };
+
+    /* ===================== PRE-TOURNAMENT MONTE CARLO SNAPSHOT ===================== */
+    // Probabilities from 50,000 pre-tournament simulations (before any matches were played).
+    // Used to compare "prior" vs "current" predictions across all tabs.
+    // Fields: champ=championship%, r32/r16/qf/sf=% reaching that round.
+    const PRIOR_PROBS={
+      "Algeria":{champ:0.1,r32:28.5,r16:10.6,qf:2.7,sf:0.8},
+      "Argentina":{champ:24.2,r32:76.5,r16:66.3,qf:52.1,sf:38.5},
+      "Australia":{champ:0.1,r32:30.3,r16:9.0,qf:2.2,sf:0.5},
+      "Austria":{champ:0.5,r32:36.6,r16:17.2,qf:6.0,sf:2.2},
+      "Belgium":{champ:0.4,r32:54.6,r16:21.1,qf:5.3,sf:1.8},
+      "Bosnia-Herz.":{champ:0.0,r32:5.8,r16:0.6,qf:0.0,sf:0.0},
+      "Brazil":{champ:2.2,r32:61.5,r16:34.9,qf:17.2,sf:6.1},
+      "Canada":{champ:0.1,r32:43.1,r16:12.3,qf:2.3,sf:0.4},
+      "Cape Verde":{champ:0.0,r32:0.8,r16:0.1,qf:0.0,sf:0.0},
+      "Colombia":{champ:2.7,r32:55.1,r16:31.2,qf:15.4,sf:7.4},
+      "Croatia":{champ:2.0,r32:53.2,r16:28.5,qf:14.4,sf:5.9},
+      "Curacao":{champ:0.0,r32:0.2,r16:0.0,qf:0.0,sf:0.0},
+      "Czechia":{champ:0.0,r32:29.4,r16:7.6,qf:1.2,sf:0.2},
+      "DR Congo":{champ:0.0,r32:7.2,r16:1.5,qf:0.2,sf:0.0},
+      "Ecuador":{champ:0.2,r32:39.8,r16:13.4,qf:4.2,sf:1.0},
+      "Egypt":{champ:0.0,r32:19.0,r16:3.5,qf:0.4,sf:0.1},
+      "England":{champ:7.4,r32:68.7,r16:46.8,qf:29.7,sf:15.7},
+      "France":{champ:15.3,r32:80.5,r16:63.4,qf:47.4,sf:26.8},
+      "Germany":{champ:2.3,r32:63.8,r16:31.5,qf:18.2,sf:6.7},
+      "Ghana":{champ:0.0,r32:0.4,r16:0.0,qf:0.0,sf:0.0},
+      "Haiti":{champ:0.0,r32:0.6,r16:0.1,qf:0.0,sf:0.0},
+      "Iran":{champ:0.1,r32:37.5,r16:9.3,qf:1.6,sf:0.4},
+      "Iraq":{champ:0.0,r32:3.0,r16:0.6,qf:0.1,sf:0.0},
+      "Ivory Coast":{champ:0.0,r32:24.8,r16:6.0,qf:1.2,sf:0.2},
+      "Japan":{champ:1.0,r32:47.6,r16:27.3,qf:11.5,sf:3.5},
+      "Jordan":{champ:0.0,r32:5.5,r16:1.3,qf:0.2,sf:0.0},
+      "Mexico":{champ:0.2,r32:50.9,r16:17.1,qf:4.8,sf:1.0},
+      "Morocco":{champ:0.5,r32:47.7,r16:22.0,qf:8.2,sf:2.1},
+      "Netherlands":{champ:1.6,r32:52.7,r16:33.4,qf:15.3,sf:5.1},
+      "New Zealand":{champ:0.0,r32:1.5,r16:0.1,qf:0.0,sf:0.0},
+      "Norway":{champ:1.0,r32:49.2,r16:27.8,qf:11.5,sf:3.7},
+      "Panama":{champ:0.0,r32:18.9,r16:5.6,qf:1.2,sf:0.2},
+      "Paraguay":{champ:0.0,r32:26.4,r16:7.1,qf:1.7,sf:0.4},
+      "Portugal":{champ:5.7,r32:64.9,r16:42.6,qf:22.8,sf:12.8},
+      "Qatar":{champ:0.0,r32:1.0,r16:0.1,qf:0.0,sf:0.0},
+      "Saudi Arabia":{champ:0.0,r32:1.9,r16:0.3,qf:0.0,sf:0.0},
+      "Scotland":{champ:0.1,r32:30.6,r16:9.2,qf:2.2,sf:0.4},
+      "Senegal":{champ:2.6,r32:59.6,r16:37.7,qf:19.2,sf:7.4},
+      "South Africa":{champ:0.0,r32:4.0,r16:0.4,qf:0.0,sf:0.0},
+      "South Korea":{champ:0.1,r32:40.9,r16:12.5,qf:2.5,sf:0.5},
+      "Spain":{champ:27.7,r32:78.8,r16:62.8,qf:53.2,sf:40.9},
+      "Sweden":{champ:0.0,r32:9.7,r16:2.7,qf:0.5,sf:0.1},
+      "Switzerland":{champ:0.4,r32:58.7,r16:24.0,qf:6.9,sf:1.9},
+      "Tunisia":{champ:0.0,r32:4.6,r16:1.0,qf:0.2,sf:0.0},
+      "Turkey":{champ:1.1,r32:54.3,r16:26.6,qf:9.6,sf:3.7},
+      "USA":{champ:0.0,r32:27.7,r16:6.7,qf:1.3,sf:0.3},
+      "Uruguay":{champ:0.3,r32:32.5,r16:13.8,qf:4.5,sf:1.4},
+      "Uzbekistan":{champ:0.0,r32:9.6,r16:2.5,qf:0.5,sf:0.1},
     };
 
     /* ===================== FIFA 495 COMBINATION TABLE ===================== */
@@ -1050,22 +1123,28 @@
     }
 
     /* ===================== SIMULATION FUNCTIONS ===================== */
-    function simGroup(teams){
+    // simGroup: simulate remaining group games from current live standings.
+    // liveData = {md, pts:{team:pts,...}, gd:{team:gd,...}} from LIVE_STANDINGS.
+    // remainingPairs = [[a,b],...] pairs still to be played; null = simulate all 6 games.
+    function simGroup(teams, liveData, remainingPairs){
       const pts={},gd={};
-      teams.forEach(t=>{pts[t]=0;gd[t]=0;});
+      teams.forEach(t=>{
+        pts[t]=liveData?.pts?.[t]??0;
+        gd[t]=liveData?.gd?.[t]??0;
+      });
       // Synthesize group venue so host teams get home advantage in their group matches.
       const hostInGroup=teams.find(t=>HOME_COUNTRY[t]);
       const groupVenue=hostInGroup
         ?(HOME_COUNTRY[hostInGroup]==="USA"?"Los Angeles":
           HOME_COUNTRY[hostInGroup]==="Canada"?"Toronto":"Mexico City")
         :null;
-      for(let i=0;i<teams.length;i++){
-        for(let j=i+1;j<teams.length;j++){
-          const a=teams[i],b=teams[j],pA=wp(a,b,groupVenue)*0.75,r=Math.random();
-          if(r<pA){pts[a]+=3;gd[a]+=(1+Math.random());gd[b]-=Math.random();}
-          else if(r<pA+0.25){pts[a]+=1;pts[b]+=1;}
-          else{pts[b]+=3;gd[b]+=(1+Math.random());gd[a]-=Math.random();}
-        }
+      const games=remainingPairs??
+        (()=>{const p=[];for(let i=0;i<teams.length;i++)for(let j=i+1;j<teams.length;j++)p.push([teams[i],teams[j]]);return p;})();
+      for(const[a,b]of games){
+        const pA=wp(a,b,groupVenue)*0.75,r=Math.random();
+        if(r<pA){pts[a]+=3;gd[a]+=(1+Math.random());gd[b]-=Math.random();}
+        else if(r<pA+0.25){pts[a]+=1;pts[b]+=1;}
+        else{pts[b]+=3;gd[b]+=(1+Math.random());gd[a]-=Math.random();}
       }
       return [...teams].sort((a,b)=>pts[b]-pts[a]||gd[b]-gd[a]||Math.random()-.5);
     }
@@ -1075,7 +1154,12 @@
     function runOnce(){
       const W={},R={},thirds=[];
       for(const[g,{teams}]of Object.entries(GROUPS)){
-        const rk=simGroup(teams);
+        const liveData=LIVE_STANDINGS[g];
+        const md=liveData?.md||0;
+        // Build list of remaining game pairs: GS[g] has 6 entries (MD1: [0,1], MD2: [2,3], MD3: [4,5]).
+        // If md matchdays are done, skip the first md*2 entries.
+        const remaining=md>0?GS[g].slice(md*2).map(m=>[m.a,m.b]):null;
+        const rk=simGroup(teams,liveData,remaining);
         W[g]=rk[0];R[g]=rk[1];
         thirds.push({team:rk[2],group:g,pts:e(rk[2])});
       }
@@ -1839,6 +1923,16 @@
 
     function GroupCard({letter,g}){
       const matches=GS[letter]||[];
+      const live=LIVE_STANDINGS[letter];
+      const md=live?.md||0;
+      // Sort teams by live standings if available
+      const liveTeams=md>0
+        ?[...g.teams].sort((a,b)=>{
+            const pd=(live.pts[b]||0)-(live.pts[a]||0);
+            if(pd!==0)return pd;
+            return (live.gd[b]||0)-(live.gd[a]||0);
+          })
+        :g.teams;
       return (
         <div style={{
           background:"#061228",
@@ -1847,46 +1941,119 @@
           padding:"14px 16px",
           marginBottom:14,
         }}>
-          <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10}}>
+          <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10,flexWrap:"wrap"}}>
             <span style={{
               background:"#1e3a5f",color:"#60a5fa",
               padding:"4px 14px",borderRadius:20,fontSize:14,fontWeight:800,letterSpacing:1
             }}>Group {letter}</span>
+            {md>0&&(
+              <span style={{
+                background:"#0f3024",color:"#4ade80",
+                padding:"2px 10px",borderRadius:12,fontSize:11,fontWeight:700
+              }}>MD{md} complete</span>
+            )}
+            {md===0&&(
+              <span style={{
+                background:"#2d1a00",color:"#f59e0b",
+                padding:"2px 10px",borderRadius:12,fontSize:11,fontWeight:700
+              }}>Not started</span>
+            )}
           </div>
-          <div style={{marginBottom:10}}>
-            {g.teams.map(t=>{
-              const isProj=g.proj.includes(t);
+
+          {/* Live standings table */}
+          {md>0&&(
+            <div style={{marginBottom:12}}>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 36px 36px 36px",
+                color:"#475569",fontSize:10,fontWeight:700,textTransform:"uppercase",
+                letterSpacing:0.5,paddingBottom:4,borderBottom:"1px solid #0d1f3c",
+                gap:4,alignItems:"center"}}>
+                <span>Team</span><span style={{textAlign:"center"}}>Pts</span>
+                <span style={{textAlign:"center"}}>GD</span><span style={{textAlign:"center"}}>Played</span>
+              </div>
+              {liveTeams.map((t,i)=>{
+                const isProj=g.proj.includes(t);
+                const eliminated=!isProj&&i>2; // rough indicator
+                const pts=live.pts[t]??0, gdd=live.gd[t]??0;
+                const played=md*(liveTeams.filter((x,xi)=>xi<i||xi>i).length>0?1:0);
+                // Each team plays md games (md matchdays completed)
+                return (
+                  <div key={t} style={{
+                    display:"grid",gridTemplateColumns:"1fr 36px 36px 36px",gap:4,
+                    alignItems:"center",padding:"5px 0",
+                    borderBottom:i<liveTeams.length-1?"1px solid #0d1f3c":"none",
+                    opacity:eliminated?0.5:1
+                  }}>
+                    <div style={{display:"flex",alignItems:"center",gap:6}}>
+                      <span style={{
+                        width:18,height:18,borderRadius:"50%",
+                        background:i===0?"#f59e0b":i===1?"#94a3b8":i===2?"#b45309":"#1e3a5f",
+                        display:"flex",alignItems:"center",justifyContent:"center",
+                        fontSize:10,fontWeight:800,color:i<3?"#000":"#4b5563",flexShrink:0
+                      }}>{i+1}</span>
+                      <span style={{fontSize:15}}>{fl(t)}</span>
+                      <span style={{fontSize:12,fontWeight:isProj?700:400,
+                        color:isProj?"#e2e8f0":"#94a3b8"}}>{t}</span>
+                      {isProj&&<span style={{color:"#4ade80",fontSize:10,fontWeight:700}}>✓</span>}
+                    </div>
+                    <span style={{textAlign:"center",fontWeight:700,fontSize:13,
+                      color:pts>=6?"#4ade80":pts>=3?"#fbbf24":"#94a3b8"}}>{pts}</span>
+                    <span style={{textAlign:"center",fontSize:12,
+                      color:gdd>0?"#4ade80":gdd<0?"#f87171":"#94a3b8"}}>
+                      {gdd>0?"+":""}{gdd}
+                    </span>
+                    <span style={{textAlign:"center",fontSize:12,color:"#64748b"}}>{md}</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Projected/pre-tournament team list (if no live data) */}
+          {md===0&&(
+            <div style={{marginBottom:10}}>
+              {g.teams.map(t=>{
+                const isProj=g.proj.includes(t);
+                return (
+                  <div key={t} className={isProj?"proj-team-row":""} style={{
+                    display:"flex",alignItems:"center",gap:8,
+                    padding:"5px 8px",borderRadius:6,marginBottom:3,
+                    background:isProj?"#0f2d4a":"transparent",
+                    border:isProj?"1px solid #1e3a5f":"1px solid transparent"
+                  }}>
+                    <span style={{fontSize:18}}>{fl(t)}</span>
+                    <span style={{flex:1,fontSize:13,fontWeight:isProj?600:400}}>{t}</span>
+                    {isProj&&<span className="proj-advance-label" style={{color:"#4ade80",fontSize:11,fontWeight:700}}>✓ Proj. Advance</span>}
+                    <span style={{color:"#64748b",fontSize:11}}>#{RANKS[t]}</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          <div style={{borderTop:"1px solid #1e3a5f",paddingTop:10}}>
+            <div style={{color:"#64748b",fontSize:11,fontWeight:700,marginBottom:6,textTransform:"uppercase",letterSpacing:1}}>Matches</div>
+            {matches.map((m,i)=>{
+              const mdIdx=Math.floor(i/2)+1; // MD1=[0,1], MD2=[2,3], MD3=[4,5]
+              const played=mdIdx<=md;
               return (
-                <div key={t} className={isProj?"proj-team-row":""} style={{
+                <div key={i} style={{
                   display:"flex",alignItems:"center",gap:8,
-                  padding:"5px 8px",borderRadius:6,marginBottom:3,
-                  background:isProj?"#0f2d4a":"transparent",
-                  border:isProj?"1px solid #1e3a5f":"1px solid transparent"
+                  padding:"4px 0",borderBottom:i<matches.length-1?"1px solid #0d1f3c":"none",
+                  flexWrap:"wrap",opacity:played?0.55:1
                 }}>
-                  <span style={{fontSize:18}}>{fl(t)}</span>
-                  <span style={{flex:1,fontSize:13,fontWeight:isProj?600:400}}>{t}</span>
-                  {isProj&&<span className="proj-advance-label" style={{color:"#4ade80",fontSize:11,fontWeight:700}}>✓ Proj. Advance</span>}
-                  <span style={{color:"#64748b",fontSize:11}}>#{RANKS[t]}</span>
+                  {played&&<span style={{
+                    background:"#0f3024",color:"#4ade80",
+                    padding:"1px 6px",borderRadius:8,fontSize:10,fontWeight:700,flexShrink:0
+                  }}>FT</span>}
+                  <span style={{color:"#64748b",fontSize:11,minWidth:42}}>{m.date}</span>
+                  <span style={{fontSize:13}}>{fl(m.a)} {m.a}</span>
+                  <span style={{color:"#475569",fontSize:12}}>vs</span>
+                  <span style={{fontSize:13}}>{fl(m.b)} {m.b}</span>
+                  <span style={{marginLeft:"auto",color:"#475569",fontSize:11}}>{m.venue}</span>
+                  {m.texas&&<span style={{color:"#f59e0b",fontSize:10,fontWeight:700}}>★TX</span>}
                 </div>
               );
             })}
-          </div>
-          <div style={{borderTop:"1px solid #1e3a5f",paddingTop:10}}>
-            <div style={{color:"#64748b",fontSize:11,fontWeight:700,marginBottom:6,textTransform:"uppercase",letterSpacing:1}}>Matches</div>
-            {matches.map((m,i)=>(
-              <div key={i} style={{
-                display:"flex",alignItems:"center",gap:8,
-                padding:"4px 0",borderBottom:i<matches.length-1?"1px solid #0d1f3c":"none",
-                flexWrap:"wrap"
-              }}>
-                <span style={{color:"#64748b",fontSize:11,minWidth:42}}>{m.date}</span>
-                <span style={{fontSize:13}}>{fl(m.a)} {m.a}</span>
-                <span style={{color:"#475569",fontSize:12}}>vs</span>
-                <span style={{fontSize:13}}>{fl(m.b)} {m.b}</span>
-                <span style={{marginLeft:"auto",color:"#475569",fontSize:11}}>{m.venue}</span>
-                {m.texas&&<span style={{color:"#f59e0b",fontSize:10,fontWeight:700}}>★TX</span>}
-              </div>
-            ))}
           </div>
         </div>
       );
@@ -3552,7 +3719,7 @@
               <div>
                 <h2 style={{fontSize:18,fontWeight:700,color:"#f1f5f9",marginBottom:4}}>🏆 Champion Odds</h2>
                 <p style={{color:"#64748b",fontSize:13,marginBottom:20}}>
-                  {done?`Based on ${N.toLocaleString()} Monte Carlo simulations using ELO ratings`:"Simulations running — odds will appear when complete"}
+                  {done?`Based on ${N.toLocaleString()} simulations using live group standings — MD3 games still projected`:"Simulations running — odds will appear when complete"}
                 </p>
                 {[
                   {label:"Top Favorites",desc:"Champion probability > 8%",filter:t=>t.count/N>0.08,accent:"#f59e0b"},
@@ -4289,7 +4456,13 @@
             {tab==="groups"&&(
               <div>
                 <h2 style={{fontSize:18,fontWeight:700,color:"#f1f5f9",marginBottom:4}}>🏟️ Group Stage</h2>
-                <p style={{color:"#64748b",fontSize:13,marginBottom:20}}>All 12 groups with projected qualifiers and match schedule</p>
+                <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:16,flexWrap:"wrap"}}>
+                  <p style={{color:"#64748b",fontSize:13,margin:0}}>Live standings after MD2 (groups A–J) and MD1 (groups K–L). MD3 games are simulated.</p>
+                  <span style={{
+                    background:"#0f3024",color:"#4ade80",
+                    padding:"2px 10px",borderRadius:12,fontSize:11,fontWeight:700,flexShrink:0
+                  }}>🔴 LIVE DATA</span>
+                </div>
                 {Object.entries(GROUPS).map(([letter,g])=>(
                   <GroupCard key={letter} letter={letter} g={g} />
                 ))}
@@ -4305,9 +4478,15 @@
               return (
                 <div key={rnd}>
                   <h2 style={{fontSize:18,fontWeight:700,color:"#f1f5f9",marginBottom:4}}>{label}</h2>
-                  <p style={{color:"#64748b",fontSize:13,marginBottom:20}}>
-                    {n} match{n>1?"es":""} — top 3 most likely matchups from {N.toLocaleString()} simulations
-                  </p>
+                  <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:16,flexWrap:"wrap"}}>
+                    <p style={{color:"#64748b",fontSize:13,margin:0}}>
+                      {n} match{n>1?"es":""} — top 3 most likely matchups from {N.toLocaleString()} simulations using live MD2 standings
+                    </p>
+                    <span style={{
+                      background:"#0f3024",color:"#4ade80",
+                      padding:"2px 10px",borderRadius:12,fontSize:11,fontWeight:700,flexShrink:0
+                    }}>🔴 LIVE</span>
+                  </div>
                   {slots.map((slot,idx)=>{
                     const rows=getSlotRows(rnd,idx);
                     return <SlotCard key={slot.m} slot={slot} rows={rows} N={N} tier={rnd} prices={prices}/>;
@@ -4325,7 +4504,7 @@
               color:"#334155",
               fontSize:12,
             }}>
-              Monte Carlo simulation using official FIFA rankings (April 2026) · Built by{" "}
+              Monte Carlo simulation using live MD2 group standings · Official FIFA rankings (April 2026) · Updated Jun 23, 2026 · Built by{" "}
               <a href="https://debangandey.rbind.io" style={{color:"#475569",textDecoration:"none"}}>Debangan Dey</a>
             </div>
               </div>{/* /tab content */}
