@@ -3,8 +3,9 @@
 .RData
 .Ruserdata
 
-# API keys — never commit this
+# API keys — never commit these
 .env
+.github_pat
 Academic_CV_Debangan_Stadtman/
 
 # Hugo build output — Netlify runs hugo on deploy, no need to commit
