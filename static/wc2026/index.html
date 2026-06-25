@@ -4489,38 +4489,72 @@
                 }
                 return best;
               }
-              const candidates=Object.entries(groupQualStats)
+              // Build per-team candidates
+              const rawCandidates=Object.entries(groupQualStats)
                 .filter(([,s])=>s.third>0)
                 .sort((a,b)=>b[1].third-a[1].third);
-              const top8=candidates.slice(0,8);
-              const bubble=candidates.slice(8).filter(([,s])=>s.third>=1);
-              const maxT=top8[0]?.[1].third||1;
-              function ThirdRow({team,s,rank,qual}){
+              // Merge same-group teams: only one can be 3rd from any group, so collapse
+              // them into a single row showing both names (mutually exclusive events)
+              const seenGrp={};
+              const merged=[];
+              for(const[team,s]of rawCandidates){
                 const g=tg[team];
+                if(seenGrp[g]!==undefined){
+                  // Add as alternate to the primary entry
+                  merged[seenGrp[g]].alt={team,s};
+                } else {
+                  seenGrp[g]=merged.length;
+                  merged.push({team,s,g,alt:null});
+                }
+              }
+              const top8=merged.slice(0,8);
+              const bubble=merged.slice(8).filter(e=>e.s.third>=1);
+              const maxT=top8[0]?.s.third||1;
+              // Rank-based bar color: gold → blue → slate
+              function barColor(rank,qual){
+                if(!qual)return"#334155";
+                if(rank<=2)return"#f59e0b";
+                if(rank<=5)return"#3b82f6";
+                return"#64748b";
+              }
+              function ThirdEntry({entry,rank,qual}){
+                const{team,s,g,alt}=entry;
                 const live=LIVE_STANDINGS[g];
                 const md=live?.md||0;
                 const pts=live?.pts?.[team]??null;
                 const gd=live?.gd?.[team]??null;
                 const slot=topSlot(team);
-                const tc=COLORS[team]||"#1e40af";
-                const barW=(s.third/maxT)*100;
+                // Combined probability for same-group pair (mutually exclusive)
+                const combinedPct=s.third+(alt?.s.third||0);
+                const barW=(combinedPct/maxT)*100;
+                const bc=barColor(rank,qual);
                 return (
-                  <div style={{display:"flex",alignItems:"center",gap:8,padding:"8px 12px",borderRadius:8,marginBottom:5,background:"#061228",border:`1px solid ${qual?"#1e3a5f":"#0d1f3c"}`,flexWrap:"wrap",opacity:qual?1:0.65}}>
-                    <span style={{color:qual?"#f59e0b":"#475569",fontSize:12,minWidth:22,textAlign:"right",fontWeight:700}}>{qual?`#${rank}`:"–"}</span>
-                    <span style={{fontSize:22}}>{fl(team)}</span>
+                  <div style={{display:"flex",alignItems:"center",gap:8,padding:"8px 12px",borderRadius:8,marginBottom:5,background:"#061228",border:`1px solid ${qual?"#1e3a5f":"#0d1f3c"}`,flexWrap:"wrap",opacity:qual?1:0.6}}>
+                    <span style={{color:qual?(rank<=2?"#f59e0b":rank<=5?"#60a5fa":"#94a3b8"):"#475569",fontSize:12,minWidth:22,textAlign:"right",fontWeight:700}}>{qual?`#${rank}`:"–"}</span>
+                    {/* flags */}
+                    <span style={{fontSize:20,lineHeight:1}}>{fl(team)}{alt?<span style={{fontSize:14,opacity:0.7}}>{fl(alt.team)}</span>:null}</span>
                     <div style={{flex:1,minWidth:130}}>
-                      <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:4,flexWrap:"wrap"}}>
-                        <span style={{fontWeight:700,fontSize:14}}>{team}</span>
+                      <div style={{display:"flex",alignItems:"center",gap:5,marginBottom:4,flexWrap:"wrap"}}>
+                        <span style={{fontWeight:700,fontSize:13}}>{team}{alt&&<span style={{color:"#94a3b8",fontWeight:400}}> / {alt.team}</span>}</span>
                         <span style={{background:"#0d1f3c",color:"#a78bfa",padding:"1px 6px",borderRadius:10,fontSize:10,fontWeight:700}}>Grp {g}</span>
-                        {md===3&&pts!==null&&(<span style={{background:"#0f3024",color:"#4ade80",padding:"1px 6px",borderRadius:10,fontSize:10,fontWeight:700}}>{pts}pts {gd>=0?"+":""}{gd}GD ✓</span>)}
-                        {md===2&&pts!==null&&(<span style={{background:"#1a2540",color:"#94a3b8",padding:"1px 6px",borderRadius:10,fontSize:10}}>{pts}pts {gd>=0?"+":""}{gd}GD (MD2)</span>)}
+                        {alt&&<span style={{background:"#1a0a00",color:"#fbbf24",padding:"1px 6px",borderRadius:10,fontSize:9,fontWeight:600}}>one advances</span>}
+                        {!alt&&md===3&&pts!==null&&(<span style={{background:"#0f3024",color:"#4ade80",padding:"1px 6px",borderRadius:10,fontSize:10,fontWeight:700}}>{pts}pts {gd>=0?"+":""}{gd}GD ✓</span>)}
+                        {!alt&&md===2&&pts!==null&&(<span style={{background:"#1e3a5f",color:"#bfdbfe",padding:"1px 6px",borderRadius:10,fontSize:10,fontWeight:600}}>{pts}pts {gd>=0?"+":""}{gd}GD (MD2)</span>)}
                       </div>
-                      <div style={{display:"flex",alignItems:"center",gap:8}}>
-                        <div style={{flex:1,height:8,background:"#0d1f3c",borderRadius:4,overflow:"hidden"}}>
-                          <div style={{width:`${barW}%`,height:"100%",background:qual?tc:"#334155",borderRadius:4,transition:"width 0.5s"}}/>
+                      <div style={{display:"flex",alignItems:"center",gap:6}}>
+                        <div style={{flex:1,height:7,background:"#0d1f3c",borderRadius:4,overflow:"hidden"}}>
+                          <div style={{width:`${barW}%`,height:"100%",background:bc,borderRadius:4,transition:"width 0.5s"}}/>
                         </div>
-                        <span style={{color:"#f1f5f9",fontWeight:800,fontSize:13,minWidth:40,textAlign:"right"}}>{s.third}%</span>
+                        <span style={{color:"#f1f5f9",fontWeight:800,fontSize:13,minWidth:40,textAlign:"right"}}>
+                          {alt?`${combinedPct}%`:`${s.third}%`}
+                        </span>
                       </div>
+                      {alt&&(
+                        <div style={{display:"flex",gap:12,marginTop:3}}>
+                          <span style={{fontSize:10,color:"#94a3b8"}}>{fl(team)} {team} {s.third}%</span>
+                          <span style={{fontSize:10,color:"#94a3b8"}}>{fl(alt.team)} {alt.team} {alt.s.third}%</span>
+                        </div>
+                      )}
                     </div>
                     {slot&&(
                       <div style={{background:"#0d1f3c",borderRadius:8,padding:"4px 10px",textAlign:"center",minWidth:64,flexShrink:0}}>
@@ -4535,16 +4569,16 @@
                 <div>
                   <h2 style={{fontSize:18,fontWeight:700,color:"#f1f5f9",marginBottom:4}}>🥉 3rd Place Race</h2>
                   <p style={{color:"#64748b",fontSize:13,marginBottom:8}}>
-                    {done?`8 of 12 third-placed teams advance — ranked by % chance of finishing in the top 8. Based on ${N.toLocaleString()} simulations.`:"Simulations running — probabilities will appear when complete"}
+                    {done?`8 of 12 third-placed teams advance — probabilities from ${N.toLocaleString()} simulations, each playing out all remaining MD3 fixtures.`:"Simulations running — probabilities will appear when complete"}
                   </p>
                   {done&&(
                     <div>
                       <div style={{marginBottom:24}}>
                         <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10,borderBottom:"2px solid #f59e0b",paddingBottom:6}}>
                           <span style={{color:"#f59e0b",fontWeight:700,fontSize:15}}>Projected Qualifiers</span>
-                          <span style={{color:"#475569",fontSize:12}}>Top 8 most likely to advance</span>
+                          <span style={{color:"#475569",fontSize:12}}>Top 8 slots — % = chance group's 3rd place finishes in top 8</span>
                         </div>
-                        {top8.map(([team,s],i)=><ThirdRow key={team} team={team} s={s} rank={i+1} qual={true}/>)}
+                        {top8.map((entry,i)=><ThirdEntry key={entry.g} entry={entry} rank={i+1} qual={true}/>)}
                       </div>
                       {bubble.length>0&&(
                         <div style={{marginBottom:24}}>
@@ -4552,13 +4586,13 @@
                             <span style={{color:"#94a3b8",fontWeight:700,fontSize:15}}>Bubble / Longshots</span>
                             <span style={{color:"#475569",fontSize:12}}>Qualify in some simulations</span>
                           </div>
-                          {bubble.map(([team,s],i)=><ThirdRow key={team} team={team} s={s} rank={i+9} qual={false}/>)}
+                          {bubble.map((entry,i)=><ThirdEntry key={entry.g} entry={entry} rank={i+9} qual={false}/>)}
                         </div>
                       )}
                       <div style={{background:"#061228",border:"1px solid #1e3a5f",borderRadius:10,padding:"14px 16px"}}>
                         <div style={{color:"#60a5fa",fontWeight:700,fontSize:13,marginBottom:6}}>How qualification works</div>
                         <div style={{color:"#64748b",fontSize:12,lineHeight:1.7}}>
-                          The 8 best third-placed teams advance, ranked by pts → GD → goals scored → fair play. Each qualifier is assigned to one of 8 pre-set R32 slots (M74–M87) based on which groups produced the top 8 — using the official FIFA 495-combination table. The slot shown is the most common assignment across simulations.
+                          The 8 best third-placed teams advance, ranked by pts → GD → goals scored → fair play. Where two teams from the same group both appear (e.g. Australia / Paraguay), they play each other in MD3 — only one can finish 3rd, so the % shown is their combined chance of that slot qualifying. Each qualifier is then assigned to one of 8 pre-set R32 slots via the FIFA 495-combination table.
                         </div>
                       </div>
                     </div>
