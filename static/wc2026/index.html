@@ -2613,6 +2613,7 @@
         {id:"venue",label:"📍 Venue Finder"},
         {id:"trip",label:"✈️ Trip Planner"},
         {id:"groups",label:"🏟️ Group Stage"},
+        {id:"thirds",label:"🥉 3rd Place Race"},
         {id:"r32",label:"Round of 32"},
         {id:"r16",label:"Round of 16"},
         {id:"qf",label:"Quarterfinals"},
@@ -4458,7 +4459,7 @@
               <div>
                 <h2 style={{fontSize:18,fontWeight:700,color:"#f1f5f9",marginBottom:4}}>🏟️ Group Stage</h2>
                 <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:16,flexWrap:"wrap"}}>
-                  <p style={{color:"#64748b",fontSize:13,margin:0}}>Live standings after MD2 (groups A–J) and MD1 (groups K–L). MD3 games are simulated.</p>
+                  <p style={{color:"#64748b",fontSize:13,margin:0}}>Live standings: Groups A–C finalized (MD3). Groups D–J after MD2. Groups K–L after MD2. Remaining games simulated.</p>
                   <span style={{
                     background:"#0f3024",color:"#4ade80",
                     padding:"2px 10px",borderRadius:12,fontSize:11,fontWeight:700,flexShrink:0
@@ -4469,6 +4470,103 @@
                 ))}
               </div>
             )}
+
+            {/* =============== 3RD PLACE RACE TAB =============== */}
+            {tab==="thirds"&&(()=>{
+              const WIN_SLOT={A:10,B:14,C:8,D:6,E:0,F:3,G:7,H:5,I:1,J:12,K:15,L:11};
+              const RU_SLOT ={A:2,B:2,C:3,D:13,E:9,F:8,G:13,H:12,I:9,J:5,K:4,L:4};
+              const TIDX={0:"M74",1:"M77",6:"M81",7:"M82",10:"M79",11:"M80",14:"M85",15:"M87"};
+              const TOPP={M74:"vs W-E",M77:"vs W-I",M79:"vs W-A",M80:"vs W-L",M81:"vs W-D",M82:"vs W-G",M85:"vs W-B",M87:"vs W-K"};
+              const r32s=teamSlotData.r32||{};
+              const tg={};
+              for(const[g,go]of Object.entries(GROUPS))for(const t of go.teams)tg[t]=g;
+              function topSlot(team){
+                const g=tg[team],ws=WIN_SLOT[g],rs=RU_SLOT[g];
+                let best=null,bestC=0;
+                for(const[si,teams]of Object.entries(r32s)){
+                  const i=Number(si);
+                  if(i!==ws&&i!==rs&&TIDX[i]){const c=teams[team]||0;if(c>bestC){bestC=c;best=TIDX[i];}}
+                }
+                return best;
+              }
+              const candidates=Object.entries(groupQualStats)
+                .filter(([,s])=>s.third>0)
+                .sort((a,b)=>b[1].third-a[1].third);
+              const top8=candidates.slice(0,8);
+              const bubble=candidates.slice(8).filter(([,s])=>s.third>=1);
+              const maxT=top8[0]?.[1].third||1;
+              function ThirdRow({team,s,rank,qual}){
+                const g=tg[team];
+                const live=LIVE_STANDINGS[g];
+                const md=live?.md||0;
+                const pts=live?.pts?.[team]??null;
+                const gd=live?.gd?.[team]??null;
+                const slot=topSlot(team);
+                const tc=COLORS[team]||"#1e40af";
+                const barW=(s.third/maxT)*100;
+                return (
+                  <div style={{display:"flex",alignItems:"center",gap:8,padding:"8px 12px",borderRadius:8,marginBottom:5,background:"#061228",border:`1px solid ${qual?"#1e3a5f":"#0d1f3c"}`,flexWrap:"wrap",opacity:qual?1:0.65}}>
+                    <span style={{color:qual?"#f59e0b":"#475569",fontSize:12,minWidth:22,textAlign:"right",fontWeight:700}}>{qual?`#${rank}`:"–"}</span>
+                    <span style={{fontSize:22}}>{fl(team)}</span>
+                    <div style={{flex:1,minWidth:130}}>
+                      <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:4,flexWrap:"wrap"}}>
+                        <span style={{fontWeight:700,fontSize:14}}>{team}</span>
+                        <span style={{background:"#0d1f3c",color:"#a78bfa",padding:"1px 6px",borderRadius:10,fontSize:10,fontWeight:700}}>Grp {g}</span>
+                        {md===3&&pts!==null&&(<span style={{background:"#0f3024",color:"#4ade80",padding:"1px 6px",borderRadius:10,fontSize:10,fontWeight:700}}>{pts}pts {gd>=0?"+":""}{gd}GD ✓</span>)}
+                        {md===2&&pts!==null&&(<span style={{background:"#1a2540",color:"#94a3b8",padding:"1px 6px",borderRadius:10,fontSize:10}}>{pts}pts {gd>=0?"+":""}{gd}GD (MD2)</span>)}
+                      </div>
+                      <div style={{display:"flex",alignItems:"center",gap:8}}>
+                        <div style={{flex:1,height:8,background:"#0d1f3c",borderRadius:4,overflow:"hidden"}}>
+                          <div style={{width:`${barW}%`,height:"100%",background:qual?tc:"#334155",borderRadius:4,transition:"width 0.5s"}}/>
+                        </div>
+                        <span style={{color:"#f1f5f9",fontWeight:800,fontSize:13,minWidth:40,textAlign:"right"}}>{s.third}%</span>
+                      </div>
+                    </div>
+                    {slot&&(
+                      <div style={{background:"#0d1f3c",borderRadius:8,padding:"4px 10px",textAlign:"center",minWidth:64,flexShrink:0}}>
+                        <div style={{color:"#60a5fa",fontSize:11,fontWeight:700}}>{slot}</div>
+                        <div style={{color:"#475569",fontSize:9}}>{TOPP[slot]}</div>
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+              return (
+                <div>
+                  <h2 style={{fontSize:18,fontWeight:700,color:"#f1f5f9",marginBottom:4}}>🥉 3rd Place Race</h2>
+                  <p style={{color:"#64748b",fontSize:13,marginBottom:8}}>
+                    {done?`8 of 12 third-placed teams advance — ranked by % chance of finishing in the top 8. Based on ${N.toLocaleString()} simulations.`:"Simulations running — probabilities will appear when complete"}
+                  </p>
+                  {done&&(
+                    <div>
+                      <div style={{marginBottom:24}}>
+                        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10,borderBottom:"2px solid #f59e0b",paddingBottom:6}}>
+                          <span style={{color:"#f59e0b",fontWeight:700,fontSize:15}}>Projected Qualifiers</span>
+                          <span style={{color:"#475569",fontSize:12}}>Top 8 most likely to advance</span>
+                        </div>
+                        {top8.map(([team,s],i)=><ThirdRow key={team} team={team} s={s} rank={i+1} qual={true}/>)}
+                      </div>
+                      {bubble.length>0&&(
+                        <div style={{marginBottom:24}}>
+                          <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10,borderBottom:"2px solid #334155",paddingBottom:6}}>
+                            <span style={{color:"#94a3b8",fontWeight:700,fontSize:15}}>Bubble / Longshots</span>
+                            <span style={{color:"#475569",fontSize:12}}>Qualify in some simulations</span>
+                          </div>
+                          {bubble.map(([team,s],i)=><ThirdRow key={team} team={team} s={s} rank={i+9} qual={false}/>)}
+                        </div>
+                      )}
+                      <div style={{background:"#061228",border:"1px solid #1e3a5f",borderRadius:10,padding:"14px 16px"}}>
+                        <div style={{color:"#60a5fa",fontWeight:700,fontSize:13,marginBottom:6}}>How qualification works</div>
+                        <div style={{color:"#64748b",fontSize:12,lineHeight:1.7}}>
+                          The 8 best third-placed teams advance, ranked by pts → GD → goals scored → fair play. Each qualifier is assigned to one of 8 pre-set R32 slots (M74–M87) based on which groups produced the top 8 — using the official FIFA 495-combination table. The slot shown is the most common assignment across simulations.
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  {!done&&(<div style={{color:"#475569",fontSize:14,padding:"40px 0",textAlign:"center"}}>⏳ Running {N.toLocaleString()} simulations…</div>)}
+                </div>
+              );
+            })()}
 
             {/* =============== KNOCKOUT ROUND TABS =============== */}
             {["r32","r16","qf","sf","final"].map(rnd=>{
@@ -4481,7 +4579,7 @@
                   <h2 style={{fontSize:18,fontWeight:700,color:"#f1f5f9",marginBottom:4}}>{label}</h2>
                   <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:16,flexWrap:"wrap"}}>
                     <p style={{color:"#64748b",fontSize:13,margin:0}}>
-                      {n} match{n>1?"es":""} — top 3 most likely matchups from {N.toLocaleString()} simulations using live MD2 standings
+                      {n} match{n>1?"es":""} — top 3 most likely matchups from {N.toLocaleString()} simulations using live standings (Groups A–C final)
                     </p>
                     <span style={{
                       background:"#0f3024",color:"#4ade80",
@@ -4505,7 +4603,7 @@
               color:"#334155",
               fontSize:12,
             }}>
-              Monte Carlo simulation using live MD2 group standings · Official FIFA rankings (April 2026) · Updated Jun 23, 2026 · Built by{" "}
+              Monte Carlo simulation using live group standings · Official FIFA rankings (April 2026) · Updated Jun 24, 2026 · Built by{" "}
               <a href="https://debangandey.rbind.io" style={{color:"#475569",textDecoration:"none"}}>Debangan Dey</a>
             </div>
               </div>{/* /tab content */}
