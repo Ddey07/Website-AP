@@ -535,7 +535,7 @@
       D:{teams:["USA","Paraguay","Australia","Turkey"],proj:["USA","Australia"]},
       E:{teams:["Germany","Curacao","Ivory Coast","Ecuador"],proj:["Germany","Ivory Coast"]},
       F:{teams:["Netherlands","Japan","Sweden","Tunisia"],proj:["Netherlands","Japan"]},
-      G:{teams:["Belgium","Egypt","Iran","New Zealand"],proj:["Egypt","Belgium"]},
+      G:{teams:["Belgium","Egypt","Iran","New Zealand"],proj:["Egypt","Iran"]},
       H:{teams:["Spain","Cape Verde","Saudi Arabia","Uruguay"],proj:["Spain","Uruguay"]},
       I:{teams:["France","Senegal","Iraq","Norway"],proj:["France","Norway"]},
       J:{teams:["Argentina","Algeria","Austria","Jordan"],proj:["Argentina","Austria"]},
@@ -691,21 +691,22 @@
     };
 
     /* ===================== LIVE GROUP STAGE STANDINGS ===================== */
-    // Actual standings after MD2 (groups A–J) or MD1 (groups K, L — MD2 in progress Jun 23).
-    // md = matchdays completed; remaining MD games are simulated to project final standings.
+    // Actual standings: Groups A–C finalized (MD3). Groups D–L after MD2 (MD3 upcoming Jun 25–27).
+    // ranked4th = confirmed-eliminated 4th-place team (simGroup() always places them last).
+    // md = matchdays completed; remaining games are simulated to project final standings.
     const LIVE_STANDINGS = {
       A:{md:3,pts:{Mexico:9,'South Africa':4,'South Korea':3,Czechia:1},     gd:{Mexico:6,'South Africa':-1,'South Korea':-1,Czechia:-4}},
       B:{md:3,pts:{Switzerland:7,Canada:4,'Bosnia-Herz.':4,Qatar:1},         gd:{Switzerland:4,Canada:5,'Bosnia-Herz.':-1,Qatar:-8}},
       C:{md:3,pts:{Brazil:7,Morocco:7,Scotland:3,Haiti:0},                   gd:{Brazil:6,Morocco:3,Scotland:-3,Haiti:-6}},
-      D:{md:2,pts:{USA:6,Australia:3,Paraguay:3,Turkey:0},                   gd:{USA:5,Australia:0,Paraguay:-2,Turkey:-3}},
+      D:{md:2,pts:{USA:6,Australia:3,Paraguay:3,Turkey:0},                   gd:{USA:5,Australia:0,Paraguay:-2,Turkey:-3},          ranked4th:'Turkey'},
       E:{md:2,pts:{Germany:6,'Ivory Coast':3,Ecuador:1,Curacao:1},           gd:{Germany:7,'Ivory Coast':0,Ecuador:-1,Curacao:-6}},
-      F:{md:2,pts:{Netherlands:4,Japan:4,Sweden:3,Tunisia:0},                gd:{Netherlands:4,Japan:4,Sweden:0,Tunisia:-8}},
+      F:{md:2,pts:{Netherlands:4,Japan:4,Sweden:3,Tunisia:0},                gd:{Netherlands:4,Japan:4,Sweden:0,Tunisia:-8},          ranked4th:'Tunisia'},
       G:{md:2,pts:{Egypt:4,Iran:2,Belgium:2,'New Zealand':1},                gd:{Egypt:2,Iran:0,Belgium:0,'New Zealand':-2}},
       H:{md:2,pts:{Spain:4,Uruguay:2,'Cape Verde':2,'Saudi Arabia':1},       gd:{Spain:4,Uruguay:0,'Cape Verde':0,'Saudi Arabia':-4}},
       I:{md:2,pts:{France:6,Norway:6,Senegal:0,Iraq:0},                      gd:{France:5,Norway:4,Senegal:-3,Iraq:-6}},
-      J:{md:2,pts:{Argentina:6,Austria:3,Algeria:3,Jordan:0},                gd:{Argentina:5,Austria:0,Algeria:-2,Jordan:-3}},
+      J:{md:2,pts:{Argentina:6,Austria:3,Algeria:3,Jordan:0},                gd:{Argentina:5,Austria:0,Algeria:-2,Jordan:-3},          ranked4th:'Jordan'},
       K:{md:2,pts:{Colombia:6,Portugal:4,'DR Congo':1,Uzbekistan:0},         gd:{Colombia:3,Portugal:5,'DR Congo':-1,Uzbekistan:-7}},
-      L:{md:2,pts:{England:4,Ghana:4,Croatia:3,Panama:0},                    gd:{England:2,Ghana:1,Croatia:-1,Panama:-2}},
+      L:{md:2,pts:{England:4,Ghana:4,Croatia:3,Panama:0},                    gd:{England:2,Ghana:1,Croatia:-1,Panama:-2},              ranked4th:'Panama'},
     };
 
     /* ===================== PRE-TOURNAMENT MONTE CARLO SNAPSHOT ===================== */
@@ -1146,7 +1147,12 @@
         else if(r<pA+0.25){pts[a]+=1;pts[b]+=1;}
         else{pts[b]+=3;gd[b]+=(1+Math.random());gd[a]-=Math.random();}
       }
-      const rank=[...teams].sort((a,b)=>pts[b]-pts[a]||gd[b]-gd[a]||Math.random()-.5);
+      const r4=liveData?.ranked4th;
+      const rank=[...teams].sort((a,b)=>{
+        if(r4&&a===r4)return 1;
+        if(r4&&b===r4)return -1;
+        return pts[b]-pts[a]||gd[b]-gd[a]||Math.random()-.5;
+      });
       return {rank, pts, gd};
     }
     // assign3rd: thirds is all 12 (one per group), sorted by simulated pts+GD desc.
@@ -4459,7 +4465,7 @@
               <div>
                 <h2 style={{fontSize:18,fontWeight:700,color:"#f1f5f9",marginBottom:4}}>🏟️ Group Stage</h2>
                 <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:16,flexWrap:"wrap"}}>
-                  <p style={{color:"#64748b",fontSize:13,margin:0}}>Live standings: Groups A–C finalized (MD3). Groups D–J after MD2. Groups K–L after MD2. Remaining games simulated.</p>
+                  <p style={{color:"#64748b",fontSize:13,margin:0}}>Live standings: Groups A–C finalized (MD3). Groups D–L after MD2 (MD3 plays Jun 25–27). Remaining games simulated.</p>
                   <span style={{
                     background:"#0f3024",color:"#4ade80",
                     padding:"2px 10px",borderRadius:12,fontSize:11,fontWeight:700,flexShrink:0
@@ -4490,8 +4496,10 @@
                 return best;
               }
               // Build per-team candidates
+              // Teams confirmed eliminated as 4th place — never appear in 3rd place race
+              const ELIM4=new Set(['Czechia','Qatar','Haiti','Turkey','Tunisia','Panama','Jordan']);
               const rawCandidates=Object.entries(groupQualStats)
-                .filter(([,s])=>s.third>0)
+                .filter(([t,s])=>s.third>0&&!ELIM4.has(t))
                 .sort((a,b)=>b[1].third-a[1].third);
               // Merge same-group teams: only one can be 3rd from any group, so collapse
               // them into a single row showing both names (mutually exclusive events)
