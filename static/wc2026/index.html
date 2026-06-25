@@ -695,18 +695,20 @@
     // ranked4th = confirmed-eliminated 4th-place team (simGroup() always places them last).
     // md = matchdays completed; remaining games are simulated to project final standings.
     const LIVE_STANDINGS = {
-      A:{md:3,pts:{Mexico:9,'South Africa':4,'South Korea':3,Czechia:1},     gd:{Mexico:6,'South Africa':-1,'South Korea':-1,Czechia:-4}},
-      B:{md:3,pts:{Switzerland:7,Canada:4,'Bosnia-Herz.':4,Qatar:1},         gd:{Switzerland:4,Canada:5,'Bosnia-Herz.':-1,Qatar:-8}},
-      C:{md:3,pts:{Brazil:7,Morocco:7,Scotland:3,Haiti:0},                   gd:{Brazil:6,Morocco:3,Scotland:-3,Haiti:-6}},
-      D:{md:2,pts:{USA:6,Australia:3,Paraguay:3,Turkey:0},                   gd:{USA:5,Australia:0,Paraguay:-2,Turkey:-3},          ranked4th:'Turkey'},
-      E:{md:2,pts:{Germany:6,'Ivory Coast':3,Ecuador:1,Curacao:1},           gd:{Germany:7,'Ivory Coast':0,Ecuador:-1,Curacao:-6}},
-      F:{md:2,pts:{Netherlands:4,Japan:4,Sweden:3,Tunisia:0},                gd:{Netherlands:4,Japan:4,Sweden:0,Tunisia:-8},          ranked4th:'Tunisia'},
-      G:{md:2,pts:{Egypt:4,Iran:2,Belgium:2,'New Zealand':1},                gd:{Egypt:2,Iran:0,Belgium:0,'New Zealand':-2}},
-      H:{md:2,pts:{Spain:4,Uruguay:2,'Cape Verde':2,'Saudi Arabia':1},       gd:{Spain:4,Uruguay:0,'Cape Verde':0,'Saudi Arabia':-4}},
-      I:{md:2,pts:{France:6,Norway:6,Senegal:0,Iraq:0},                      gd:{France:5,Norway:4,Senegal:-3,Iraq:-6}},
-      J:{md:2,pts:{Argentina:6,Austria:3,Algeria:3,Jordan:0},                gd:{Argentina:5,Austria:0,Algeria:-2,Jordan:-3},          ranked4th:'Jordan'},
-      K:{md:2,pts:{Colombia:6,Portugal:4,'DR Congo':1,Uzbekistan:0},         gd:{Colombia:3,Portugal:5,'DR Congo':-1,Uzbekistan:-7}},
-      L:{md:2,pts:{England:4,Ghana:4,Croatia:3,Panama:0},                    gd:{England:2,Ghana:1,Croatia:-1,Panama:-2},              ranked4th:'Panama'},
+      // gf = goals scored (used as 3rd tiebreaker after pts, gd — mirrors FIFA rules)
+      // clinched = mathematically confirmed qualifiers; ranked4th = confirmed-eliminated 4th place
+      A:{md:3,pts:{Mexico:9,'South Africa':4,'South Korea':3,Czechia:1},     gd:{Mexico:6,'South Africa':-1,'South Korea':-1,Czechia:-4},   gf:{Mexico:6,'South Africa':2,'South Korea':2,Czechia:2},            clinched:['Mexico','South Africa']},
+      B:{md:3,pts:{Switzerland:7,Canada:4,'Bosnia-Herz.':4,Qatar:1},         gd:{Switzerland:4,Canada:5,'Bosnia-Herz.':-1,Qatar:-8},         gf:{Switzerland:7,Canada:8,'Bosnia-Herz.':5,Qatar:2},                clinched:['Switzerland','Canada']},
+      C:{md:3,pts:{Brazil:7,Morocco:7,Scotland:3,Haiti:0},                   gd:{Brazil:6,Morocco:3,Scotland:-3,Haiti:-6},                   gf:{Brazil:7,Morocco:6,Scotland:1,Haiti:2},                          clinched:['Brazil','Morocco']},
+      D:{md:2,pts:{USA:6,Australia:3,Paraguay:3,Turkey:0},                   gd:{USA:5,Australia:0,Paraguay:-2,Turkey:-3},                   gf:{USA:6,Australia:2,Paraguay:2,Turkey:0},          ranked4th:'Turkey',  clinched:['USA']},
+      E:{md:2,pts:{Germany:6,'Ivory Coast':3,Ecuador:1,Curacao:1},           gd:{Germany:7,'Ivory Coast':0,Ecuador:-1,Curacao:-6},           gf:{Germany:9,'Ivory Coast':2,Ecuador:0,Curacao:1},                  clinched:['Germany']},
+      F:{md:2,pts:{Netherlands:4,Japan:4,Sweden:3,Tunisia:0},                gd:{Netherlands:4,Japan:4,Sweden:0,Tunisia:-8},                 gf:{Netherlands:7,Japan:6,Sweden:6,Tunisia:1},       ranked4th:'Tunisia', clinched:['Netherlands']},
+      G:{md:2,pts:{Egypt:4,Iran:2,Belgium:2,'New Zealand':1},                gd:{Egypt:2,Iran:0,Belgium:0,'New Zealand':-2},                 gf:{Egypt:4,Iran:2,Belgium:1,'New Zealand':3},                       clinched:[]},
+      H:{md:2,pts:{Spain:4,Uruguay:2,'Cape Verde':2,'Saudi Arabia':1},       gd:{Spain:4,Uruguay:0,'Cape Verde':0,'Saudi Arabia':-4},        gf:{Spain:4,Uruguay:3,'Cape Verde':2,'Saudi Arabia':1},              clinched:[]},
+      I:{md:2,pts:{France:6,Norway:6,Senegal:0,Iraq:0},                      gd:{France:5,Norway:4,Senegal:-3,Iraq:-6},                      gf:{France:6,Norway:7,Senegal:3,Iraq:1},                             clinched:['France','Norway']},
+      J:{md:2,pts:{Argentina:6,Austria:3,Algeria:3,Jordan:0},                gd:{Argentina:5,Austria:0,Algeria:-2,Jordan:-3},                gf:{Argentina:5,Austria:3,Algeria:2,Jordan:2},       ranked4th:'Jordan',  clinched:['Argentina']},
+      K:{md:2,pts:{Colombia:6,Portugal:4,'DR Congo':1,Uzbekistan:0},         gd:{Colombia:3,Portugal:5,'DR Congo':-1,Uzbekistan:-7},         gf:{Colombia:4,Portugal:6,'DR Congo':1,Uzbekistan:1},                clinched:['Colombia','Portugal']},
+      L:{md:2,pts:{England:4,Ghana:4,Croatia:3,Panama:0},                    gd:{England:2,Ghana:1,Croatia:-1,Panama:-2},                    gf:{England:4,Ghana:1,Croatia:3,Panama:0},           ranked4th:'Panama',  clinched:[]},
     };
 
     /* ===================== PRE-TOURNAMENT MONTE CARLO SNAPSHOT ===================== */
@@ -1932,12 +1934,14 @@
       const matches=GS[letter]||[];
       const live=LIVE_STANDINGS[letter];
       const md=live?.md||0;
-      // Sort teams by live standings if available
+      // Sort teams by live standings: pts → GD → GF (mirrors FIFA tiebreaker order)
       const liveTeams=md>0
         ?[...g.teams].sort((a,b)=>{
             const pd=(live.pts[b]||0)-(live.pts[a]||0);
             if(pd!==0)return pd;
-            return (live.gd[b]||0)-(live.gd[a]||0);
+            const gdd=(live.gd[b]||0)-(live.gd[a]||0);
+            if(gdd!==0)return gdd;
+            return (live.gf[b]||0)-(live.gf[a]||0);
           })
         :g.teams;
       return (
@@ -1978,8 +1982,11 @@
                 <span style={{textAlign:"center"}}>GD</span><span style={{textAlign:"center"}}>Played</span>
               </div>
               {liveTeams.map((t,i)=>{
-                const isProj=g.proj.includes(t);
-                const eliminated=!isProj&&i>2; // rough indicator
+                // Position-based: currently in a top-2 spot in live standings (sorted by pts→GD→GF)
+                const isProj=i<2;
+                // ✓ only for mathematically confirmed qualifiers (clinched[] set in LIVE_STANDINGS)
+                const isClinched=(live?.clinched||[]).includes(t);
+                const eliminated=i>=3; // 4th place dimmed
                 const pts=live.pts[t]??0, gdd=live.gd[t]??0;
                 const played=md*(liveTeams.filter((x,xi)=>xi<i||xi>i).length>0?1:0);
                 // Each team plays md games (md matchdays completed)
@@ -2000,7 +2007,8 @@
                       <span style={{fontSize:15}}>{fl(t)}</span>
                       <span style={{fontSize:12,fontWeight:isProj?700:400,
                         color:isProj?"#e2e8f0":"#94a3b8"}}>{t}</span>
-                      {isProj&&<span style={{color:"#4ade80",fontSize:10,fontWeight:700}}>✓</span>}
+                      {isClinched&&<span style={{color:"#4ade80",fontSize:10,fontWeight:700,marginLeft:2}}>✓</span>}
+                      {isProj&&!isClinched&&<span style={{color:"#fbbf24",fontSize:10,fontWeight:600,marginLeft:2}}>→</span>}
                     </div>
                     <span style={{textAlign:"center",fontWeight:700,fontSize:13,
                       color:pts>=6?"#4ade80":pts>=3?"#fbbf24":"#94a3b8"}}>{pts}</span>
@@ -3874,8 +3882,22 @@
                           borderRadius:10,padding:"14px 16px",marginBottom:20
                         }}>
                           <div style={{fontWeight:700,fontSize:14,color:"#a78bfa",marginBottom:10}}>Group {teamGroup} — All Teams</div>
-                          {groupObj.teams.map(t=>{
-                            const isProj=groupObj.proj.includes(t);
+                          {(()=>{
+                            const tLive=LIVE_STANDINGS[teamGroup];
+                            const tMd=tLive?.md||0;
+                            // Sort same way as Group Stage: pts→GD→GF
+                            const sortedGrp=tMd>0
+                              ?[...groupObj.teams].sort((a,b)=>{
+                                  const pd=(tLive.pts[b]||0)-(tLive.pts[a]||0);
+                                  if(pd!==0)return pd;
+                                  const gdd=(tLive.gd[b]||0)-(tLive.gd[a]||0);
+                                  if(gdd!==0)return gdd;
+                                  return (tLive.gf[b]||0)-(tLive.gf[a]||0);
+                                })
+                              :groupObj.teams;
+                            return sortedGrp.map((t,ti)=>{
+                            const isProj=tMd>0?ti<2:groupObj.proj.includes(t);
+                            const isClinched=(tLive?.clinched||[]).includes(t);
                             const isThis=t===trackTeam;
                             return (
                               <div key={t} className={(isThis||isProj)?"proj-team-row":""} style={{
@@ -3888,11 +3910,11 @@
                                 <span className="proj-team-name" style={{flex:1,fontWeight:isThis?700:400,color:isThis?"#f1f5f9":"#e2e8f0"}}>{t}</span>
                                 <span style={{color:"#64748b",fontSize:11}}>ELO {ELO[t]}</span>
                                 <span style={{color:"#64748b",fontSize:11}}>#{RANKS[t]}</span>
-                                {isProj&&<span style={{color:"#4ade80",fontSize:11,fontWeight:700}}>✓</span>}
+                                {isClinched&&<span style={{color:"#4ade80",fontSize:11,fontWeight:700}}>✓</span>}
+                                {isProj&&!isClinched&&<span style={{color:"#fbbf24",fontSize:11,fontWeight:700}}>→</span>}
                                 {isThis&&<span style={{color:"#60a5fa",fontSize:11,fontWeight:700}}>← you</span>}
                               </div>
-                            );
-                          })}
+                            );})})()}
                         </div>
                       )}
 
