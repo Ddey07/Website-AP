@@ -1,26 +1,89 @@
 [
   {
-    "id": "2391728",
-    "teamA": "Mexico",
-    "teamB": "South Africa",
+    "id": "wc26-J-Argentina-Algeria",
+    "teamA": "Argentina",
+    "teamB": "Algeria",
+    "scoreA": 3,
+    "scoreB": 0,
+    "round": "1",
+    "stage": "group"
+  },
+  {
+    "id": "wc26-J-Argentina-Austria",
+    "teamA": "Argentina",
+    "teamB": "Austria",
+    "scoreA": 2,
+    "scoreB": 0,
+    "round": "2",
+    "stage": "group"
+  },
+  {
+    "id": "wc26-D-Australia-Turkey",
+    "teamA": "Australia",
+    "teamB": "Turkey",
     "scoreA": 2,
     "scoreB": 0,
     "round": "1",
     "stage": "group"
   },
   {
-    "id": "2391729",
-    "teamA": "USA",
-    "teamB": "Paraguay",
-    "scoreA": 4,
+    "id": "wc26-J-Austria-Jordan",
+    "teamA": "Austria",
+    "teamB": "Jordan",
+    "scoreA": 3,
     "scoreB": 1,
     "round": "1",
+    "stage": "group"
+  },
+  {
+    "id": "wc26-G-Belgium-Egypt",
+    "teamA": "Belgium",
+    "teamB": "Egypt",
+    "scoreA": 1,
+    "scoreB": 1,
+    "round": "1",
+    "stage": "group"
+  },
+  {
+    "id": "wc26-G-Belgium-Iran",
+    "teamA": "Belgium",
+    "teamB": "Iran",
+    "scoreA": 0,
+    "scoreB": 0,
+    "round": "2",
+    "stage": "group"
+  },
+  {
+    "id": "2461115",
+    "teamA": "Bosnia-Herz.",
+    "teamB": "Qatar",
+    "scoreA": 3,
+    "scoreB": 1,
+    "round": "3",
+    "stage": "group"
+  },
+  {
+    "id": "wc26-C-Brazil-Haiti",
+    "teamA": "Brazil",
+    "teamB": "Haiti",
+    "scoreA": 3,
+    "scoreB": 0,
+    "round": "2",
     "stage": "group"
   },
   {
     "id": "2391730",
     "teamA": "Brazil",
     "teamB": "Morocco",
+    "scoreA": 1,
+    "scoreB": 1,
+    "round": "1",
+    "stage": "group"
+  },
+  {
+    "id": "2461104",
+    "teamA": "Canada",
+    "teamB": "Bosnia-Herz.",
     "scoreA": 1,
     "scoreB": 1,
     "round": "1",
@@ -36,20 +99,191 @@
     "stage": "group"
   },
   {
-    "id": "2391747",
-    "teamA": "Mexico",
-    "teamB": "South Korea",
+    "id": "wc26-K-Colombia-DRCongo",
+    "teamA": "Colombia",
+    "teamB": "DR Congo",
     "scoreA": 1,
     "scoreB": 0,
     "round": "2",
     "stage": "group"
   },
   {
-    "id": "2391749",
-    "teamA": "Scotland",
-    "teamB": "Morocco",
+    "id": "wc26-E-Curacao-IvoryCoast",
+    "teamA": "Curacao",
+    "teamB": "Ivory Coast",
+    "scoreA": 0,
+    "scoreB": 2,
+    "round": "3",
+    "stage": "group"
+  },
+  {
+    "id": "wc26-A-Czechia-Mexico",
+    "teamA": "Czechia",
+    "teamB": "Mexico",
+    "scoreA": 0,
+    "scoreB": 3,
+    "round": "3",
+    "stage": "group"
+  },
+  {
+    "id": "2461109",
+    "teamA": "Czechia",
+    "teamB": "South Africa",
+    "scoreA": 1,
+    "scoreB": 1,
+    "round": "2",
+    "stage": "group"
+  },
+  {
+    "id": "wc26-E-Ecuador-Curacao",
+    "teamA": "Ecuador",
+    "teamB": "Curacao",
+    "scoreA": 0,
+    "scoreB": 0,
+    "round": "2",
+    "stage": "group"
+  },
+  {
+    "id": "wc26-E-Ecuador-Germany",
+    "teamA": "Ecuador",
+    "teamB": "Germany",
+    "scoreA": 2,
+    "scoreB": 1,
+    "round": "3",
+    "stage": "group"
+  },
+  {
+    "id": "wc26-L-England-Croatia",
+    "teamA": "England",
+    "teamB": "Croatia",
+    "scoreA": 4,
+    "scoreB": 2,
+    "round": "1",
+    "stage": "group"
+  },
+  {
+    "id": "wc26-L-England-Ghana",
+    "teamA": "England",
+    "teamB": "Ghana",
+    "scoreA": 0,
+    "scoreB": 0,
+    "round": "2",
+    "stage": "group"
+  },
+  {
+    "id": "wc26-I-France-Iraq",
+    "teamA": "France",
+    "teamB": "Iraq",
+    "scoreA": 3,
+    "scoreB": 0,
+    "round": "2",
+    "stage": "group"
+  },
+  {
+    "id": "wc26-I-France-Senegal",
+    "teamA": "France",
+    "teamB": "Senegal",
+    "scoreA": 3,
+    "scoreB": 1,
+    "round": "1",
+    "stage": "group"
+  },
+  {
+    "id": "wc26-E-Germany-Curacao",
+    "teamA": "Germany",
+    "teamB": "Curacao",
+    "scoreA": 7,
+    "scoreB": 1,
+    "round": "1",
+    "stage": "group"
+  },
+  {
+    "id": "wc26-E-Germany-IvoryCoast",
+    "teamA": "Germany",
+    "teamB": "Ivory Coast",
+    "scoreA": 2,
+    "scoreB": 1,
+    "round": "2",
+    "stage": "group"
+  },
+  {
+    "id": "wc26-L-Ghana-Panama",
+    "teamA": "Ghana",
+    "teamB": "Panama",
+    "scoreA": 1,
+    "scoreB": 0,
+    "round": "1",
+    "stage": "group"
+  },
+  {
+    "id": "wc26-C-Haiti-Scotland",
+    "teamA": "Haiti",
+    "teamB": "Scotland",
     "scoreA": 0,
     "scoreB": 1,
+    "round": "1",
+    "stage": "group"
+  },
+  {
+    "id": "wc26-G-Iran-NewZealand",
+    "teamA": "Iran",
+    "teamB": "New Zealand",
+    "scoreA": 2,
+    "scoreB": 2,
+    "round": "1",
+    "stage": "group"
+  },
+  {
+    "id": "wc26-I-Iraq-Norway",
+    "teamA": "Iraq",
+    "teamB": "Norway",
+    "scoreA": 1,
+    "scoreB": 4,
+    "round": "1",
+    "stage": "group"
+  },
+  {
+    "id": "wc26-E-IvoryCoast-Ecuador",
+    "teamA": "Ivory Coast",
+    "teamB": "Ecuador",
+    "scoreA": 1,
+    "scoreB": 0,
+    "round": "1",
+    "stage": "group"
+  },
+  {
+    "id": "wc26-F-Japan-Sweden",
+    "teamA": "Japan",
+    "teamB": "Sweden",
+    "scoreA": 1,
+    "scoreB": 1,
+    "round": "3",
+    "stage": "group"
+  },
+  {
+    "id": "wc26-J-Jordan-Algeria",
+    "teamA": "Jordan",
+    "teamB": "Algeria",
+    "scoreA": 1,
+    "scoreB": 2,
+    "round": "2",
+    "stage": "group"
+  },
+  {
+    "id": "2391728",
+    "teamA": "Mexico",
+    "teamB": "South Africa",
+    "scoreA": 2,
+    "scoreB": 0,
+    "round": "1",
+    "stage": "group"
+  },
+  {
+    "id": "2391747",
+    "teamA": "Mexico",
+    "teamB": "South Korea",
+    "scoreA": 1,
+    "scoreB": 0,
     "round": "2",
     "stage": "group"
   },
@@ -63,11 +297,128 @@
     "stage": "group"
   },
   {
+    "id": "wc26-F-Netherlands-Japan",
+    "teamA": "Netherlands",
+    "teamB": "Japan",
+    "scoreA": 2,
+    "scoreB": 2,
+    "round": "1",
+    "stage": "group"
+  },
+  {
+    "id": "wc26-F-Netherlands-Sweden",
+    "teamA": "Netherlands",
+    "teamB": "Sweden",
+    "scoreA": 5,
+    "scoreB": 1,
+    "round": "2",
+    "stage": "group"
+  },
+  {
+    "id": "wc26-G-NewZealand-Egypt",
+    "teamA": "New Zealand",
+    "teamB": "Egypt",
+    "scoreA": 1,
+    "scoreB": 3,
+    "round": "2",
+    "stage": "group"
+  },
+  {
+    "id": "wc26-I-Norway-France",
+    "teamA": "Norway",
+    "teamB": "France",
+    "scoreA": 1,
+    "scoreB": 4,
+    "round": "3",
+    "stage": "group"
+  },
+  {
+    "id": "wc26-I-Norway-Senegal",
+    "teamA": "Norway",
+    "teamB": "Senegal",
+    "scoreA": 3,
+    "scoreB": 2,
+    "round": "2",
+    "stage": "group"
+  },
+  {
+    "id": "wc26-L-Panama-Croatia",
+    "teamA": "Panama",
+    "teamB": "Croatia",
+    "scoreA": 0,
+    "scoreB": 1,
+    "round": "2",
+    "stage": "group"
+  },
+  {
+    "id": "wc26-D-Paraguay-Australia",
+    "teamA": "Paraguay",
+    "teamB": "Australia",
+    "scoreA": 0,
+    "scoreB": 0,
+    "round": "3",
+    "stage": "group"
+  },
+  {
+    "id": "wc26-K-Portugal-DRCongo",
+    "teamA": "Portugal",
+    "teamB": "DR Congo",
+    "scoreA": 1,
+    "scoreB": 1,
+    "round": "1",
+    "stage": "group"
+  },
+  {
+    "id": "wc26-K-Portugal-Uzbekistan",
+    "teamA": "Portugal",
+    "teamB": "Uzbekistan",
+    "scoreA": 5,
+    "scoreB": 0,
+    "round": "2",
+    "stage": "group"
+  },
+  {
+    "id": "wc26-B-Qatar-Switzerland",
+    "teamA": "Qatar",
+    "teamB": "Switzerland",
+    "scoreA": 1,
+    "scoreB": 1,
+    "round": "1",
+    "stage": "group"
+  },
+  {
+    "id": "wc26-H-SaudiArabia-Uruguay",
+    "teamA": "Saudi Arabia",
+    "teamB": "Uruguay",
+    "scoreA": 1,
+    "scoreB": 1,
+    "round": "1",
+    "stage": "group"
+  },
+  {
     "id": "2391765",
     "teamA": "Scotland",
     "teamB": "Brazil",
     "scoreA": 0,
     "scoreB": 3,
+    "round": "3",
+    "stage": "group"
+  },
+  {
+    "id": "2391749",
+    "teamA": "Scotland",
+    "teamB": "Morocco",
+    "scoreA": 0,
+    "scoreB": 1,
+    "round": "2",
+    "stage": "group"
+  },
+  {
+    "id": "wc26-I-Senegal-Iraq",
+    "teamA": "Senegal",
+    "teamB": "Iraq",
+    "scoreA": 5,
+    "scoreB": 0,
     "round": "3",
     "stage": "group"
   },
@@ -81,15 +432,6 @@
     "stage": "group"
   },
   {
-    "id": "2391767",
-    "teamA": "Switzerland",
-    "teamB": "Canada",
-    "scoreA": 2,
-    "scoreB": 1,
-    "round": "3",
-    "stage": "group"
-  },
-  {
     "id": "2461103",
     "teamA": "South Korea",
     "teamB": "Czechia",
@@ -99,21 +441,30 @@
     "stage": "group"
   },
   {
-    "id": "2461104",
-    "teamA": "Canada",
-    "teamB": "Bosnia-Herz.",
-    "scoreA": 1,
-    "scoreB": 1,
+    "id": "wc26-H-Spain-CapeVerde",
+    "teamA": "Spain",
+    "teamB": "Cape Verde",
+    "scoreA": 0,
+    "scoreB": 0,
     "round": "1",
     "stage": "group"
   },
   {
-    "id": "2461109",
-    "teamA": "Czechia",
-    "teamB": "South Africa",
-    "scoreA": 1,
-    "scoreB": 1,
+    "id": "wc26-H-Spain-SaudiArabia",
+    "teamA": "Spain",
+    "teamB": "Saudi Arabia",
+    "scoreA": 4,
+    "scoreB": 0,
     "round": "2",
+    "stage": "group"
+  },
+  {
+    "id": "wc26-F-Sweden-Tunisia",
+    "teamA": "Sweden",
+    "teamB": "Tunisia",
+    "scoreA": 5,
+    "scoreB": 1,
+    "round": "1",
     "stage": "group"
   },
   {
@@ -126,12 +477,84 @@
     "stage": "group"
   },
   {
-    "id": "2461115",
-    "teamA": "Bosnia-Herz.",
-    "teamB": "Qatar",
-    "scoreA": 3,
+    "id": "2391767",
+    "teamA": "Switzerland",
+    "teamB": "Canada",
+    "scoreA": 2,
     "scoreB": 1,
     "round": "3",
+    "stage": "group"
+  },
+  {
+    "id": "wc26-F-Tunisia-Japan",
+    "teamA": "Tunisia",
+    "teamB": "Japan",
+    "scoreA": 0,
+    "scoreB": 4,
+    "round": "2",
+    "stage": "group"
+  },
+  {
+    "id": "wc26-F-Tunisia-Netherlands",
+    "teamA": "Tunisia",
+    "teamB": "Netherlands",
+    "scoreA": 1,
+    "scoreB": 3,
+    "round": "3",
+    "stage": "group"
+  },
+  {
+    "id": "wc26-D-Turkey-Paraguay",
+    "teamA": "Turkey",
+    "teamB": "Paraguay",
+    "scoreA": 0,
+    "scoreB": 1,
+    "round": "2",
+    "stage": "group"
+  },
+  {
+    "id": "wc26-D-Turkey-USA",
+    "teamA": "Turkey",
+    "teamB": "USA",
+    "scoreA": 3,
+    "scoreB": 2,
+    "round": "3",
+    "stage": "group"
+  },
+  {
+    "id": "wc26-D-USA-Australia",
+    "teamA": "USA",
+    "teamB": "Australia",
+    "scoreA": 2,
+    "scoreB": 0,
+    "round": "2",
+    "stage": "group"
+  },
+  {
+    "id": "2391729",
+    "teamA": "USA",
+    "teamB": "Paraguay",
+    "scoreA": 4,
+    "scoreB": 1,
+    "round": "1",
+    "stage": "group"
+  },
+  {
+    "id": "wc26-H-Uruguay-CapeVerde",
+    "teamA": "Uruguay",
+    "teamB": "Cape Verde",
+    "scoreA": 2,
+    "scoreB": 2,
+    "round": "2",
+    "stage": "group"
+  },
+  {
+    "id": "wc26-K-Uzbekistan-Colombia",
+    "teamA": "Uzbekistan",
+    "teamB": "Colombia",
+    "scoreA": 1,
+    "scoreB": 3,
+    "round": "1",
     "stage": "group"
   }
 ]

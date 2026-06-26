@@ -173,19 +173,27 @@ def fetch_results():
     return matches
 
 
+def _match_key(m):
+    """Identity of a match independent of data source: stage + the two teams.
+    Each pair meets at most once per stage, so this safely dedupes the hand-
+    entered results against anything the live feed returns for the same game."""
+    return (m.get("stage", "group"), tuple(sorted([m["teamA"], m["teamB"]])))
+
+
 def merge_results(fetched):
-    """Merge newly-finished matches into the persistent wc_results.json store
-    (keyed by event id). Returns the full accumulated list."""
+    """Merge newly-finished matches into the persistent wc_results.json store,
+    keyed by match identity (not event id) so the feed never duplicates a game
+    that's already recorded. Returns the full accumulated list."""
     store = {}
     if RESULTS_FILE.exists():
         try:
             for m in json.loads(RESULTS_FILE.read_text()):
-                store[m.get("id") or f"{m['teamA']}|{m['teamB']}"] = m
+                store[_match_key(m)] = m
         except (ValueError, OSError):
             store = {}
     for m in fetched:
-        store[m["id"]] = m  # newest wins
-    merged = sorted(store.values(), key=lambda m: (m.get("stage", ""), str(m.get("id"))))
+        store[_match_key(m)] = m  # a finished feed result refreshes the stored one
+    merged = sorted(store.values(), key=lambda m: (m.get("stage", ""), m["teamA"], m["teamB"]))
     RESULTS_FILE.write_text(json.dumps(merged, indent=2, ensure_ascii=False))
     return merged
 
