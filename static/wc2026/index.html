@@ -1166,38 +1166,83 @@
         :null;
       const games=remainingPairs??
         (()=>{const p=[];for(let i=0;i<teams.length;i++)for(let j=i+1;j<teams.length;j++)p.push([teams[i],teams[j]]);return p;})();
+      // Record every match (played + simulated) as [teamA,teamB,goalsA,goalsB]
+      // so we can apply the official head-to-head tie-break among level teams.
+      // Played results (when known) come from liveData.matches; the rest are
+      // simulated below.
+      const matches=(liveData?.matches||[]).map(m=>[m[0],m[1],m[2],m[3]]);
       for(const[a,b]of games){
         const pA=wp(a,b,groupVenue)*0.75,r=Math.random();
         if(r<pA){
           // A wins: zero-sum margin 1-4 goals, loser scores 0-1
           const m=Math.floor(Math.random()*4)+1,gb=Math.floor(Math.random()*2);
           pts[a]+=3; gd[a]+=m; gd[b]-=m; gf[a]+=(m+gb); gf[b]+=gb;
+          matches.push([a,b,m+gb,gb]);
         } else if(r<pA+0.25){
           // Draw: 0-2 goals each, GD unchanged
           const g=Math.floor(Math.random()*3);
           pts[a]+=1; pts[b]+=1; gf[a]+=g; gf[b]+=g;
+          matches.push([a,b,g,g]);
         } else {
           // B wins: zero-sum margin 1-4 goals, loser scores 0-1
           const m=Math.floor(Math.random()*4)+1,ga=Math.floor(Math.random()*2);
           pts[b]+=3; gd[b]+=m; gd[a]-=m; gf[b]+=(m+ga); gf[a]+=ga;
+          matches.push([a,b,ga,m+ga]);
         }
       }
-      const r4=liveData?.ranked4th;
-      // lockedFirst: a team that has mathematically clinched 1st (e.g. via a
-      // head-to-head win the aggregate table can't see). Pin it to the top so a
-      // rival can't "win the group" in the ~1% of sims where points tie but the
-      // simulated overall GD would otherwise overtake it.
-      const lf=liveData?.lockedFirst;
-      const rank=[...teams].sort((a,b)=>{
-        if(lf){ if(a===lf)return -1; if(b===lf)return 1; }
-        if(r4){ if(a===r4)return 1; if(b===r4)return -1; }
-        // Official FIFA classification: Points → GD → GF → (fair play) → FIFA ranking.
-        // Fair-play data isn't modelled, so we fall through to the FIFA ranking
-        // tie-breaker (lower position number wins) instead of a random coin flip.
-        return pts[b]-pts[a]||gd[b]-gd[a]||gf[b]-gf[a]
-          ||((FIFA_TIEBREAK[a]||999)-(FIFA_TIEBREAK[b]||999));
-      });
+      const r4=liveData?.ranked4th;            // confirmed last (4th) place
+      const lf=liveData?.lockedFirst;          // mathematically clinched group winner
+      const rank=fifaRankGroup(teams,pts,gd,gf,matches,lf,r4);
       return {rank, pts, gd, gf};
+    }
+
+    // Official FIFA 2026 group classification order:
+    //   1) points (all matches)
+    //   2) head-to-head points  ┐ among the teams still level (criteria a-c),
+    //   3) head-to-head GD       │ re-applied to any subset that stays level
+    //   4) head-to-head GF      ┘
+    //   5) overall GD
+    //   6) overall GF
+    //   7) fair play  (not modelled — skipped)
+    //   8) FIFA ranking (most recent), then older rankings
+    // lf pins a clinched winner to 1st; r4 pins a confirmed team to 4th.
+    function fifaRankGroup(teams,pts,gd,gf,matches,lf,r4){
+      const byOverall=g=>[...g].sort((x,y)=>
+        pts[y]-pts[x]||gd[y]-gd[x]||gf[y]-gf[x]
+        ||((FIFA_TIEBREAK[x]||999)-(FIFA_TIEBREAK[y]||999)));
+      // Mini-league points/GD/GF using only the matches among the given teams.
+      const mini=g=>{
+        const S=new Set(g),p={},d={},f={};
+        g.forEach(t=>{p[t]=0;d[t]=0;f[t]=0;});
+        for(const[a,b,ga,gb]of matches){
+          if(!S.has(a)||!S.has(b))continue;
+          f[a]+=ga;f[b]+=gb;d[a]+=ga-gb;d[b]+=gb-ga;
+          if(ga>gb)p[a]+=3;else if(gb>ga)p[b]+=3;else{p[a]+=1;p[b]+=1;}
+        }
+        return{p,d,f};
+      };
+      // Order a set of teams level on overall points via head-to-head, recursing
+      // on any sub-group that head-to-head leaves level, else overall criteria.
+      const resolve=g=>{
+        if(g.length===1)return g;
+        const{p,d,f}=mini(g);
+        const buckets={};
+        g.forEach(t=>{const k=p[t]+','+d[t]+','+f[t];(buckets[k]=buckets[k]||[]).push(t);});
+        const keys=Object.keys(buckets).sort((k1,k2)=>{
+          const A=k1.split(',').map(Number),B=k2.split(',').map(Number);
+          return B[0]-A[0]||B[1]-A[1]||B[2]-A[2];});
+        if(keys.length===1)return byOverall(g); // H2H can't separate -> overall criteria
+        let out=[];
+        for(const k of keys)out=out.concat(resolve(buckets[k]));
+        return out;
+      };
+      const byPts={};
+      teams.forEach(t=>{(byPts[pts[t]]=byPts[pts[t]]||[]).push(t);});
+      let order=[];
+      Object.keys(byPts).map(Number).sort((a,b)=>b-a).forEach(P=>{order=order.concat(resolve(byPts[P]));});
+      if(lf){order=order.filter(t=>t!==lf);order.unshift(lf);}
+      if(r4){order=order.filter(t=>t!==r4);order.push(r4);}
+      return order;
     }
     // assign3rd: thirds is all 12 (one per group), sorted by pts→GD→GF desc.
     // Select the 8 best 3rd-place qualifiers (FIFA criteria: pts, then GD, then GF), then look up the FIFA 495 slot assignment.

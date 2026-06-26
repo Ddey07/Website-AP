@@ -1,5 +1,5 @@
 {
-  "updated": "2026-06-26T21:55:10Z",
+  "updated": "2026-06-26T22:02:08Z",
   "source": "eloratings.net/World.tsv + thesportsdb.com",
   "formWeight": 0.33,
   "elo": {
@@ -176,6 +176,38 @@
       "clinched": [
         "Mexico",
         "South Africa"
+      ],
+      "matches": [
+        [
+          "Mexico",
+          "South Africa",
+          2,
+          0
+        ],
+        [
+          "Mexico",
+          "South Korea",
+          1,
+          0
+        ],
+        [
+          "South Africa",
+          "South Korea",
+          1,
+          0
+        ],
+        [
+          "South Korea",
+          "Czechia",
+          2,
+          1
+        ],
+        [
+          "Czechia",
+          "South Africa",
+          1,
+          1
+        ]
       ]
     },
     "B": {
@@ -201,6 +233,38 @@
       "clinched": [
         "Switzerland",
         "Canada"
+      ],
+      "matches": [
+        [
+          "Canada",
+          "Qatar",
+          6,
+          0
+        ],
+        [
+          "Switzerland",
+          "Canada",
+          2,
+          1
+        ],
+        [
+          "Canada",
+          "Bosnia-Herz.",
+          1,
+          1
+        ],
+        [
+          "Switzerland",
+          "Bosnia-Herz.",
+          4,
+          1
+        ],
+        [
+          "Bosnia-Herz.",
+          "Qatar",
+          3,
+          1
+        ]
       ]
     },
     "C": {
@@ -226,6 +290,32 @@
       "clinched": [
         "Brazil",
         "Morocco"
+      ],
+      "matches": [
+        [
+          "Brazil",
+          "Morocco",
+          1,
+          1
+        ],
+        [
+          "Scotland",
+          "Morocco",
+          0,
+          1
+        ],
+        [
+          "Morocco",
+          "Haiti",
+          4,
+          2
+        ],
+        [
+          "Scotland",
+          "Brazil",
+          0,
+          3
+        ]
       ]
     },
     "D": {
@@ -252,6 +342,14 @@
       "clinched": [
         "USA",
         "Australia"
+      ],
+      "matches": [
+        [
+          "USA",
+          "Paraguay",
+          4,
+          1
+        ]
       ]
     },
     "E": {

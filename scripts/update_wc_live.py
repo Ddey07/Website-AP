@@ -274,6 +274,23 @@ def standings_from_results(results, fifa_rank, fallback):
     return standings
 
 
+def attach_group_matches(standings, results):
+    """Attach each group's played match results as `matches` = [[a,b,ga,gb],...]
+    so the browser engine can apply the official head-to-head tie-break. Only
+    games between two teams of the same group are included."""
+    by_group = {g: [] for g in GROUPS}
+    for m in results:
+        if m.get("stage") != "group":
+            continue
+        g = TEAM_GROUP.get(m["teamA"])
+        if g and TEAM_GROUP.get(m["teamB"]) == g:
+            by_group[g].append([m["teamA"], m["teamB"], int(m["scoreA"]), int(m["scoreB"])])
+    for g, games in by_group.items():
+        if games and g in standings:
+            standings[g]["matches"] = games
+    return standings
+
+
 def ko_results(results):
     """{ 'TeamA|TeamB' (sorted) -> winner } for every finished knockout match."""
     out = {}
@@ -309,6 +326,7 @@ def main():
     results = merge_results(fetched) if (fetched or RESULTS_FILE.exists()) else []
 
     standings = standings_from_results(results, fifa_rank, fallback_standings)
+    attach_group_matches(standings, results)
     ko = ko_results(results)
 
     payload = {
