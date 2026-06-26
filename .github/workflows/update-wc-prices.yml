@@ -1,0 +1,56 @@
+name: Update WC2026 prices
+
+# Refreshes ticket (VividSeats/Apify) and hotel (SerpAPI) prices once a day and
+# commits static/wc2026/prices.js — which triggers a Netlify rebuild.
+#
+# Requires repo secrets APIFY_TOKEN and/or SERPAPI_KEY. If neither is set the job
+# skips without committing, so it can never overwrite good prices with placeholders.
+
+on:
+  schedule:
+    - cron: "0 9 * * *"   # daily at 09:00 UTC
+  workflow_dispatch:        # manual run from the Actions tab
+
+concurrency:
+  group: update-wc-prices
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  prices:
+    if: github.repository_owner != 'HugoBlox'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install apify-client
+
+      - name: Fetch prices and commit if changed
+        env:
+          APIFY_TOKEN: ${{ secrets.APIFY_TOKEN }}
+          SERPAPI_KEY: ${{ secrets.SERPAPI_KEY }}
+          SEATGEEK_CLIENT_ID: ${{ secrets.SEATGEEK_CLIENT_ID }}
+        run: |
+          if [ -z "$APIFY_TOKEN" ] && [ -z "$SERPAPI_KEY" ]; then
+            echo "No APIFY_TOKEN or SERPAPI_KEY secret set — skipping so prices aren't overwritten with placeholders."
+            exit 0
+          fi
+          python scripts/fetch_wc_prices.py
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add static/wc2026/prices.js static/wc2026/prices.json
+          if git diff --cached --quiet; then
+            echo "No price changes."
+          else
+            git commit -m "data: refresh WC2026 ticket/hotel prices"
+            git push
+          fi
