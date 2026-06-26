@@ -1,6 +1,6 @@
 {
-  "updated": "2026-06-26T19:56:28Z",
-  "source": "eloratings.net/World.tsv",
+  "updated": "2026-06-26T20:55:33Z",
+  "source": "eloratings.net/World.tsv + thesportsdb.com",
   "formWeight": 0.33,
   "elo": {
     "Argentina": 2144,
@@ -351,28 +351,35 @@
       "clinched": []
     },
     "I": {
-      "md": 2,
+      "md": 3,
       "pts": {
-        "France": 6,
+        "France": 9,
         "Norway": 6,
-        "Senegal": 0,
+        "Senegal": 3,
         "Iraq": 0
       },
       "gd": {
-        "France": 5,
-        "Norway": 4,
-        "Senegal": -3,
-        "Iraq": -6
+        "France": 7,
+        "Norway": 2,
+        "Senegal": 2,
+        "Iraq": -11
       },
       "gf": {
-        "France": 6,
-        "Norway": 7,
-        "Senegal": 3,
+        "France": 9,
+        "Norway": 8,
+        "Senegal": 8,
         "Iraq": 1
       },
+      "ranked4th": "Iraq",
       "clinched": [
         "France",
         "Norway"
+      ],
+      "order": [
+        "France",
+        "Norway",
+        "Senegal",
+        "Iraq"
       ]
     },
     "J": {
