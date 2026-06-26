@@ -42,10 +42,11 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from wc_combo495 import COMBO495, SLOT_ORDER_495  # noqa: E402
 
-SUPABASE_URL = os.environ.get("SUPABASE_URL", "https://cfnlnksqnmtscchtugtd.supabase.co")
-SUPABASE_ANON_KEY = os.environ.get(
-    "SUPABASE_ANON_KEY",
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNmbmxua3Nxbm10c2NjaHR1Z3RkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg5MzM0MzIsImV4cCI6MjA5NDUwOTQzMn0.9HgzuCdTQ61BQY8LsY1KI7vlvypQY4anWBRDVHzbkE4",
+# Use `or` (not get's default) so an empty GitHub secret falls back to the public
+# values below — an unset secret arrives as "" in the Action, not as absent.
+SUPABASE_URL = os.environ.get("SUPABASE_URL") or "https://cfnlnksqnmtscchtugtd.supabase.co"
+SUPABASE_ANON_KEY = os.environ.get("SUPABASE_ANON_KEY") or (
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNmbmxua3Nxbm10c2NjaHR1Z3RkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg5MzM0MzIsImV4cCI6MjA5NDUwOTQzMn0.9HgzuCdTQ61BQY8LsY1KI7vlvypQY4anWBRDVHzbkE4"
 )
 
 ROOT = Path(__file__).resolve().parent.parent
