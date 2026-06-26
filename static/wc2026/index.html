@@ -1127,13 +1127,14 @@
 
     /* ===================== SIMULATION FUNCTIONS ===================== */
     // simGroup: simulate remaining group games from current live standings.
-    // liveData = {md, pts:{team:pts,...}, gd:{team:gd,...}} from LIVE_STANDINGS.
+    // liveData = {md, pts:{team:pts,...}, gd:{team:gd,...}, gf:{team:gf,...}} from LIVE_STANDINGS.
     // remainingPairs = [[a,b],...] pairs still to be played; null = simulate all 6 games.
     function simGroup(teams, liveData, remainingPairs){
-      const pts={},gd={};
+      const pts={},gd={},gf={};
       teams.forEach(t=>{
         pts[t]=liveData?.pts?.[t]??0;
         gd[t]=liveData?.gd?.[t]??0;
+        gf[t]=liveData?.gf?.[t]??0;
       });
       // Synthesize group venue so host teams get home advantage in their group matches.
       const hostInGroup=teams.find(t=>HOME_COUNTRY[t]);
@@ -1145,20 +1146,30 @@
         (()=>{const p=[];for(let i=0;i<teams.length;i++)for(let j=i+1;j<teams.length;j++)p.push([teams[i],teams[j]]);return p;})();
       for(const[a,b]of games){
         const pA=wp(a,b,groupVenue)*0.75,r=Math.random();
-        if(r<pA){pts[a]+=3;gd[a]+=(1+Math.random());gd[b]-=Math.random();}
-        else if(r<pA+0.25){pts[a]+=1;pts[b]+=1;}
-        else{pts[b]+=3;gd[b]+=(1+Math.random());gd[a]-=Math.random();}
+        if(r<pA){
+          // A wins: zero-sum margin 1-4 goals, loser scores 0-1
+          const m=Math.floor(Math.random()*4)+1,gb=Math.floor(Math.random()*2);
+          pts[a]+=3; gd[a]+=m; gd[b]-=m; gf[a]+=(m+gb); gf[b]+=gb;
+        } else if(r<pA+0.25){
+          // Draw: 0-2 goals each, GD unchanged
+          const g=Math.floor(Math.random()*3);
+          pts[a]+=1; pts[b]+=1; gf[a]+=g; gf[b]+=g;
+        } else {
+          // B wins: zero-sum margin 1-4 goals, loser scores 0-1
+          const m=Math.floor(Math.random()*4)+1,ga=Math.floor(Math.random()*2);
+          pts[b]+=3; gd[b]+=m; gd[a]-=m; gf[b]+=(m+ga); gf[a]+=ga;
+        }
       }
       const r4=liveData?.ranked4th;
       const rank=[...teams].sort((a,b)=>{
         if(r4&&a===r4)return 1;
         if(r4&&b===r4)return -1;
-        return pts[b]-pts[a]||gd[b]-gd[a]||Math.random()-.5;
+        return pts[b]-pts[a]||gd[b]-gd[a]||gf[b]-gf[a]||Math.random()-.5;
       });
-      return {rank, pts, gd};
+      return {rank, pts, gd, gf};
     }
-    // assign3rd: thirds is all 12 (one per group), sorted by simulated pts+GD desc.
-    // Select the 8 best 3rd-place qualifiers (FIFA criteria: pts, then GD), then look up the FIFA 495 slot assignment.
+    // assign3rd: thirds is all 12 (one per group), sorted by pts→GD→GF desc.
+    // Select the 8 best 3rd-place qualifiers (FIFA criteria: pts, then GD, then GF), then look up the FIFA 495 slot assignment.
     function assign3rd(thirds){ return fifa495assign(thirds.slice(0,8)); }
     function runOnce(){
       const W={},R={},thirds=[];
@@ -1170,9 +1181,9 @@
         const remaining=md>0?GS[g].slice(md*2).map(m=>[m.a,m.b]):null;
         const rk=simGroup(teams,liveData,remaining);
         W[g]=rk.rank[0];R[g]=rk.rank[1];
-        thirds.push({team:rk.rank[2],group:g,pts:rk.pts[rk.rank[2]],gd:rk.gd[rk.rank[2]]});
+        thirds.push({team:rk.rank[2],group:g,pts:rk.pts[rk.rank[2]],gd:rk.gd[rk.rank[2]],gf:rk.gf[rk.rank[2]]});
       }
-      thirds.sort((a,b)=>b.pts-a.pts||b.gd-a.gd);
+      thirds.sort((a,b)=>b.pts-a.pts||b.gd-a.gd||b.gf-a.gf);
       const sg=assign3rd(thirds);
       const gv=k=>sg[k]||"TBD";
       const ok=(a,b)=>a&&b&&a!=="TBD"&&b!=="TBD"&&a!==b;
