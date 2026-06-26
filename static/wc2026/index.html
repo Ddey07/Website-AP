@@ -691,7 +691,7 @@
     };
 
     /* ===================== LIVE GROUP STAGE STANDINGS ===================== */
-    // Actual standings: Groups A–C, E–F finalized (MD3). Groups D, G–L after MD2 (MD3 upcoming Jun 26–27).
+    // Actual standings: Groups A–F finalized (MD3). Groups G–L after MD2 (MD3 upcoming Jun 26–27).
     // ranked4th = confirmed-eliminated 4th-place team (simGroup() always places them last).
     // md = matchdays completed; remaining games are simulated to project final standings.
     const LIVE_STANDINGS = {
@@ -700,7 +700,7 @@
       A:{md:3,pts:{Mexico:9,'South Africa':4,'South Korea':3,Czechia:1},     gd:{Mexico:6,'South Africa':-1,'South Korea':-1,Czechia:-4},   gf:{Mexico:6,'South Africa':2,'South Korea':2,Czechia:2},            clinched:['Mexico','South Africa']},
       B:{md:3,pts:{Switzerland:7,Canada:4,'Bosnia-Herz.':4,Qatar:1},         gd:{Switzerland:4,Canada:5,'Bosnia-Herz.':-1,Qatar:-8},         gf:{Switzerland:7,Canada:8,'Bosnia-Herz.':5,Qatar:2},                clinched:['Switzerland','Canada']},
       C:{md:3,pts:{Brazil:7,Morocco:7,Scotland:3,Haiti:0},                   gd:{Brazil:6,Morocco:3,Scotland:-3,Haiti:-6},                   gf:{Brazil:7,Morocco:6,Scotland:1,Haiti:2},                          clinched:['Brazil','Morocco']},
-      D:{md:2,pts:{USA:6,Australia:3,Paraguay:3,Turkey:0},                   gd:{USA:5,Australia:0,Paraguay:-2,Turkey:-3},                   gf:{USA:6,Australia:2,Paraguay:2,Turkey:0},          ranked4th:'Turkey',  clinched:['USA']},
+      D:{md:3,pts:{USA:6,Australia:4,Paraguay:4,Turkey:3},                   gd:{USA:4,Australia:0,Paraguay:-2,Turkey:-2},                   gf:{USA:8,Australia:2,Paraguay:2,Turkey:3},          ranked4th:'Turkey',  clinched:['USA','Australia']},
       E:{md:3,pts:{Germany:6,'Ivory Coast':6,Ecuador:4,Curacao:1},           gd:{Germany:6,'Ivory Coast':2,Ecuador:0,Curacao:-8},            gf:{Germany:10,'Ivory Coast':4,Ecuador:2,Curacao:1},  ranked4th:'Curacao', clinched:['Germany','Ivory Coast']},
       F:{md:3,pts:{Netherlands:7,Japan:5,Sweden:4,Tunisia:0},                gd:{Netherlands:6,Japan:4,Sweden:0,Tunisia:-10},                gf:{Netherlands:10,Japan:7,Sweden:7,Tunisia:2},      ranked4th:'Tunisia', clinched:['Netherlands','Japan']},
       G:{md:2,pts:{Egypt:4,Iran:2,Belgium:2,'New Zealand':1},                gd:{Egypt:2,Iran:0,Belgium:0,'New Zealand':-2},                 gf:{Egypt:4,Iran:2,Belgium:1,'New Zealand':3},                       clinched:[]},
@@ -4487,7 +4487,7 @@
               <div>
                 <h2 style={{fontSize:18,fontWeight:700,color:"#f1f5f9",marginBottom:4}}>🏟️ Group Stage</h2>
                 <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:16,flexWrap:"wrap"}}>
-                  <p style={{color:"#64748b",fontSize:13,margin:0}}>Live standings: Groups A–C, E–F finalized (MD3). Groups D, G–L after MD2 (MD3 plays Jun 26–27). Remaining games simulated.</p>
+                  <p style={{color:"#64748b",fontSize:13,margin:0}}>Live standings: Groups A–F finalized (MD3). Groups G–L after MD2 (MD3 plays Jun 26–27). Remaining games simulated.</p>
                   <span style={{
                     background:"#0f3024",color:"#4ade80",
                     padding:"2px 10px",borderRadius:12,fontSize:11,fontWeight:700,flexShrink:0
