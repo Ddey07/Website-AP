@@ -4549,6 +4549,9 @@
               }
               function ThirdEntry({entry,rank,qual}){
                 const{team,s,g,alt}=entry;
+                // Only show alt team if their standalone probability is meaningful (≥10%)
+                // Filters out low-probability cases like Spain being 3rd (current group leader)
+                const showAlt=alt&&alt.s.third>=10;
                 const live=LIVE_STANDINGS[g];
                 const md=live?.md||0;
                 const pts=live?.pts?.[team]??null;
@@ -4556,18 +4559,20 @@
                 const slot=topSlot(team);
                 // Combined probability for same-group pair (mutually exclusive)
                 const combinedPct=s.third+(alt?.s.third||0);
-                const barW=(combinedPct/maxT)*100;
+                // Bar and % use combined only when alt is shown; otherwise primary alone
+                const displayPct=showAlt?combinedPct:s.third;
+                const barW=(displayPct/maxT)*100;
                 const bc=barColor(rank,qual);
                 return (
                   <div style={{display:"flex",alignItems:"center",gap:8,padding:"8px 12px",borderRadius:8,marginBottom:5,background:"#061228",border:`1px solid ${qual?"#1e3a5f":"#0d1f3c"}`,flexWrap:"wrap",opacity:qual?1:0.6}}>
                     <span style={{color:qual?(rank<=2?"#f59e0b":rank<=5?"#60a5fa":"#94a3b8"):"#475569",fontSize:12,minWidth:22,textAlign:"right",fontWeight:700}}>{qual?`#${rank}`:"–"}</span>
                     {/* flags */}
-                    <span style={{fontSize:20,lineHeight:1}}>{fl(team)}{alt?<span style={{fontSize:14,opacity:0.7}}>{fl(alt.team)}</span>:null}</span>
+                    <span style={{fontSize:20,lineHeight:1}}>{fl(team)}{showAlt?<span style={{fontSize:14,opacity:0.7}}>{fl(alt.team)}</span>:null}</span>
                     <div style={{flex:1,minWidth:130}}>
                       <div style={{display:"flex",alignItems:"center",gap:5,marginBottom:4,flexWrap:"wrap"}}>
-                        <span style={{fontWeight:700,fontSize:13}}>{team}{alt&&<span style={{color:"#94a3b8",fontWeight:400}}> / {alt.team}</span>}</span>
+                        <span style={{fontWeight:700,fontSize:13}}>{team}{showAlt&&<span style={{color:"#94a3b8",fontWeight:400}}> / {alt.team}</span>}</span>
                         <span style={{background:"#0d1f3c",color:"#a78bfa",padding:"1px 6px",borderRadius:10,fontSize:10,fontWeight:700}}>Grp {g}</span>
-                        {alt&&<span style={{background:"#1a0a00",color:"#fbbf24",padding:"1px 6px",borderRadius:10,fontSize:9,fontWeight:600}}>one advances</span>}
+                        {showAlt&&<span style={{background:"#1a0a00",color:"#fbbf24",padding:"1px 6px",borderRadius:10,fontSize:9,fontWeight:600}}>one advances</span>}
                         {!alt&&md===3&&pts!==null&&(<span style={{background:"#0f3024",color:"#4ade80",padding:"1px 6px",borderRadius:10,fontSize:10,fontWeight:700}}>{pts}pts {gd>=0?"+":""}{gd}GD ✓</span>)}
                         {!alt&&md===2&&pts!==null&&(<span style={{background:"#1e3a5f",color:"#bfdbfe",padding:"1px 6px",borderRadius:10,fontSize:10,fontWeight:600}}>{pts}pts {gd>=0?"+":""}{gd}GD (MD2)</span>)}
                       </div>
@@ -4576,10 +4581,10 @@
                           <div style={{width:`${barW}%`,height:"100%",background:bc,borderRadius:4,transition:"width 0.5s"}}/>
                         </div>
                         <span style={{color:"#f1f5f9",fontWeight:800,fontSize:13,minWidth:40,textAlign:"right"}}>
-                          {alt?`${combinedPct}%`:`${s.third}%`}
+                          {displayPct}%
                         </span>
                       </div>
-                      {alt&&(
+                      {showAlt&&(
                         <div style={{display:"flex",gap:12,marginTop:3}}>
                           <span style={{fontSize:10,color:"#94a3b8"}}>{fl(team)} {team} {s.third}%</span>
                           <span style={{fontSize:10,color:"#94a3b8"}}>{fl(alt.team)} {alt.team} {alt.s.third}%</span>
