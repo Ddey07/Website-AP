@@ -1,5 +1,5 @@
 {
-  "updated": "2026-06-26T20:55:33Z",
+  "updated": "2026-06-26T21:55:10Z",
   "source": "eloratings.net/World.tsv + thesportsdb.com",
   "formWeight": 0.33,
   "elo": {
@@ -403,6 +403,7 @@
         "Jordan": 2
       },
       "ranked4th": "Jordan",
+      "lockedFirst": "Argentina",
       "clinched": [
         "Argentina"
       ]

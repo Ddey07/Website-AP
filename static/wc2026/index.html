@@ -1183,9 +1183,14 @@
         }
       }
       const r4=liveData?.ranked4th;
+      // lockedFirst: a team that has mathematically clinched 1st (e.g. via a
+      // head-to-head win the aggregate table can't see). Pin it to the top so a
+      // rival can't "win the group" in the ~1% of sims where points tie but the
+      // simulated overall GD would otherwise overtake it.
+      const lf=liveData?.lockedFirst;
       const rank=[...teams].sort((a,b)=>{
-        if(r4&&a===r4)return 1;
-        if(r4&&b===r4)return -1;
+        if(lf){ if(a===lf)return -1; if(b===lf)return 1; }
+        if(r4){ if(a===r4)return 1; if(b===r4)return -1; }
         // Official FIFA classification: Points → GD → GF → (fair play) → FIFA ranking.
         // Fair-play data isn't modelled, so we fall through to the FIFA ranking
         // tie-breaker (lower position number wins) instead of a random coin flip.
