@@ -1,0 +1,59 @@
+name: Update WC2026 live ratings
+
+# Refreshes static/wc2026/wc_live.js from eloratings.net every 2 hours so the
+# bracket predictor's win probabilities track live Elo as matches are played.
+# Pushing the change triggers a Netlify rebuild (Hugo copies static/ -> public/).
+
+on:
+  schedule:
+    - cron: "0 */2 * * *"   # every 2 hours, on the hour (UTC)
+  workflow_dispatch:          # allow manual runs from the Actions tab
+
+# Avoid overlapping runs.
+concurrency:
+  group: update-wc-live
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    # Don't run on the upstream template repo.
+    if: github.repository_owner != 'HugoBlox'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Fetch latest Elo + results and rebuild wc_live.js
+        env:
+          # Optional: a TheSportsDB premium key returns full match rounds.
+          # Without it the free key still works but only sees ~5 rows per call.
+          THESPORTSDB_KEY: ${{ secrets.THESPORTSDB_KEY }}
+        run: python scripts/update_wc_live.py
+
+      - name: Push results to Supabase and rescore leaderboard
+        continue-on-error: true   # a Supabase hiccup shouldn't fail the data refresh
+        env:
+          SUPABASE_PUSH: "1"
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: python scripts/push_results_supabase.py
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add static/wc2026/wc_live.js static/wc2026/wc_live.json scripts/wc_results.json
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "data: refresh WC2026 live Elo/strength"
+            git push
+          fi

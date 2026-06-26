@@ -29,3 +29,7 @@ content/publication/preprint/
 
 # Accidental files with bad names
 static/uploads/resume*AM.pdf
+
+# Python
+__pycache__/
+*.pyc

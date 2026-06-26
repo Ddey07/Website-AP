@@ -9,6 +9,10 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
   <!-- Ticket + hotel prices injected by scripts/fetch_wc_prices.py -->
   <script src="prices.js" onerror="window.WC_PRICES=null"></script>
+  <!-- Live Elo / strength / standings injected by scripts/update_wc_live.py (GitHub Action, every 2h) -->
+  <script src="wc_live.js" onerror="window.WC_LIVE=null"></script>
+  <!-- Pre-tournament Monte Carlo bracket (leaderboard benchmark) from scripts/generate_mc_bracket.py -->
+  <script src="mc_bracket.js" onerror="window.MC_BRACKET=null"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -419,7 +423,7 @@
     // remainder estimated from worldfootballrankings.com scaled to eloratings.net).
     // Host nations (Mexico, USA, Canada) receive a +75 pt tournament home-advantage
     // bonus reflecting crowd support across group-stage home venues.
-    const ELO = {
+    const ELO_DEFAULT = {
       // Known exact (eloratings.net top-20, Jan 19 2026)
       "Spain":2171,"Argentina":2113,"France":2063,"England":2042,
       "Colombia":1998,"Brazil":1979,"Portugal":1976,"Netherlands":1959,
@@ -437,13 +441,16 @@
       // Hosts: raw eloratings.net values — home advantage applied per-match in wp()
       "Mexico":1880,"USA":1870,"Canada":1740,
     };
+    // Live override: eloratings.net values from wc_live.js (GitHub Action, every 2h),
+    // falling back to the hardcoded snapshot for any team missing from the feed.
+    const ELO = Object.assign({}, ELO_DEFAULT, (window.WC_LIVE&&window.WC_LIVE.elo)||{});
     // =================================================================
     // MODEL-ADJUSTED TEAM STRENGTH (used by wp() in match simulation)
     // Includes recent form (win%, EWMA-weighted slope, peak distance) BUT NOT host bonus.
     // Host advantage is applied per-match via h in wp(). Derived from linear regression
     // on 192 team-tournament observations across 2002–2022 World Cups.
     // =================================================================
-    const STRENGTH = {
+    const STRENGTH_DEFAULT = {
       "Spain":2262,"Argentina":2238,"France":2178,"England":2119,
       "Portugal":2098,"Colombia":2041,"Senegal":2029,"Germany":2027,
       "Brazil":2019,"Croatia":2017,"Netherlands":2000,"Turkey":1975,
@@ -458,6 +465,9 @@
       "Cape Verde":1538,"New Zealand":1509,"Haiti":1499,"Ghana":1488,
       "Curacao":1429,"Qatar":1416,
     };
+    // Live override: strength = liveElo + form premium, computed by update_wc_live.py.
+    // Falls back to the frozen pre-tournament regression model for missing teams.
+    const STRENGTH = Object.assign({}, STRENGTH_DEFAULT, (window.WC_LIVE&&window.WC_LIVE.strength)||{});
 
     // =================================================================
     // FIFA WORLD RANKINGS (April 2026 release) — Rankings tab display only
@@ -694,7 +704,7 @@
     // Actual standings: Groups A–F finalized (MD3). Groups G–L after MD2 (MD3 upcoming Jun 26–27).
     // ranked4th = confirmed-eliminated 4th-place team (simGroup() always places them last).
     // md = matchdays completed; remaining games are simulated to project final standings.
-    const LIVE_STANDINGS = {
+    const LIVE_STANDINGS_DEFAULT = {
       // gf = goals scored (used as 3rd tiebreaker after pts, gd — mirrors FIFA rules)
       // clinched = mathematically confirmed qualifiers; ranked4th = confirmed-eliminated 4th place
       A:{md:3,pts:{Mexico:9,'South Africa':4,'South Korea':3,Czechia:1},     gd:{Mexico:6,'South Africa':-1,'South Korea':-1,Czechia:-4},   gf:{Mexico:6,'South Africa':2,'South Korea':2,Czechia:2},            clinched:['Mexico','South Africa']},
@@ -710,6 +720,18 @@
       K:{md:2,pts:{Colombia:6,Portugal:4,'DR Congo':1,Uzbekistan:0},         gd:{Colombia:3,Portugal:5,'DR Congo':-1,Uzbekistan:-7},         gf:{Colombia:4,Portugal:6,'DR Congo':1,Uzbekistan:1},                clinched:['Colombia','Portugal']},
       L:{md:2,pts:{England:4,Ghana:4,Croatia:3,Panama:0},                    gd:{England:2,Ghana:1,Croatia:-1,Panama:-2},                    gf:{England:4,Ghana:1,Croatia:3,Panama:0},           ranked4th:'Panama',  clinched:[]},
     };
+    // Live override: standings from wc_live.js (recomputed from results with FIFA
+    // tie-breaks). Falls back to the hardcoded snapshot if the feed is unavailable.
+    const LIVE_STANDINGS = (window.WC_LIVE&&window.WC_LIVE.standings)||LIVE_STANDINGS_DEFAULT;
+    // FIFA ranking position per team (lower = better), used as the final group /
+    // third-place classification tie-breaker per official rules.
+    const FIFA_TIEBREAK = (window.WC_LIVE&&window.WC_LIVE.fifaRank)
+      || Object.fromEntries(Object.entries(FIFA_RANK).map(([t,v])=>[t,v.rank]));
+    // Actual knockout results from wc_live.js: { "TeamA|TeamB" (sorted) -> winner }.
+    // When a KO match has a real result, the engine pins the real winner instead of
+    // simulating it — so R32/R16/QF/SF/Final tabs show reality and only the
+    // remaining (unplayed) matches are projected.
+    const KO_RESULTS = (window.WC_LIVE&&window.WC_LIVE.koResults)||{};
 
     /* ===================== PRE-TOURNAMENT MONTE CARLO SNAPSHOT ===================== */
     // Probabilities from 50,000 pre-tournament simulations (before any matches were played).
@@ -1164,7 +1186,11 @@
       const rank=[...teams].sort((a,b)=>{
         if(r4&&a===r4)return 1;
         if(r4&&b===r4)return -1;
-        return pts[b]-pts[a]||gd[b]-gd[a]||gf[b]-gf[a]||Math.random()-.5;
+        // Official FIFA classification: Points → GD → GF → (fair play) → FIFA ranking.
+        // Fair-play data isn't modelled, so we fall through to the FIFA ranking
+        // tie-breaker (lower position number wins) instead of a random coin flip.
+        return pts[b]-pts[a]||gd[b]-gd[a]||gf[b]-gf[a]
+          ||((FIFA_TIEBREAK[a]||999)-(FIFA_TIEBREAK[b]||999));
       });
       return {rank, pts, gd, gf};
     }
@@ -1183,11 +1209,20 @@
         W[g]=rk.rank[0];R[g]=rk.rank[1];
         thirds.push({team:rk.rank[2],group:g,pts:rk.pts[rk.rank[2]],gd:rk.gd[rk.rank[2]],gf:rk.gf[rk.rank[2]]});
       }
-      thirds.sort((a,b)=>b.pts-a.pts||b.gd-a.gd||b.gf-a.gf);
+      // Rank the 12 third-placed teams by the official FIFA tie-break order
+      // (Points → GD → GF → fair play → FIFA ranking) to pick the best 8.
+      thirds.sort((a,b)=>b.pts-a.pts||b.gd-a.gd||b.gf-a.gf
+        ||((FIFA_TIEBREAK[a.team]||999)-(FIFA_TIEBREAK[b.team]||999)));
       const sg=assign3rd(thirds);
       const gv=k=>sg[k]||"TBD";
       const ok=(a,b)=>a&&b&&a!=="TBD"&&b!=="TBD"&&a!==b;
       const key=(a,b)=>[a,b].sort().join("|");
+      // Use the real result if this exact KO pairing has already been played;
+      // otherwise simulate. The pinned winner must be one of the two teams.
+      const koMatch=(a,b,venue)=>{
+        const w=KO_RESULTS[key(a,b)];
+        return (w===a||w===b)?w:simMatch(a,b,venue);
+      };
       const r32p=[
         [W.E,gv("M74")],[W.I,gv("M77")],[R.A,R.B],[W.F,R.C],
         [R.K,R.L],[W.H,R.J],[W.D,gv("M81")],[W.G,gv("M82")],
@@ -1198,32 +1233,32 @@
       const r32w=r32p.map(([a,b],idx)=>{
         if(!ok(a,b))return a&&a!=="TBD"?a:b&&b!=="TBD"?b:"TBD";
         out.r32.push({idx,key:key(a,b),teamA:a,teamB:b});
-        return simMatch(a,b,KO.r32[idx]?.venue);
+        return koMatch(a,b,KO.r32[idx]?.venue);
       });
       const r16p=[[r32w[0],r32w[1]],[r32w[2],r32w[3]],[r32w[4],r32w[5]],[r32w[6],r32w[7]],
                   [r32w[8],r32w[9]],[r32w[10],r32w[11]],[r32w[12],r32w[13]],[r32w[14],r32w[15]]];
       const r16w=r16p.map(([a,b],idx)=>{
         if(!ok(a,b))return a&&a!=="TBD"?a:b&&b!=="TBD"?b:"TBD";
         out.r16.push({idx,key:key(a,b),teamA:a,teamB:b});
-        return simMatch(a,b,KO.r16[idx]?.venue);
+        return koMatch(a,b,KO.r16[idx]?.venue);
       });
       const qfp=[[r16w[0],r16w[1]],[r16w[2],r16w[3]],[r16w[4],r16w[5]],[r16w[6],r16w[7]]];
       const qfw=qfp.map(([a,b],idx)=>{
         if(!ok(a,b))return a&&a!=="TBD"?a:b&&b!=="TBD"?b:"TBD";
         out.qf.push({idx,key:key(a,b),teamA:a,teamB:b});
-        return simMatch(a,b,KO.qf[idx]?.venue);
+        return koMatch(a,b,KO.qf[idx]?.venue);
       });
       const sfp=[[qfw[0],qfw[1]],[qfw[2],qfw[3]]];
       const sfw=sfp.map(([a,b],idx)=>{
         if(!ok(a,b))return a&&a!=="TBD"?a:b&&b!=="TBD"?b:"TBD";
         out.sf.push({idx,key:key(a,b),teamA:a,teamB:b});
-        return simMatch(a,b,KO.sf[idx]?.venue);
+        return koMatch(a,b,KO.sf[idx]?.venue);
       });
       // SF winners → Championship Final (M104, KO.final[0], idx:0)
       let champion="TBD";
       if(ok(sfw[0],sfw[1])){
         out.final.push({idx:0,key:key(sfw[0],sfw[1]),teamA:sfw[0],teamB:sfw[1]});
-        champion=simMatch(sfw[0],sfw[1],KO.final[0]?.venue);
+        champion=koMatch(sfw[0],sfw[1],KO.final[0]?.venue);
       }
       else champion=sfw[0]!=="TBD"?sfw[0]:sfw[1];
       // Track team appearances per round per slot
@@ -1300,6 +1335,47 @@
     const BONUS_PTS = {perfectGroup:5, perfectRound:10, champion:10};
     // Legacy alias used by leaderboard display
     const ROUND_PTS = {grp1:3,grp2:2,grpT:2,r32:10,r16:16,qf:25,sf:35,final:35,champion:10};
+
+    // Score a bracket (same shape as stored predictions) against the live `results`
+    // table, mirroring the Supabase calculate_scores() rules exactly. Used to place
+    // the Monte Carlo benchmark on the leaderboard without writing to the database.
+    function scoreBracketVsResults(bracket, resultsRows){
+      const R={grp1:{},grp2:{},grpT:new Set(),r32:[],r16:[],qf:[],sf:[],final:[]};
+      for(const r of resultsRows){
+        if(r.round==='grp1'||r.round==='grp2') R[r.round][r.slot_idx]=r.team;
+        else if(r.round==='grpT') R.grpT.add(r.team);
+        else if(R[r.round]) R[r.round].push({slot:r.slot_idx,team:r.team,opp:r.opponent});
+      }
+      const rounds={};
+      // Group stage
+      let g1=0; for(const[s,t]of Object.entries(bracket.grp1||{})) if(R.grp1[s]===t) g1+=3; if(Object.keys(R.grp1).length) rounds.grp1=g1;
+      let g2=0; for(const[s,t]of Object.entries(bracket.grp2||{})) if(R.grp2[s]===t) g2+=2; if(Object.keys(R.grp2).length) rounds.grp2=g2;
+      let gt=0; for(const ent of (bracket.grpT||[])) if(R.grpT.has(ent)) gt+=2; if(R.grpT.size) rounds.grpT=gt;
+      // Knockout rounds: Trajectory + Exact slot + Matchup
+      const KO={r32:[2,5,3],r16:[3,8,5],qf:[4,13,8],sf:[6,18,11]};
+      for(const rnd of Object.keys(KO)){
+        const res=R[rnd]; if(!res.length) continue;
+        const [tp,sp,mp]=KO[rnd];
+        const winners=new Set(res.map(r=>r.team));
+        const bySlot={}; res.forEach(r=>{bySlot[r.slot]=r;});
+        const picks=bracket[rnd]||{};
+        const pickedTeams=new Set(Object.values(picks));
+        let traj=0,slot=0,match=0;
+        for(const[s,t]of Object.entries(picks)){ if(winners.has(t))traj++; if(bySlot[s]&&bySlot[s].team===t)slot++; }
+        for(const r of res){ if(pickedTeams.has(r.team)&&pickedTeams.has(r.opp))match++; }
+        rounds[rnd]=traj*tp+slot*sp+match*mp;
+      }
+      // Final: Trajectory (winner) + Matchup (either finalist) + Champion bonus
+      const fin=R.final[0]; const fpick=bracket.final&&bracket.final['0'];
+      if(fin){
+        let f=0;
+        if(fpick===fin.team){f+=10; rounds.champion=10;}
+        if(fpick===fin.team||fpick===fin.opp) f+=25;
+        rounds.final=f;
+      }
+      const total=Object.values(rounds).reduce((a,b)=>a+b,0);
+      return {total,rounds};
+    }
 
     // Assign 8 3rd-place teams to R32 slots via FIFA 495 official combinations.
     // Falls back to constraint backtracking for invalid combos (e.g. duplicate groups).
@@ -2226,6 +2302,15 @@
         setViewBracket({id:userId,name,picks:null});
         setViewBracketLoading(true);
         setViewGroupsOpen(false);
+        // Monte Carlo benchmark: build its picks from the embedded bracket (no DB row).
+        if(userId==='__mc_model__'&&window.MC_BRACKET){
+          const b=window.MC_BRACKET;
+          const p={grp1:{...b.grp1},grp2:{...b.grp2},grpT:{},r32:{...b.r32},r16:{...b.r16},qf:{...b.qf},sf:{...b.sf},final:{...b.final}};
+          (b.grpT||[]).forEach((t,i)=>{p.grpT[i]=t;});
+          setViewBracket({id:userId,name,picks:p});
+          setViewBracketLoading(false);
+          return;
+        }
         const{data}=await sb.from('predictions').select('round,slot_idx,picked_team').eq('user_id',userId);
         if(data){
           const p={grp1:{},grp2:{},grpT:{},r32:{},r16:{},qf:{},sf:{},final:{}};
@@ -2263,10 +2348,11 @@
           setBracketLoading(false);
         };
         const loadLeaderboard=async()=>{
-          const[{data:sc},{data:pr},{data:preds}]=await Promise.all([
+          const[{data:sc},{data:pr},{data:preds},{data:res}]=await Promise.all([
             sb.from('scores').select('user_id,round,points'),
             sb.from('profiles').select('id,display_name'),
             sb.from('predictions').select('user_id'),
+            sb.from('results').select('round,slot_idx,team,opponent'),
           ]);
           if(!pr)return;
           // Only show users who actually submitted predictions
@@ -2282,7 +2368,15 @@
               tot[s.user_id].rounds[s.round]=(tot[s.user_id].rounds[s.round]||0)+s.points;
             }
           }
-          setLeaderboard(Object.values(tot).sort((a,b)=>b.total-a.total));
+          const rows=Object.values(tot);
+          // Benchmark: score the pre-tournament Monte Carlo bracket client-side
+          // against the live results table, using the same rules as the DB scorer.
+          if(window.MC_BRACKET&&res&&res.length){
+            const mc=scoreBracketVsResults(window.MC_BRACKET,res);
+            rows.push({id:'__mc_model__',name:'🤖 '+(window.MC_BRACKET.name||'Monte Carlo model'),
+              total:mc.total,rounds:mc.rounds,isModel:true});
+          }
+          setLeaderboard(rows.sort((a,b)=>b.total-a.total));
         };
         const fetchProfile=async(uid)=>{
           const{data}=await sb.from('profiles').select('display_name,ab_group').eq('id',uid).single();
@@ -3517,6 +3611,7 @@
                             background:rc.bg,borderRadius:5,padding:'3px 6px',flexShrink:0}}>{`#${i+1}`}</span>
                           <span style={{flex:1,fontWeight:600,fontSize:14,color:darkMode?'#e2e8f0':'#0f172a'}}>
                             {u.name}{u.id===sbUser?.id&&<span style={{color:darkMode?'#60a5fa':'#3b82f6',fontWeight:400,fontSize:12}}> (you)</span>}
+                            {u.isModel&&<span style={{marginLeft:6,background:darkMode?'#3b0764':'#ede9fe',color:darkMode?'#c4b5fd':'#7c3aed',fontWeight:700,fontSize:9,padding:'2px 6px',borderRadius:10,verticalAlign:'middle',letterSpacing:0.3}}>BENCHMARK</span>}
                           </span>
                           <div style={{display:'flex',alignItems:'center',gap:8}}>
                             <div style={{textAlign:'right'}}>

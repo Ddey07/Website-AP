@@ -11,8 +11,10 @@
 -- any user who picked the group winner at that slot — no advantage,
 -- no disadvantage relative to the rest.
 --
--- Affected: Durkheim, Rokkekoro, Tetsu, raeesbhai, westhamno19
--- Cascade:  None — all 5 users had R16+ picks from the OTHER R32
+-- Compensated NOW: Rokkekoro, Tetsu, raeesbhai, Yellowstone
+-- Resubmitted (no longer compensated): Durkheim, westhamno19 — they corrected
+--           their pick, so they are scored normally on the real pick.
+-- Cascade:  None — affected users had R16+ picks from the OTHER R32
 --           branch, so downstream picks are entirely unaffected.
 -- ============================================================
 
@@ -29,19 +31,24 @@ CREATE TABLE IF NOT EXISTS score_compensations (
   PRIMARY KEY (display_name, round, slot_idx)
 );
 
+-- Reset so re-running reflects the CURRENT compensated set exactly (idempotent).
+-- Durkheim (Egypt→Austria) and westhamno19 (Sweden→Senegal) RESUBMITTED their
+-- bracket to the correct 3rd-place team, so they are now scored normally and
+-- removed here. Yellowstone (duplicate Group D in grpT, pre-fix) is added.
+-- This list mirrors SCORE_COMPENSATIONS in static/wc2026/index.html.
+DELETE FROM score_compensations;
 INSERT INTO score_compensations (display_name, round, slot_idx, wrong_pick, treat_as, reason)
 VALUES
-  ('Durkheim',    'r32', 14, 'Egypt',    'Switzerland',
-   'Site showed Egypt at M85 (W-B slot); correct 3rd per FIFA 495 is Austria. GW = Switzerland.'),
   ('Rokkekoro',   'r32', 10, 'Sweden',   'South Korea',
    'Site showed Sweden at M79 (W-A slot); correct 3rd per FIFA 495 is Uruguay. GW = South Korea.'),
   ('Tetsu',       'r32',  6, 'Senegal',  'Turkey',
    'Site showed Senegal at M81 (W-D slot); correct 3rd per FIFA 495 is Ecuador. GW = Turkey.'),
   ('raeesbhai',   'r32', 10, 'Senegal',  'Mexico',
    'Site showed Senegal at M79 (W-A slot); correct 3rd per FIFA 495 is Ecuador. GW = Mexico.'),
-  ('westhamno19', 'r32', 14, 'Sweden',   'Switzerland',
-   'Site showed Sweden at M85 (W-B slot); correct 3rd per FIFA 495 is Senegal. GW = Switzerland.')
-ON CONFLICT DO NOTHING;
+  ('Yellowstone', 'r32', 10, 'Ecuador',  'Mexico',
+   'Duplicate Group D in grpT (pre-fix bug); Ecuador unverifiable at M79 (W-A slot). GW = Mexico.')
+ON CONFLICT (display_name, round, slot_idx) DO UPDATE
+  SET wrong_pick = EXCLUDED.wrong_pick, treat_as = EXCLUDED.treat_as, reason = EXCLUDED.reason;
 
 
 -- ── STEP 2: Replace the calculate_scores function ─────────────────────────
@@ -337,9 +344,9 @@ $function$;
 -- Confirm compensation table is populated:
 -- SELECT * FROM score_compensations;
 
--- Spot-check the 5 affected users:
+-- Spot-check the compensated users:
 -- SELECT prof.display_name, s.round, s.points
 -- FROM scores s
 -- JOIN profiles prof ON prof.id = s.user_id
--- WHERE prof.display_name IN ('Durkheim','Rokkekoro','Tetsu','raeesbhai','westhamno19')
+-- WHERE prof.display_name IN ('Rokkekoro','Tetsu','raeesbhai','Yellowstone')
 -- ORDER BY prof.display_name, s.round;

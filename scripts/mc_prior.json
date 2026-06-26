@@ -1,0 +1,383 @@
+{
+ "note": "Pre-tournament Monte Carlo prior from the CORRECTED engine (FIFA 495 + tiebreak). 60000 sims.",
+ "prior": {
+  "Mexico": {
+   "champ": 0.3,
+   "r32": 62.5,
+   "r16": 25,
+   "qf": 7.3,
+   "sf": 1.6
+  },
+  "South Africa": {
+   "champ": 0,
+   "r32": 7.3,
+   "r16": 0.9,
+   "qf": 0.1,
+   "sf": 0
+  },
+  "South Korea": {
+   "champ": 0.1,
+   "r32": 40.4,
+   "r16": 12.2,
+   "qf": 2.6,
+   "sf": 0.4
+  },
+  "Czechia": {
+   "champ": 0,
+   "r32": 30.5,
+   "r16": 7.7,
+   "qf": 1.2,
+   "sf": 0.2
+  },
+  "Canada": {
+   "champ": 0.1,
+   "r32": 51.6,
+   "r16": 16.6,
+   "qf": 3.1,
+   "sf": 0.6
+  },
+  "Bosnia-Herz.": {
+   "champ": 0,
+   "r32": 10.5,
+   "r16": 1.5,
+   "qf": 0.1,
+   "sf": 0
+  },
+  "Qatar": {
+   "champ": 0,
+   "r32": 1.8,
+   "r16": 0.1,
+   "qf": 0,
+   "sf": 0
+  },
+  "Switzerland": {
+   "champ": 0.4,
+   "r32": 59.1,
+   "r16": 23.7,
+   "qf": 6.8,
+   "sf": 2
+  },
+  "Brazil": {
+   "champ": 2.1,
+   "r32": 58.5,
+   "r16": 33.7,
+   "qf": 16.8,
+   "sf": 6.1
+  },
+  "Morocco": {
+   "champ": 0.5,
+   "r32": 42.8,
+   "r16": 20.5,
+   "qf": 7.6,
+   "sf": 2
+  },
+  "Haiti": {
+   "champ": 0,
+   "r32": 1.4,
+   "r16": 0.1,
+   "qf": 0,
+   "sf": 0
+  },
+  "Scotland": {
+   "champ": 0,
+   "r32": 24.5,
+   "r16": 7.9,
+   "qf": 2,
+   "sf": 0.3
+  },
+  "USA": {
+   "champ": 0.3,
+   "r32": 39.7,
+   "r16": 15,
+   "qf": 3.9,
+   "sf": 1.1
+  },
+  "Paraguay": {
+   "champ": 0.1,
+   "r32": 27.4,
+   "r16": 8.2,
+   "qf": 1.8,
+   "sf": 0.4
+  },
+  "Australia": {
+   "champ": 0.1,
+   "r32": 31.5,
+   "r16": 10.2,
+   "qf": 2.5,
+   "sf": 0.6
+  },
+  "Turkey": {
+   "champ": 1.2,
+   "r32": 59,
+   "r16": 30.9,
+   "qf": 10.5,
+   "sf": 4.2
+  },
+  "Germany": {
+   "champ": 2.4,
+   "r32": 61.1,
+   "r16": 30.1,
+   "qf": 17.6,
+   "sf": 6.6
+  },
+  "Curacao": {
+   "champ": 0,
+   "r32": 0.8,
+   "r16": 0,
+   "qf": 0,
+   "sf": 0
+  },
+  "Ivory Coast": {
+   "champ": 0,
+   "r32": 20.7,
+   "r16": 4.9,
+   "qf": 1.1,
+   "sf": 0.2
+  },
+  "Ecuador": {
+   "champ": 0.2,
+   "r32": 34.4,
+   "r16": 11.3,
+   "qf": 3.9,
+   "sf": 0.9
+  },
+  "Netherlands": {
+   "champ": 1.7,
+   "r32": 52.3,
+   "r16": 33.1,
+   "qf": 15.2,
+   "sf": 5.2
+  },
+  "Japan": {
+   "champ": 1,
+   "r32": 46.3,
+   "r16": 26.5,
+   "qf": 11.2,
+   "sf": 3.4
+  },
+  "Sweden": {
+   "champ": 0,
+   "r32": 10.5,
+   "r16": 2.8,
+   "qf": 0.5,
+   "sf": 0.1
+  },
+  "Tunisia": {
+   "champ": 0,
+   "r32": 5.8,
+   "r16": 1.1,
+   "qf": 0.2,
+   "sf": 0
+  },
+  "Belgium": {
+   "champ": 0.4,
+   "r32": 54.5,
+   "r16": 22.5,
+   "qf": 5.3,
+   "sf": 1.7
+  },
+  "Egypt": {
+   "champ": 0,
+   "r32": 22,
+   "r16": 4.2,
+   "qf": 0.5,
+   "sf": 0.1
+  },
+  "Iran": {
+   "champ": 0.1,
+   "r32": 35.4,
+   "r16": 9.7,
+   "qf": 1.7,
+   "sf": 0.4
+  },
+  "New Zealand": {
+   "champ": 0,
+   "r32": 2.9,
+   "r16": 0.2,
+   "qf": 0,
+   "sf": 0
+  },
+  "Spain": {
+   "champ": 28.2,
+   "r32": 78.3,
+   "r16": 62.5,
+   "qf": 53.8,
+   "sf": 41.3
+  },
+  "Cape Verde": {
+   "champ": 0,
+   "r32": 3.3,
+   "r16": 0.3,
+   "qf": 0,
+   "sf": 0
+  },
+  "Saudi Arabia": {
+   "champ": 0,
+   "r32": 5.4,
+   "r16": 0.6,
+   "qf": 0.1,
+   "sf": 0
+  },
+  "Uruguay": {
+   "champ": 0.3,
+   "r32": 28,
+   "r16": 12.2,
+   "qf": 4.4,
+   "sf": 1.4
+  },
+  "France": {
+   "champ": 15.3,
+   "r32": 79.5,
+   "r16": 62.5,
+   "qf": 47.3,
+   "sf": 26.6
+  },
+  "Senegal": {
+   "champ": 2.5,
+   "r32": 55.5,
+   "r16": 34.7,
+   "qf": 18.9,
+   "sf": 7.3
+  },
+  "Iraq": {
+   "champ": 0,
+   "r32": 3.9,
+   "r16": 0.9,
+   "qf": 0.1,
+   "sf": 0
+  },
+  "Norway": {
+   "champ": 1,
+   "r32": 43.4,
+   "r16": 23.9,
+   "qf": 10.5,
+   "sf": 3.4
+  },
+  "Argentina": {
+   "champ": 24.1,
+   "r32": 75.7,
+   "r16": 65.3,
+   "qf": 51.5,
+   "sf": 38
+  },
+  "Algeria": {
+   "champ": 0.1,
+   "r32": 20.9,
+   "r16": 7.9,
+   "qf": 2.2,
+   "sf": 0.6
+  },
+  "Austria": {
+   "champ": 0.5,
+   "r32": 29.3,
+   "r16": 13.8,
+   "qf": 5.4,
+   "sf": 1.9
+  },
+  "Jordan": {
+   "champ": 0,
+   "r32": 6.5,
+   "r16": 1.4,
+   "qf": 0.2,
+   "sf": 0
+  },
+  "Portugal": {
+   "champ": 5.4,
+   "r32": 64.2,
+   "r16": 41.6,
+   "qf": 22.1,
+   "sf": 12.4
+  },
+  "DR Congo": {
+   "champ": 0,
+   "r32": 7.5,
+   "r16": 1.6,
+   "qf": 0.3,
+   "sf": 0
+  },
+  "Uzbekistan": {
+   "champ": 0,
+   "r32": 9.9,
+   "r16": 2.5,
+   "qf": 0.5,
+   "sf": 0.1
+  },
+  "Colombia": {
+   "champ": 2.6,
+   "r32": 54.6,
+   "r16": 30.3,
+   "qf": 14.8,
+   "sf": 7.2
+  },
+  "England": {
+   "champ": 7.2,
+   "r32": 68.9,
+   "r16": 45.8,
+   "qf": 29.5,
+   "sf": 15.6
+  },
+  "Croatia": {
+   "champ": 2,
+   "r32": 52.2,
+   "r16": 26.6,
+   "qf": 13.7,
+   "sf": 5.8
+  },
+  "Ghana": {
+   "champ": 0,
+   "r32": 0.9,
+   "r16": 0.1,
+   "qf": 0,
+   "sf": 0
+  },
+  "Panama": {
+   "champ": 0,
+   "r32": 16.7,
+   "r16": 4.7,
+   "qf": 1.1,
+   "sf": 0.2
+  }
+ },
+ "groupWin": {
+  "A": "Mexico",
+  "B": "Switzerland",
+  "C": "Brazil",
+  "D": "Turkey",
+  "E": "Germany",
+  "F": "Netherlands",
+  "G": "Belgium",
+  "H": "Spain",
+  "I": "France",
+  "J": "Argentina",
+  "K": "Portugal",
+  "L": "England"
+ },
+ "groupRu": {
+  "A": "South Korea",
+  "B": "Canada",
+  "C": "Morocco",
+  "D": "Turkey",
+  "E": "Ecuador",
+  "F": "Japan",
+  "G": "Iran",
+  "H": "Uruguay",
+  "I": "Senegal",
+  "J": "Austria",
+  "K": "Colombia",
+  "L": "Croatia"
+ },
+ "groupThird": {
+  "A": "Czechia",
+  "B": "Bosnia-Herz.",
+  "C": "Scotland",
+  "D": "Paraguay",
+  "E": "Ivory Coast",
+  "F": "Sweden",
+  "G": "Egypt",
+  "H": "Saudi Arabia",
+  "I": "Norway",
+  "J": "Algeria",
+  "K": "Uzbekistan",
+  "L": "Panama"
+ }
+}

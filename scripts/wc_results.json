@@ -1,0 +1,137 @@
+[
+  {
+    "id": "2391728",
+    "teamA": "Mexico",
+    "teamB": "South Africa",
+    "scoreA": 2,
+    "scoreB": 0,
+    "round": "1",
+    "stage": "group"
+  },
+  {
+    "id": "2391729",
+    "teamA": "USA",
+    "teamB": "Paraguay",
+    "scoreA": 4,
+    "scoreB": 1,
+    "round": "1",
+    "stage": "group"
+  },
+  {
+    "id": "2391730",
+    "teamA": "Brazil",
+    "teamB": "Morocco",
+    "scoreA": 1,
+    "scoreB": 1,
+    "round": "1",
+    "stage": "group"
+  },
+  {
+    "id": "2391746",
+    "teamA": "Canada",
+    "teamB": "Qatar",
+    "scoreA": 6,
+    "scoreB": 0,
+    "round": "2",
+    "stage": "group"
+  },
+  {
+    "id": "2391747",
+    "teamA": "Mexico",
+    "teamB": "South Korea",
+    "scoreA": 1,
+    "scoreB": 0,
+    "round": "2",
+    "stage": "group"
+  },
+  {
+    "id": "2391749",
+    "teamA": "Scotland",
+    "teamB": "Morocco",
+    "scoreA": 0,
+    "scoreB": 1,
+    "round": "2",
+    "stage": "group"
+  },
+  {
+    "id": "2391764",
+    "teamA": "Morocco",
+    "teamB": "Haiti",
+    "scoreA": 4,
+    "scoreB": 2,
+    "round": "3",
+    "stage": "group"
+  },
+  {
+    "id": "2391765",
+    "teamA": "Scotland",
+    "teamB": "Brazil",
+    "scoreA": 0,
+    "scoreB": 3,
+    "round": "3",
+    "stage": "group"
+  },
+  {
+    "id": "2391766",
+    "teamA": "South Africa",
+    "teamB": "South Korea",
+    "scoreA": 1,
+    "scoreB": 0,
+    "round": "3",
+    "stage": "group"
+  },
+  {
+    "id": "2391767",
+    "teamA": "Switzerland",
+    "teamB": "Canada",
+    "scoreA": 2,
+    "scoreB": 1,
+    "round": "3",
+    "stage": "group"
+  },
+  {
+    "id": "2461103",
+    "teamA": "South Korea",
+    "teamB": "Czechia",
+    "scoreA": 2,
+    "scoreB": 1,
+    "round": "1",
+    "stage": "group"
+  },
+  {
+    "id": "2461104",
+    "teamA": "Canada",
+    "teamB": "Bosnia-Herz.",
+    "scoreA": 1,
+    "scoreB": 1,
+    "round": "1",
+    "stage": "group"
+  },
+  {
+    "id": "2461109",
+    "teamA": "Czechia",
+    "teamB": "South Africa",
+    "scoreA": 1,
+    "scoreB": 1,
+    "round": "2",
+    "stage": "group"
+  },
+  {
+    "id": "2461110",
+    "teamA": "Switzerland",
+    "teamB": "Bosnia-Herz.",
+    "scoreA": 4,
+    "scoreB": 1,
+    "round": "2",
+    "stage": "group"
+  },
+  {
+    "id": "2461115",
+    "teamA": "Bosnia-Herz.",
+    "teamB": "Qatar",
+    "scoreA": 3,
+    "scoreB": 1,
+    "round": "3",
+    "stage": "group"
+  }
+]
