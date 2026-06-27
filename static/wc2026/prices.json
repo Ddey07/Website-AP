@@ -1,6 +1,6 @@
 {
-  "last_updated": "2026-06-26",
-  "hotels_fetched_at": "2026-06-26T22:20:29.749529+00:00",
+  "last_updated": "2026-06-27",
+  "hotels_fetched_at": "2026-06-27T10:53:36.061598+00:00",
   "ticket_source": "Placeholder (SeatGeek unavailable)",
   "hotel_source": "SerpAPI Google Hotels (partial \u2014 16 fallbacks)",
   "tiers": {
@@ -37,24 +37,24 @@
       },
       "r32": {
         "low": 156,
-        "high": 193,
-        "min": 102,
-        "max": 253,
+        "high": 236,
+        "min": 109,
+        "max": 317,
         "sample": 20
       },
       "r16": {
-        "low": 150,
-        "high": 206,
-        "min": 128,
-        "max": 256,
+        "low": 144,
+        "high": 199,
+        "min": 91,
+        "max": 277,
         "sample": 20
       },
       "final": {
-        "low": 160,
-        "high": 396,
-        "min": 139,
+        "low": 188,
+        "high": 427,
+        "min": 143,
         "max": 561,
-        "sample": 19
+        "sample": 20
       }
     },
     "Philadelphia (Lincoln Financial)": {
@@ -63,11 +63,11 @@
         "high": 380
       },
       "r16": {
-        "low": 143,
-        "high": 193,
-        "min": 74,
-        "max": 295,
-        "sample": 18
+        "low": 147,
+        "high": 226,
+        "min": 79,
+        "max": 359,
+        "sample": 16
       }
     },
     "Foxborough (Gillette)": {
@@ -76,17 +76,17 @@
         "high": 440
       },
       "r32": {
-        "low": 163,
-        "high": 301,
-        "min": 126,
-        "max": 387,
+        "low": 164,
+        "high": 238,
+        "min": 120,
+        "max": 333,
         "sample": 20
       },
       "qf": {
-        "low": 195,
-        "high": 338,
-        "min": 117,
-        "max": 440,
+        "low": 188,
+        "high": 294,
+        "min": 121,
+        "max": 415,
         "sample": 20
       }
     },
@@ -96,25 +96,25 @@
         "high": 360
       },
       "r32": {
-        "low": 94,
-        "high": 161,
-        "min": 67,
-        "max": 308,
-        "sample": 20
+        "low": 124,
+        "high": 207,
+        "min": 76,
+        "max": 310,
+        "sample": 19
       },
       "r16": {
-        "low": 100,
-        "high": 165,
-        "min": 84,
-        "max": 315,
-        "sample": 20
+        "low": 99,
+        "high": 127,
+        "min": 58,
+        "max": 241,
+        "sample": 18
       },
       "sf": {
-        "low": 68,
-        "high": 172,
-        "min": 49,
-        "max": 704,
-        "sample": 10
+        "low": 95,
+        "high": 133,
+        "min": 44,
+        "max": 159,
+        "sample": 15
       }
     },
     "Miami (Hard Rock)": {
@@ -123,25 +123,25 @@
         "high": 520
       },
       "r32": {
-        "low": 148,
-        "high": 289,
-        "min": 112,
-        "max": 430,
-        "sample": 20
+        "low": 134,
+        "high": 235,
+        "min": 110,
+        "max": 433,
+        "sample": 18
       },
       "qf": {
-        "low": 169,
-        "high": 261,
-        "min": 102,
-        "max": 496,
-        "sample": 20
+        "low": 139,
+        "high": 251,
+        "min": 50,
+        "max": 341,
+        "sample": 18
       },
       "final": {
-        "low": 140,
-        "high": 207,
-        "min": 96,
-        "max": 273,
-        "sample": 19
+        "low": 147,
+        "high": 204,
+        "min": 110,
+        "max": 310,
+        "sample": 18
       }
     },
     "Dallas (AT&T)": {
@@ -150,25 +150,25 @@
         "high": 330
       },
       "r32": {
-        "low": 102,
-        "high": 193,
-        "min": 74,
-        "max": 299,
-        "sample": 20
+        "low": 76,
+        "high": 140,
+        "min": 70,
+        "max": 357,
+        "sample": 18
       },
       "r16": {
-        "low": 100,
-        "high": 175,
-        "min": 71,
-        "max": 348,
-        "sample": 20
+        "low": 95,
+        "high": 190,
+        "min": 79,
+        "max": 333,
+        "sample": 18
       },
       "sf": {
         "low": 74,
-        "high": 157,
-        "min": 42,
-        "max": 298,
-        "sample": 19
+        "high": 178,
+        "min": 50,
+        "max": 412,
+        "sample": 18
       }
     },
     "Houston (NRG)": {
@@ -177,17 +177,17 @@
         "high": 300
       },
       "r32": {
-        "low": 90,
-        "high": 199,
-        "min": 49,
-        "max": 497,
-        "sample": 20
+        "low": 87,
+        "high": 205,
+        "min": 60,
+        "max": 574,
+        "sample": 18
       },
       "r16": {
-        "low": 89,
-        "high": 158,
-        "min": 57,
-        "max": 254,
+        "low": 76,
+        "high": 166,
+        "min": 48,
+        "max": 277,
         "sample": 20
       }
     },
@@ -197,17 +197,17 @@
         "high": 280
       },
       "r32": {
-        "low": 182,
-        "high": 220,
+        "low": 202,
+        "high": 275,
         "min": 95,
         "max": 420,
-        "sample": 13
+        "sample": 16
       },
       "qf": {
-        "low": 349,
-        "high": 650,
-        "min": 252,
-        "max": 650,
+        "low": 289,
+        "high": 463,
+        "min": 246,
+        "max": 463,
         "sample": 4
       }
     },
@@ -217,18 +217,18 @@
         "high": 430
       },
       "r32": {
-        "low": 112,
-        "high": 177,
-        "min": 58,
-        "max": 312,
+        "low": 154,
+        "high": 205,
+        "min": 94,
+        "max": 274,
         "sample": 20
       },
       "r16": {
-        "low": 107,
-        "high": 215,
-        "min": 55,
-        "max": 378,
-        "sample": 19
+        "low": 135,
+        "high": 231,
+        "min": 93,
+        "max": 293,
+        "sample": 18
       }
     },
     "Santa Clara (Levi's)": {
@@ -237,11 +237,11 @@
         "high": 480
       },
       "r32": {
-        "low": 118,
-        "high": 289,
-        "min": 99,
-        "max": 358,
-        "sample": 15
+        "low": 138,
+        "high": 224,
+        "min": 118,
+        "max": 300,
+        "sample": 18
       }
     },
     "Inglewood (SoFi)": {
@@ -250,17 +250,17 @@
         "high": 440
       },
       "r32": {
-        "low": 132,
-        "high": 236,
-        "min": 74,
-        "max": 378,
+        "low": 137,
+        "high": 209,
+        "min": 85,
+        "max": 420,
         "sample": 20
       },
       "qf": {
         "low": 152,
-        "high": 269,
-        "min": 84,
-        "max": 516,
+        "high": 252,
+        "min": 75,
+        "max": 391,
         "sample": 20
       }
     },
@@ -270,17 +270,17 @@
         "high": 480
       },
       "r32": {
-        "low": 167,
-        "high": 235,
-        "min": 100,
-        "max": 345,
+        "low": 164,
+        "high": 230,
+        "min": 101,
+        "max": 332,
         "sample": 20
       },
       "r16": {
-        "low": 185,
-        "high": 272,
-        "min": 99,
-        "max": 369,
+        "low": 166,
+        "high": 252,
+        "min": 101,
+        "max": 303,
         "sample": 20
       }
     },
@@ -290,11 +290,11 @@
         "high": 420
       },
       "r32": {
-        "low": 112,
-        "high": 194,
-        "min": 74,
-        "max": 307,
-        "sample": 20
+        "low": 104,
+        "high": 200,
+        "min": 73,
+        "max": 306,
+        "sample": 18
       }
     },
     "Mexico City (Azteca)": {
@@ -303,17 +303,17 @@
         "high": 220
       },
       "r32": {
-        "low": 67,
-        "high": 166,
+        "low": 58,
+        "high": 162,
         "min": 42,
-        "max": 282,
+        "max": 221,
         "sample": 20
       },
       "r16": {
-        "low": 59,
-        "high": 128,
+        "low": 63,
+        "high": 166,
         "min": 42,
-        "max": 388,
+        "max": 296,
         "sample": 20
       }
     },
@@ -323,10 +323,10 @@
         "high": 180
       },
       "r32": {
-        "low": 50,
-        "high": 97,
-        "min": 32,
-        "max": 236,
+        "low": 58,
+        "high": 102,
+        "min": 40,
+        "max": 195,
         "sample": 20
       }
     },
