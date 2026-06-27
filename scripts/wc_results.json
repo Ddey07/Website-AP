@@ -153,6 +153,15 @@
     "stage": "group"
   },
   {
+    "id": "wc26-G-Egypt-Iran",
+    "teamA": "Egypt",
+    "teamB": "Iran",
+    "scoreA": 1,
+    "scoreB": 1,
+    "round": "3",
+    "stage": "group"
+  },
+  {
     "id": "wc26-L-England-Croatia",
     "teamA": "England",
     "teamB": "Croatia",
@@ -312,6 +321,15 @@
     "scoreA": 5,
     "scoreB": 1,
     "round": "2",
+    "stage": "group"
+  },
+  {
+    "id": "wc26-G-NewZealand-Belgium",
+    "teamA": "New Zealand",
+    "teamB": "Belgium",
+    "scoreA": 1,
+    "scoreB": 5,
+    "round": "3",
     "stage": "group"
   },
   {

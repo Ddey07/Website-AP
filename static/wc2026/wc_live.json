@@ -1,5 +1,5 @@
 {
-  "updated": "2026-06-27T03:34:27Z",
+  "updated": "2026-06-27T05:06:55Z",
   "source": "eloratings.net/World.tsv + thesportsdb.com",
   "formWeight": 0.33,
   "elo": {
@@ -574,26 +574,36 @@
       ]
     },
     "G": {
-      "md": 2,
+      "md": 3,
       "pts": {
-        "Egypt": 4,
-        "Iran": 2,
-        "Belgium": 2,
+        "Belgium": 5,
+        "Egypt": 5,
+        "Iran": 3,
         "New Zealand": 1
       },
       "gd": {
+        "Belgium": 4,
         "Egypt": 2,
         "Iran": 0,
-        "Belgium": 0,
-        "New Zealand": -2
+        "New Zealand": -6
       },
       "gf": {
-        "Egypt": 4,
-        "Iran": 2,
-        "Belgium": 1,
-        "New Zealand": 3
+        "Belgium": 6,
+        "Egypt": 5,
+        "Iran": 3,
+        "New Zealand": 4
       },
-      "clinched": [],
+      "clinched": [
+        "Belgium",
+        "Egypt"
+      ],
+      "ranked4th": "New Zealand",
+      "order": [
+        "Belgium",
+        "Egypt",
+        "Iran",
+        "New Zealand"
+      ],
       "matches": [
         [
           "Belgium",
@@ -608,10 +618,22 @@
           0
         ],
         [
+          "Egypt",
+          "Iran",
+          1,
+          1
+        ],
+        [
           "Iran",
           "New Zealand",
           2,
           2
+        ],
+        [
+          "New Zealand",
+          "Belgium",
+          1,
+          5
         ],
         [
           "New Zealand",
