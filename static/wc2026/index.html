@@ -4705,45 +4705,43 @@
               }
               function ThirdEntry({entry,rank,qual}){
                 const{team,s,g,alt}=entry;
-                // Only show alt team if their standalone probability is meaningful (≥10%)
-                // Filters out low-probability cases like Spain being 3rd (current group leader)
-                const showAlt=alt&&alt.s.third>=10;
                 const live=LIVE_STANDINGS[g];
                 const md=live?.md||0;
                 const pts=live?.pts?.[team]??null;
                 const gd=live?.gd?.[team]??null;
                 const slot=topSlot(team);
-                // Combined probability for same-group pair (mutually exclusive)
-                const combinedPct=s.third+(alt?.s.third||0);
-                // Bar and % use combined only when alt is shown; otherwise primary alone
-                const displayPct=showAlt?combinedPct:s.third;
-                const barW=(displayPct/maxT)*100;
+                // Bar shows the team's own 3rd-place chance; the line below adds its
+                // TOTAL chance of advancing (group win / runner-up / 3rd).
+                const barW=(s.third/maxT)*100;
                 const bc=barColor(rank,qual);
+                // The group's other realistic qualifier — usually the runner-up favourite.
+                const partner=alt&&alt.s.qual>=15?alt:null;
                 return (
                   <div style={{display:"flex",alignItems:"center",gap:8,padding:"8px 12px",borderRadius:8,marginBottom:5,background:"#061228",border:`1px solid ${qual?"#1e3a5f":"#0d1f3c"}`,flexWrap:"wrap",opacity:qual?1:0.6}}>
                     <span style={{color:qual?(rank<=2?"#f59e0b":rank<=5?"#60a5fa":"#94a3b8"):"#475569",fontSize:12,minWidth:22,textAlign:"right",fontWeight:700}}>{qual?`#${rank}`:"–"}</span>
                     {/* flags */}
-                    <span style={{fontSize:20,lineHeight:1}}>{fl(team)}{showAlt?<span style={{fontSize:14,opacity:0.7}}>{fl(alt.team)}</span>:null}</span>
-                    <div style={{flex:1,minWidth:130}}>
+                    <span style={{fontSize:20,lineHeight:1}}>{fl(team)}</span>
+                    <div style={{flex:1,minWidth:150}}>
                       <div style={{display:"flex",alignItems:"center",gap:5,marginBottom:4,flexWrap:"wrap"}}>
-                        <span style={{fontWeight:700,fontSize:13}}>{team}{showAlt&&<span style={{color:"#94a3b8",fontWeight:400}}> / {alt.team}</span>}</span>
+                        <span style={{fontWeight:700,fontSize:13}}>{team}</span>
                         <span style={{background:"#0d1f3c",color:"#a78bfa",padding:"1px 6px",borderRadius:10,fontSize:10,fontWeight:700}}>Grp {g}</span>
-                        {showAlt&&<span style={{background:"#1a0a00",color:"#fbbf24",padding:"1px 6px",borderRadius:10,fontSize:9,fontWeight:600}}>one advances</span>}
-                        {!alt&&md===3&&pts!==null&&(<span style={{background:"#0f3024",color:"#4ade80",padding:"1px 6px",borderRadius:10,fontSize:10,fontWeight:700}}>{pts}pts {gd>=0?"+":""}{gd}GD ✓</span>)}
-                        {!alt&&md===2&&pts!==null&&(<span style={{background:"#1e3a5f",color:"#bfdbfe",padding:"1px 6px",borderRadius:10,fontSize:10,fontWeight:600}}>{pts}pts {gd>=0?"+":""}{gd}GD (MD2)</span>)}
+                        {md>=3&&pts!==null&&(<span style={{background:"#0f3024",color:"#4ade80",padding:"1px 6px",borderRadius:10,fontSize:10,fontWeight:700}}>{pts}pts {gd>=0?"+":""}{gd}GD · locked 3rd</span>)}
+                        {md===2&&pts!==null&&(<span style={{background:"#1e3a5f",color:"#bfdbfe",padding:"1px 6px",borderRadius:10,fontSize:10,fontWeight:600}}>{pts}pts {gd>=0?"+":""}{gd}GD (MD2)</span>)}
                       </div>
                       <div style={{display:"flex",alignItems:"center",gap:6}}>
                         <div style={{flex:1,height:7,background:"#0d1f3c",borderRadius:4,overflow:"hidden"}}>
                           <div style={{width:`${barW}%`,height:"100%",background:bc,borderRadius:4,transition:"width 0.5s"}}/>
                         </div>
-                        <span style={{color:"#f1f5f9",fontWeight:800,fontSize:13,minWidth:40,textAlign:"right"}}>
-                          {displayPct}%
-                        </span>
+                        <span style={{color:"#f1f5f9",fontWeight:800,fontSize:13,minWidth:40,textAlign:"right"}}>{s.third}%</span>
                       </div>
-                      {showAlt&&(
-                        <div style={{display:"flex",gap:12,marginTop:3}}>
-                          <span style={{fontSize:10,color:"#94a3b8"}}>{fl(team)} {team} {s.third}%</span>
-                          <span style={{fontSize:10,color:"#94a3b8"}}>{fl(alt.team)} {alt.team} {alt.s.third}%</span>
+                      <div style={{fontSize:10,color:"#94a3b8",marginTop:3,fontWeight:600}}>
+                        {md>=3
+                          ? `🥉 ${s.third}% to claim one of the 8 third-place spots`
+                          : `🥉 ${s.third}% as a 3rd · ✅ ${s.qual}% to advance any route${s.ru>=10?` (${s.ru}% as runner-up)`:""}`}
+                      </div>
+                      {partner&&(
+                        <div style={{fontSize:10,color:"#7c93b0",marginTop:2}}>
+                          Grp {g} also: {fl(partner.team)} {partner.team} — {partner.s.qual}% to advance{partner.s.ru>partner.s.third?" (mostly as runner-up)":""}
                         </div>
                       )}
                     </div>
@@ -4760,7 +4758,7 @@
                 <div>
                   <h2 style={{fontSize:18,fontWeight:700,color:"#f1f5f9",marginBottom:4}}>🥉 3rd Place Race</h2>
                   <p style={{color:"#64748b",fontSize:13,marginBottom:8}}>
-                    {done?`8 of 12 third-placed teams advance — probabilities from ${N.toLocaleString()} simulations, each playing out all remaining MD3 fixtures.`:"Simulations running — probabilities will appear when complete"}
+                    {done?`8 of 12 third-placed teams advance. Each row is a group's most-likely 3rd-placed team: 🥉 = its chance of grabbing one of the 8 spots, ✅ = its total chance of advancing by ANY route (a team that's likely to finish 2nd advances even with a low 🥉).`:"Simulations running — probabilities will appear when complete"}
                   </p>
                   {done&&(
                     <div>
