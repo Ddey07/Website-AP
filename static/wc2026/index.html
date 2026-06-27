@@ -4703,17 +4703,26 @@
                   merged.push({team,s,g,alt:null});
                 }
               }
-              const top8=merged.slice(0,8);
-              const bubble=merged.slice(8).filter(e=>e.s.third>=1);
-              const maxT=top8[0]?.s.third||1;
-              // Rank-based bar color: gold → blue → slate
-              function barColor(rank,qual){
-                if(!qual)return"#334155";
-                if(rank<=2)return"#f59e0b";
-                if(rank<=5)return"#3b82f6";
-                return"#64748b";
+              // Tier the 12 group-thirds by qualification %, so teams statistically
+              // tied around the 8th-place cut aren't split into a hard in/out.
+              // `merged` is already sorted by 3rd-place % (descending).
+              const cutLine=merged[7]?.s.third??0;   // probability of the 8th-placed team
+              const BUBBLE_TOL=10;                    // within this many points of the cut = contested
+              const through=[],contested=[],longshot=[];
+              for(const e of merged){
+                const p=e.s.third;
+                if(p>cutLine+BUBBLE_TOL) through.push(e);
+                else if(p>=Math.max(cutLine-BUBBLE_TOL,2)) contested.push(e);
+                else if(p>=1) longshot.push(e);
               }
-              function ThirdEntry({entry,rank,qual}){
+              const spotsLeft=Math.max(0,8-through.length);  // spots the contested teams fight for
+              const maxT=merged[0]?.s.third||1;
+              function barColor(tier){
+                if(tier==='through')return"#22c55e";
+                if(tier==='contested')return"#f59e0b";
+                return"#475569";
+              }
+              function ThirdEntry({entry,rank,tier}){
                 const{team,s,g,alt}=entry;
                 const live=LIVE_STANDINGS[g];
                 const md=live?.md||0;
@@ -4723,12 +4732,16 @@
                 // Bar shows the team's own 3rd-place chance; the line below adds its
                 // TOTAL chance of advancing (group win / runner-up / 3rd).
                 const barW=(s.third/maxT)*100;
-                const bc=barColor(rank,qual);
+                const bc=barColor(tier);
                 // The group's other realistic qualifier — usually the runner-up favourite.
                 const partner=alt&&alt.s.qual>=15?alt:null;
+                // "≈" for contested (tied for the last spot), rank for clear qualifiers, "–" for long shots.
+                const rankLabel=tier==='through'?`#${rank}`:tier==='contested'?'≈':'–';
+                const rankColor=tier==='through'?'#22c55e':tier==='contested'?'#fbbf24':'#475569';
+                const borderColor=tier==='through'?'#14532d':tier==='contested'?'#78350f':'#0d1f3c';
                 return (
-                  <div style={{display:"flex",alignItems:"center",gap:8,padding:"8px 12px",borderRadius:8,marginBottom:5,background:"#061228",border:`1px solid ${qual?"#1e3a5f":"#0d1f3c"}`,flexWrap:"wrap",opacity:qual?1:0.6}}>
-                    <span style={{color:qual?(rank<=2?"#f59e0b":rank<=5?"#60a5fa":"#94a3b8"):"#475569",fontSize:12,minWidth:22,textAlign:"right",fontWeight:700}}>{qual?`#${rank}`:"–"}</span>
+                  <div style={{display:"flex",alignItems:"center",gap:8,padding:"8px 12px",borderRadius:8,marginBottom:5,background:"#061228",border:`1px solid ${borderColor}`,flexWrap:"wrap",opacity:tier==='out'?0.6:1}}>
+                    <span style={{color:rankColor,fontSize:12,minWidth:22,textAlign:"right",fontWeight:700}}>{rankLabel}</span>
                     {/* flags */}
                     <span style={{fontSize:20,lineHeight:1}}>{fl(team)}</span>
                     <div style={{flex:1,minWidth:150}}>
@@ -4768,24 +4781,34 @@
                 <div>
                   <h2 style={{fontSize:18,fontWeight:700,color:"#f1f5f9",marginBottom:4}}>🥉 3rd Place Race</h2>
                   <p style={{color:"#64748b",fontSize:13,marginBottom:8}}>
-                    {done?`8 of 12 third-placed teams advance. Each row is a group's most-likely 3rd-placed team: 🥉 = its chance of grabbing one of the 8 spots, ✅ = its total chance of advancing by ANY route (a team that's likely to finish 2nd advances even with a low 🥉).`:"Simulations running — probabilities will appear when complete"}
+                    {done?`8 of 12 third-placed teams advance. 🥉 = a group's chance of grabbing one of the 8 spots, ✅ = its total chance of advancing by ANY route. Teams within a few points of the cut line are statistically tied, so they're grouped as "contested" rather than split into in/out.`:"Simulations running — probabilities will appear when complete"}
                   </p>
                   {done&&(
                     <div>
                       <div style={{marginBottom:24}}>
-                        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10,borderBottom:"2px solid #f59e0b",paddingBottom:6}}>
-                          <span style={{color:"#f59e0b",fontWeight:700,fontSize:15}}>Projected Qualifiers</span>
-                          <span style={{color:"#475569",fontSize:12}}>Top 8 slots — % = chance group's 3rd place finishes in top 8</span>
+                        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10,borderBottom:"2px solid #22c55e",paddingBottom:6}}>
+                          <span style={{color:"#22c55e",fontWeight:700,fontSize:15}}>✓ Through</span>
+                          <span style={{color:"#475569",fontSize:12}}>{through.length} group{through.length!==1?"s":""} whose 3rd place is clearly in the top 8</span>
                         </div>
-                        {top8.map((entry,i)=><ThirdEntry key={entry.g} entry={entry} rank={i+1} qual={true}/>)}
+                        {through.map((entry,i)=><ThirdEntry key={entry.g} entry={entry} rank={i+1} tier="through"/>)}
                       </div>
-                      {bubble.length>0&&(
+                      {contested.length>0&&(
+                        <div style={{marginBottom:24}}>
+                          <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:4,borderBottom:"2px solid #f59e0b",paddingBottom:6}}>
+                            <span style={{color:"#f59e0b",fontWeight:700,fontSize:15}}>⚖️ Contested</span>
+                            <span style={{color:"#475569",fontSize:12}}>{contested.length} teams tied for {spotsLeft} remaining spot{spotsLeft!==1?"s":""}</span>
+                          </div>
+                          <div style={{color:"#7c93b0",fontSize:11,marginBottom:10}}>Within ~{BUBBLE_TOL} pts of the cut — too close to call; order here is not meaningful.</div>
+                          {contested.map((entry)=><ThirdEntry key={entry.g} entry={entry} tier="contested"/>)}
+                        </div>
+                      )}
+                      {longshot.length>0&&(
                         <div style={{marginBottom:24}}>
                           <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10,borderBottom:"2px solid #334155",paddingBottom:6}}>
-                            <span style={{color:"#94a3b8",fontWeight:700,fontSize:15}}>Bubble / Longshots</span>
-                            <span style={{color:"#475569",fontSize:12}}>Qualify in some simulations</span>
+                            <span style={{color:"#94a3b8",fontWeight:700,fontSize:15}}>Long shots</span>
+                            <span style={{color:"#475569",fontSize:12}}>Qualify only in rare simulations</span>
                           </div>
-                          {bubble.map((entry,i)=><ThirdEntry key={entry.g} entry={entry} rank={i+9} qual={false}/>)}
+                          {longshot.map((entry)=><ThirdEntry key={entry.g} entry={entry} tier="out"/>)}
                         </div>
                       )}
                       <div style={{background:"#061228",border:"1px solid #1e3a5f",borderRadius:10,padding:"14px 16px"}}>
