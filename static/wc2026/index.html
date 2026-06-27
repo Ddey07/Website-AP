@@ -1148,6 +1148,11 @@
     }
 
     /* ===================== SIMULATION FUNCTIONS ===================== */
+    // Behavioural assumption: in a final-matchday game where a draw sends BOTH
+    // teams through (both reach >=4 pts, which guarantees a 3rd-place spot), teams
+    // tend to settle for the result. We raise the base 25% draw rate by this
+    // multiplier for those games only (25% -> 37.5%). Set to 1 to disable.
+    const MUTUAL_DRAW_MULT=1.5;
     // simGroup: simulate remaining group games from current live standings.
     // liveData = {md, pts:{team:pts,...}, gd:{team:gd,...}, gf:{team:gf,...}} from LIVE_STANDINGS.
     // remainingPairs = [[a,b],...] pairs still to be played; null = simulate all 6 games.
@@ -1171,14 +1176,19 @@
       // Played results (when known) come from liveData.matches; the rest are
       // simulated below.
       const matches=(liveData?.matches||[]).map(m=>[m[0],m[1],m[2],m[3]]);
+      const isFinalMD=(liveData?.md??0)>=2;  // remaining games are the last for each team
       for(const[a,b]of games){
-        const pA=wp(a,b,groupVenue)*0.75,r=Math.random();
+        // Mutual-interest draw: final game where a draw puts BOTH teams on >=4 pts
+        // (both guaranteed to advance) and a loss would leave the loser short.
+        const mutualDraw=isFinalMD&&pts[a]<4&&pts[b]<4&&pts[a]+1>=4&&pts[b]+1>=4;
+        const drawP=mutualDraw?Math.min(0.25*MUTUAL_DRAW_MULT,0.6):0.25;
+        const pA=wp(a,b,groupVenue)*(1-drawP),r=Math.random();
         if(r<pA){
           // A wins: zero-sum margin 1-4 goals, loser scores 0-1
           const m=Math.floor(Math.random()*4)+1,gb=Math.floor(Math.random()*2);
           pts[a]+=3; gd[a]+=m; gd[b]-=m; gf[a]+=(m+gb); gf[b]+=gb;
           matches.push([a,b,m+gb,gb]);
-        } else if(r<pA+0.25){
+        } else if(r<pA+drawP){
           // Draw: 0-2 goals each, GD unchanged
           const g=Math.floor(Math.random()*3);
           pts[a]+=1; pts[b]+=1; gf[a]+=g; gf[b]+=g;
