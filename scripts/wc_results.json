@@ -99,6 +99,15 @@
     "stage": "group"
   },
   {
+    "id": "wc26-H-CapeVerde-SaudiArabia",
+    "teamA": "Cape Verde",
+    "teamB": "Saudi Arabia",
+    "scoreA": 0,
+    "scoreB": 0,
+    "round": "3",
+    "stage": "group"
+  },
+  {
     "id": "wc26-K-Colombia-DRCongo",
     "teamA": "Colombia",
     "teamB": "DR Congo",
@@ -474,6 +483,15 @@
     "scoreA": 4,
     "scoreB": 0,
     "round": "2",
+    "stage": "group"
+  },
+  {
+    "id": "wc26-H-Spain-Uruguay",
+    "teamA": "Spain",
+    "teamB": "Uruguay",
+    "scoreA": 1,
+    "scoreB": 0,
+    "round": "3",
     "stage": "group"
   },
   {

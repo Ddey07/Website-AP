@@ -1,5 +1,5 @@
 {
-  "updated": "2026-06-27T05:06:55Z",
+  "updated": "2026-06-27T05:24:58Z",
   "source": "eloratings.net/World.tsv + thesportsdb.com",
   "formWeight": 0.33,
   "elo": {
@@ -644,27 +644,43 @@
       ]
     },
     "H": {
-      "md": 2,
+      "md": 3,
       "pts": {
-        "Spain": 4,
-        "Uruguay": 2,
-        "Cape Verde": 2,
-        "Saudi Arabia": 1
+        "Spain": 7,
+        "Cape Verde": 3,
+        "Saudi Arabia": 2,
+        "Uruguay": 2
       },
       "gd": {
-        "Spain": 4,
-        "Uruguay": 0,
+        "Spain": 5,
         "Cape Verde": 0,
-        "Saudi Arabia": -4
+        "Saudi Arabia": -4,
+        "Uruguay": -1
       },
       "gf": {
-        "Spain": 4,
-        "Uruguay": 3,
+        "Spain": 5,
         "Cape Verde": 2,
-        "Saudi Arabia": 1
+        "Saudi Arabia": 1,
+        "Uruguay": 3
       },
-      "clinched": [],
+      "clinched": [
+        "Spain",
+        "Cape Verde"
+      ],
+      "ranked4th": "Saudi Arabia",
+      "order": [
+        "Spain",
+        "Cape Verde",
+        "Uruguay",
+        "Saudi Arabia"
+      ],
       "matches": [
+        [
+          "Cape Verde",
+          "Saudi Arabia",
+          0,
+          0
+        ],
         [
           "Saudi Arabia",
           "Uruguay",
@@ -681,6 +697,12 @@
           "Spain",
           "Saudi Arabia",
           4,
+          0
+        ],
+        [
+          "Spain",
+          "Uruguay",
+          1,
           0
         ],
         [
