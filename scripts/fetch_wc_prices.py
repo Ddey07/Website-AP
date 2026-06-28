@@ -776,6 +776,19 @@ def main():
         tiers, ticket_source = fetch_ticket_prices()
         match_prices = None
 
+    # SAFETY: never downgrade good prices. If this run produced placeholder/SeatGeek
+    # data (no real VividSeats per-match prices) but the existing file already holds
+    # real VividSeats prices, keep the existing data instead of overwriting it.
+    def _is_real(src, matches):
+        s = (src or "").lower()
+        return bool(matches) and "placeholder" not in s and "unavailable" not in s
+    if not _is_real(ticket_source, match_prices) and _is_real(existing.get("ticket_source"), existing.get("matches")):
+        print("   ⚠️  Live ticket fetch unavailable — KEEPING existing real VividSeats prices "
+              "(not overwriting with placeholders).")
+        tiers         = existing.get("tiers", tiers)
+        match_prices  = existing.get("matches")
+        ticket_source = existing.get("ticket_source", ticket_source) + " (kept — live fetch failed)"
+
     # Hotel prices: reuse cached data if fresh enough
     if hotels_are_fresh(existing):
         hotels       = existing.get("hotels", {})
