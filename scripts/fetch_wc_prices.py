@@ -504,13 +504,18 @@ def fetch_vividseats_prices() -> tuple[dict | None, dict | None, str]:
     """
     print("🎟️  Fetching VividSeats prices via Apify…")
 
-    all_prods = _fetch_apify_by_venues()
-    source_tag = "VividSeats via Apify (venue-by-venue)"
+    # The venue-by-venue queries (queryType=venue) currently return 0 results with
+    # the stored VividSeats venue IDs, and each one is a billable pay-per-event
+    # Apify run — so firing ~13 of them just drains a free-plan budget and leaves
+    # nothing for the query that works. Use the performer query directly: it returns
+    # the ~25 soonest WC matches with live prices in a single run.
+    all_prods = _fetch_apify_single()
+    source_tag = "VividSeats via Apify (performer)"
 
     if not all_prods:
-        print("   Venue-by-venue failed — falling back to Apify performer run…")
-        all_prods = _fetch_apify_single()
-        source_tag = "VividSeats via Apify (25 matches)"
+        print("   Performer run failed — trying venue-by-venue…")
+        all_prods = _fetch_apify_by_venues()
+        source_tag = "VividSeats via Apify (venue-by-venue)"
 
     if not all_prods:
         return None, None, "vividseats-unavailable"
