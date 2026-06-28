@@ -2099,7 +2099,7 @@
         background:'#1e3a5f',color:'#dbeafe',border:'1px solid #2c4f7c'};
 
       return (
-        <div style={{maxWidth:1160,margin:'0 auto'}}>
+        <div style={{width:'100%'}}>
           <h2 style={{fontSize:18,fontWeight:700,color:'#f1f5f9',marginBottom:4}}>🗺️ Interactive Bracket</h2>
           <p style={{color:'#7c93b0',fontSize:13,margin:'0 0 14px'}}>
             Click a team to advance them — the next round fills in automatically, all the way to the
@@ -2122,7 +2122,8 @@
           </div>
 
           <div style={{overflowX:'auto',borderRadius:14}}>
-          <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{display:'block',background:C.bg,borderRadius:14,minWidth:920}}
+          <svg viewBox={`0 0 ${W} ${H}`} width="100%" preserveAspectRatio="xMidYMid meet"
+            style={{display:'block',background:C.bg,borderRadius:14,width:'100%',minWidth:680}}
             xmlns="http://www.w3.org/2000/svg">
             <rect width={W} height={H} fill={C.bg}/>
             {STRIPS.map(([xx,bw,ci],k)=><rect key={k} x={xx-GAP/2} y={0} width={bw+GAP} height={H} fill={C.strip[ci]}/>)}
@@ -3250,7 +3251,7 @@
           })()}
 
               {/* TAB CONTENT */}
-              <div className="main-content-pad" style={{maxWidth:860,padding:"16px 24px 40px"}}>
+              <div className="main-content-pad" style={{maxWidth:tab==="bracket"?1700:860,padding:"16px 24px 40px"}}>
 
             {/* =============== GUIDE TAB =============== */}
             {tab==="guide"&&(
