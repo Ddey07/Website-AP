@@ -363,6 +363,13 @@
       "sample": 486,
       "matchNum": 73
     },
+    "2026-06-29|Houston (NRG)": {
+      "low": 1254,
+      "high": 12751,
+      "name": "Brazil vs Japan - World Cup - Match 76",
+      "sample": 504,
+      "matchNum": 76
+    },
     "2026-06-29|Foxborough (Gillette)": {
       "low": 695,
       "high": 14565,
@@ -447,6 +454,13 @@
       "sample": 870,
       "matchNum": 87
     },
+    "2026-07-04|Houston (NRG)": {
+      "low": 1486,
+      "high": 61376,
+      "name": "2026 World Cup - Match 90 (W73 vs W75)",
+      "sample": 639,
+      "matchNum": 90
+    },
     "2026-07-04|Philadelphia (Lincoln Financial)": {
       "low": 1852,
       "high": 20837,
@@ -458,49 +472,49 @@
       "low": 2005,
       "high": 32553,
       "name": "2026 World Cup - Match 91 (W76 vs W78)",
-      "sample": 731,
+      "sample": 733,
       "matchNum": 91
     },
     "2026-07-06|Dallas (AT&T)": {
-      "low": 2349,
+      "low": 2419,
       "high": 61376,
       "name": "2026 World Cup - Match 93 (W83 vs W84)",
-      "sample": 610,
+      "sample": 597,
       "matchNum": 93
     },
     "2026-07-06|Seattle (Lumen Field)": {
       "low": 2293,
       "high": 32553,
       "name": "2026 World Cup - Match 94 (W81 vs W82)",
-      "sample": 615,
+      "sample": 609,
       "matchNum": 94
     },
     "2026-07-07|Atlanta (Mercedes-Benz)": {
-      "low": 2271,
+      "low": 2441,
       "high": 32553,
       "name": "2026 World Cup - Match 95 (W86 vs W88)",
-      "sample": 779,
+      "sample": 777,
       "matchNum": 95
     },
     "2026-07-07|Vancouver (BC Place)": {
       "low": 1560,
       "high": 39485,
       "name": "2026 World Cup - Match 96 (W85 vs W87)",
-      "sample": 278,
+      "sample": 264,
       "matchNum": 96
     },
     "2026-07-09|Foxborough (Gillette)": {
       "low": 2375,
       "high": 61376,
       "name": "2026 World Cup - Match 97 (W89 vs W90) (Quarter-Final)",
-      "sample": 725,
+      "sample": 726,
       "matchNum": 97
     },
     "2026-07-10|Inglewood (SoFi)": {
       "low": 3087,
       "high": 32553,
       "name": "2026 World Cup - Match 98 (W93 vs W94) (Quarter-Final)",
-      "sample": 627,
+      "sample": 694,
       "matchNum": 98
     }
   },
@@ -525,6 +539,13 @@
       "name": "South Africa vs Canada - World Cup - Match 73",
       "sample": 486,
       "matchNum": 73
+    },
+    "76": {
+      "low": 1254,
+      "high": 12751,
+      "name": "Brazil vs Japan - World Cup - Match 76",
+      "sample": 504,
+      "matchNum": 76
     },
     "74": {
       "low": 695,
@@ -610,6 +631,13 @@
       "sample": 870,
       "matchNum": 87
     },
+    "90": {
+      "low": 1486,
+      "high": 61376,
+      "name": "2026 World Cup - Match 90 (W73 vs W75)",
+      "sample": 639,
+      "matchNum": 90
+    },
     "89": {
       "low": 1852,
       "high": 20837,
@@ -621,49 +649,49 @@
       "low": 2005,
       "high": 32553,
       "name": "2026 World Cup - Match 91 (W76 vs W78)",
-      "sample": 731,
+      "sample": 733,
       "matchNum": 91
     },
     "93": {
-      "low": 2349,
+      "low": 2419,
       "high": 61376,
       "name": "2026 World Cup - Match 93 (W83 vs W84)",
-      "sample": 610,
+      "sample": 597,
       "matchNum": 93
     },
     "94": {
       "low": 2293,
       "high": 32553,
       "name": "2026 World Cup - Match 94 (W81 vs W82)",
-      "sample": 615,
+      "sample": 609,
       "matchNum": 94
     },
     "95": {
-      "low": 2271,
+      "low": 2441,
       "high": 32553,
       "name": "2026 World Cup - Match 95 (W86 vs W88)",
-      "sample": 779,
+      "sample": 777,
       "matchNum": 95
     },
     "96": {
       "low": 1560,
       "high": 39485,
       "name": "2026 World Cup - Match 96 (W85 vs W87)",
-      "sample": 278,
+      "sample": 264,
       "matchNum": 96
     },
     "97": {
       "low": 2375,
       "high": 61376,
       "name": "2026 World Cup - Match 97 (W89 vs W90) (Quarter-Final)",
-      "sample": 725,
+      "sample": 726,
       "matchNum": 97
     },
     "98": {
       "low": 3087,
       "high": 32553,
       "name": "2026 World Cup - Match 98 (W93 vs W94) (Quarter-Final)",
-      "sample": 627,
+      "sample": 694,
       "matchNum": 98
     }
   }

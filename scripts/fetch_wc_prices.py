@@ -201,6 +201,7 @@ VENUE_NAME_MAP = {
     "Hard Rock Stadium":                "Miami (Hard Rock)",
     "AT&T Stadium":                     "Dallas (AT&T)",
     "NRG Stadium":                      "Houston (NRG)",
+    "Reliant Stadium":                  "Houston (NRG)",  # VividSeats' legacy name for NRG
     "GEHA Field at Arrowhead Stadium":  "Kansas City (Arrowhead)",
     "Arrowhead Stadium":                "Kansas City (Arrowhead)",
     "Lumen Field":                      "Seattle (Lumen Field)",
