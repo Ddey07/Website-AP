@@ -21,16 +21,18 @@
     },
     "qf": {
       "low": 2375,
-      "high": 61376,
-      "sample": 2
+      "high": 93034,
+      "sample": 4
     },
     "sf": {
-      "low": 804,
-      "high": 4690
+      "low": 4139,
+      "high": 80371,
+      "sample": 2
     },
     "final": {
-      "low": 1608,
-      "high": 16080
+      "low": 2335,
+      "high": 99669,
+      "sample": 2
     }
   },
   "hotels": {
@@ -342,19 +344,12 @@
     }
   },
   "matches": {
-    "2026-06-27|Kansas City (Arrowhead)": {
-      "low": 0,
-      "high": 0,
-      "name": "Algeria vs Austria - World Cup - Match 69 (Group J)",
-      "sample": 0,
-      "matchNum": 69
-    },
-    "2026-06-27|Dallas (AT&T)": {
-      "low": 0,
-      "high": 0,
-      "name": "Jordan vs Argentina - World Cup - Match 70 (Group J)",
-      "sample": 0,
-      "matchNum": 70
+    "2026-07-02|Toronto (BMO Field)": {
+      "low": 3417,
+      "high": 39485,
+      "name": "Portugal vs Croatia - World Cup - Match 83",
+      "sample": 59,
+      "matchNum": 83
     },
     "2026-06-28|Inglewood (SoFi)": {
       "low": 513,
@@ -363,12 +358,19 @@
       "sample": 486,
       "matchNum": 73
     },
-    "2026-06-29|Houston (NRG)": {
-      "low": 1254,
-      "high": 12751,
-      "name": "Brazil vs Japan - World Cup - Match 76",
-      "sample": 504,
-      "matchNum": 76
+    "2026-07-02|Inglewood (SoFi)": {
+      "low": 991,
+      "high": 19116,
+      "name": "Spain vs 2J - World Cup - Match 84",
+      "sample": 812,
+      "matchNum": 84
+    },
+    "2026-07-10|Inglewood (SoFi)": {
+      "low": 3087,
+      "high": 32553,
+      "name": "2026 World Cup - Match 98 (W93 vs W94) (Quarter-Final)",
+      "sample": 694,
+      "matchNum": 98
     },
     "2026-06-29|Foxborough (Gillette)": {
       "low": 695,
@@ -377,54 +379,12 @@
       "sample": 760,
       "matchNum": 74
     },
-    "2026-06-30|Dallas (AT&T)": {
-      "low": 682,
-      "high": 9043,
-      "name": "Cote d'Ivoire vs Norway - World Cup - Match 78",
-      "sample": 692,
-      "matchNum": 78
-    },
-    "2026-06-30|East Rutherford (MetLife)": {
-      "low": 892,
-      "high": 110476,
-      "name": "France vs Sweden - World Cup - Match 77",
-      "sample": 840,
-      "matchNum": 77
-    },
-    "2026-07-01|Atlanta (Mercedes-Benz)": {
-      "low": 978,
-      "high": 75759,
-      "name": "England vs TBD - World Cup - Match 80",
-      "sample": 770,
-      "matchNum": 80
-    },
-    "2026-07-01|Seattle (Lumen Field)": {
-      "low": 670,
-      "high": 18215,
-      "name": "Belgium vs TBD - World Cup - Match 82",
-      "sample": 657,
-      "matchNum": 82
-    },
-    "2026-07-01|Santa Clara (Levi's)": {
-      "low": 1513,
-      "high": 19383,
-      "name": "USA vs Bosnia-Herzegovina - World Cup - Match 81",
-      "sample": 683,
-      "matchNum": 81
-    },
-    "2026-07-02|Inglewood (SoFi)": {
-      "low": 991,
-      "high": 19116,
-      "name": "Spain vs 2J - World Cup - Match 84",
-      "sample": 812,
-      "matchNum": 84
-    },
-    "2026-07-02|Toronto (BMO Field)": {
-      "low": 3417,
-      "high": 39485,
-      "name": "Portugal vs Croatia - World Cup - Match 83",
-      "sample": 59,
-      "matchNum": 83
+    "2026-07-09|Foxborough (Gillette)": {
+      "low": 2375,
+      "high": 61376,
+      "name": "2026 World Cup - Match 97 (W89 vs W90) (Quarter-Final)",
+      "sample": 726,
+      "matchNum": 97
     },
     "2026-07-02|Vancouver (BC Place)": {
       "low": 628,
@@ -433,40 +393,19 @@
       "sample": 416,
       "matchNum": 85
     },
-    "2026-07-03|Dallas (AT&T)": {
-      "low": 688,
-      "high": 55238,
-      "name": "Australia vs Egypt - World Cup - Match 88",
-      "sample": 834,
-      "matchNum": 88
+    "2026-07-07|Vancouver (BC Place)": {
+      "low": 1560,
+      "high": 39485,
+      "name": "2026 World Cup - Match 96 (W85 vs W87)",
+      "sample": 264,
+      "matchNum": 96
     },
-    "2026-07-03|Miami (Hard Rock)": {
-      "low": 2599,
-      "high": 60983,
-      "name": "Argentina vs Cabo Verde - World Cup - Match 86",
-      "sample": 570,
-      "matchNum": 86
-    },
-    "2026-07-03|Kansas City (Arrowhead)": {
-      "low": 1606,
-      "high": 14237,
-      "name": "Colombia vs TBD - World Cup - Match 87",
-      "sample": 870,
-      "matchNum": 87
-    },
-    "2026-07-04|Houston (NRG)": {
-      "low": 1486,
-      "high": 61376,
-      "name": "2026 World Cup - Match 90 (W73 vs W75)",
-      "sample": 639,
-      "matchNum": 90
-    },
-    "2026-07-04|Philadelphia (Lincoln Financial)": {
-      "low": 1852,
-      "high": 20837,
-      "name": "2026 World Cup - Match 89 (W74 vs W77)",
-      "sample": 801,
-      "matchNum": 89
+    "2026-06-30|East Rutherford (MetLife)": {
+      "low": 892,
+      "high": 110476,
+      "name": "France vs Sweden - World Cup - Match 77",
+      "sample": 840,
+      "matchNum": 77
     },
     "2026-07-05|East Rutherford (MetLife)": {
       "low": 2005,
@@ -475,6 +414,62 @@
       "sample": 733,
       "matchNum": 91
     },
+    "2026-07-19|East Rutherford (MetLife)": {
+      "low": 11194,
+      "high": 99669,
+      "name": "2026 World Cup - Match 104 (W101 vs W102) (Final)",
+      "sample": 427,
+      "matchNum": 104
+    },
+    "2026-07-01|Santa Clara (Levi's)": {
+      "low": 1513,
+      "high": 19383,
+      "name": "USA vs Bosnia-Herzegovina - World Cup - Match 81",
+      "sample": 683,
+      "matchNum": 81
+    },
+    "2026-07-04|Philadelphia (Lincoln Financial)": {
+      "low": 1852,
+      "high": 20837,
+      "name": "2026 World Cup - Match 89 (W74 vs W77)",
+      "sample": 801,
+      "matchNum": 89
+    },
+    "2026-06-29|Houston (NRG)": {
+      "low": 1254,
+      "high": 12751,
+      "name": "Brazil vs Japan - World Cup - Match 76",
+      "sample": 504,
+      "matchNum": 76
+    },
+    "2026-07-04|Houston (NRG)": {
+      "low": 1486,
+      "high": 61376,
+      "name": "2026 World Cup - Match 90 (W73 vs W75)",
+      "sample": 639,
+      "matchNum": 90
+    },
+    "2026-06-27|Dallas (AT&T)": {
+      "low": 0,
+      "high": 0,
+      "name": "Jordan vs Argentina - World Cup - Match 70 (Group J)",
+      "sample": 0,
+      "matchNum": 70
+    },
+    "2026-06-30|Dallas (AT&T)": {
+      "low": 682,
+      "high": 9043,
+      "name": "Cote d'Ivoire vs Norway - World Cup - Match 78",
+      "sample": 692,
+      "matchNum": 78
+    },
+    "2026-07-03|Dallas (AT&T)": {
+      "low": 688,
+      "high": 55238,
+      "name": "Australia vs Egypt - World Cup - Match 88",
+      "sample": 834,
+      "matchNum": 88
+    },
     "2026-07-06|Dallas (AT&T)": {
       "low": 2419,
       "high": 61376,
@@ -482,12 +477,40 @@
       "sample": 597,
       "matchNum": 93
     },
-    "2026-07-06|Seattle (Lumen Field)": {
-      "low": 2293,
+    "2026-07-14|Dallas (AT&T)": {
+      "low": 4151,
       "high": 32553,
-      "name": "2026 World Cup - Match 94 (W81 vs W82)",
-      "sample": 609,
-      "matchNum": 94
+      "name": "2026 World Cup - Match 101 (W97 vs W98) (Semi-Final)",
+      "sample": 751,
+      "matchNum": 101
+    },
+    "2026-07-03|Miami (Hard Rock)": {
+      "low": 2599,
+      "high": 60983,
+      "name": "Argentina vs Cabo Verde - World Cup - Match 86",
+      "sample": 570,
+      "matchNum": 86
+    },
+    "2026-07-11|Miami (Hard Rock)": {
+      "low": 3449,
+      "high": 93034,
+      "name": "2026 World Cup - Match 99 (W91 vs W92) (Quarter-Final)",
+      "sample": 625,
+      "matchNum": 99
+    },
+    "2026-07-18|Miami (Hard Rock)": {
+      "low": 2335,
+      "high": 38279,
+      "name": "2026 World Cup - Match 103 (RU101 vs RU102) (Bronze Final)",
+      "sample": 351,
+      "matchNum": 103
+    },
+    "2026-07-01|Atlanta (Mercedes-Benz)": {
+      "low": 978,
+      "high": 75759,
+      "name": "England vs TBD - World Cup - Match 80",
+      "sample": 770,
+      "matchNum": 80
     },
     "2026-07-07|Atlanta (Mercedes-Benz)": {
       "low": 2441,
@@ -496,42 +519,56 @@
       "sample": 777,
       "matchNum": 95
     },
-    "2026-07-07|Vancouver (BC Place)": {
-      "low": 1560,
-      "high": 39485,
-      "name": "2026 World Cup - Match 96 (W85 vs W87)",
-      "sample": 264,
-      "matchNum": 96
+    "2026-07-15|Atlanta (Mercedes-Benz)": {
+      "low": 4139,
+      "high": 80371,
+      "name": "2026 World Cup - Match 102 (W99 vs W100) (Semi-Final)",
+      "sample": 578,
+      "matchNum": 102
     },
-    "2026-07-09|Foxborough (Gillette)": {
-      "low": 2375,
-      "high": 61376,
-      "name": "2026 World Cup - Match 97 (W89 vs W90) (Quarter-Final)",
-      "sample": 726,
-      "matchNum": 97
+    "2026-07-01|Seattle (Lumen Field)": {
+      "low": 670,
+      "high": 18215,
+      "name": "Belgium vs TBD - World Cup - Match 82",
+      "sample": 657,
+      "matchNum": 82
     },
-    "2026-07-10|Inglewood (SoFi)": {
-      "low": 3087,
+    "2026-07-06|Seattle (Lumen Field)": {
+      "low": 2293,
       "high": 32553,
-      "name": "2026 World Cup - Match 98 (W93 vs W94) (Quarter-Final)",
-      "sample": 694,
-      "matchNum": 98
-    }
-  },
-  "matchById": {
-    "69": {
+      "name": "2026 World Cup - Match 94 (W81 vs W82)",
+      "sample": 609,
+      "matchNum": 94
+    },
+    "2026-06-27|Kansas City (Arrowhead)": {
       "low": 0,
       "high": 0,
       "name": "Algeria vs Austria - World Cup - Match 69 (Group J)",
       "sample": 0,
       "matchNum": 69
     },
-    "70": {
-      "low": 0,
-      "high": 0,
-      "name": "Jordan vs Argentina - World Cup - Match 70 (Group J)",
-      "sample": 0,
-      "matchNum": 70
+    "2026-07-03|Kansas City (Arrowhead)": {
+      "low": 1606,
+      "high": 14237,
+      "name": "Colombia vs TBD - World Cup - Match 87",
+      "sample": 870,
+      "matchNum": 87
+    },
+    "2026-07-11|Kansas City (Arrowhead)": {
+      "low": 2952,
+      "high": 86999,
+      "name": "2026 World Cup - Match 100 (W95 vs W96) (Quarter-Final)",
+      "sample": 812,
+      "matchNum": 100
+    }
+  },
+  "matchById": {
+    "83": {
+      "low": 3417,
+      "high": 39485,
+      "name": "Portugal vs Croatia - World Cup - Match 83",
+      "sample": 59,
+      "matchNum": 83
     },
     "73": {
       "low": 513,
@@ -540,12 +577,19 @@
       "sample": 486,
       "matchNum": 73
     },
-    "76": {
-      "low": 1254,
-      "high": 12751,
-      "name": "Brazil vs Japan - World Cup - Match 76",
-      "sample": 504,
-      "matchNum": 76
+    "84": {
+      "low": 991,
+      "high": 19116,
+      "name": "Spain vs 2J - World Cup - Match 84",
+      "sample": 812,
+      "matchNum": 84
+    },
+    "98": {
+      "low": 3087,
+      "high": 32553,
+      "name": "2026 World Cup - Match 98 (W93 vs W94) (Quarter-Final)",
+      "sample": 694,
+      "matchNum": 98
     },
     "74": {
       "low": 695,
@@ -554,54 +598,12 @@
       "sample": 760,
       "matchNum": 74
     },
-    "78": {
-      "low": 682,
-      "high": 9043,
-      "name": "Cote d'Ivoire vs Norway - World Cup - Match 78",
-      "sample": 692,
-      "matchNum": 78
-    },
-    "77": {
-      "low": 892,
-      "high": 110476,
-      "name": "France vs Sweden - World Cup - Match 77",
-      "sample": 840,
-      "matchNum": 77
-    },
-    "80": {
-      "low": 978,
-      "high": 75759,
-      "name": "England vs TBD - World Cup - Match 80",
-      "sample": 770,
-      "matchNum": 80
-    },
-    "82": {
-      "low": 670,
-      "high": 18215,
-      "name": "Belgium vs TBD - World Cup - Match 82",
-      "sample": 657,
-      "matchNum": 82
-    },
-    "81": {
-      "low": 1513,
-      "high": 19383,
-      "name": "USA vs Bosnia-Herzegovina - World Cup - Match 81",
-      "sample": 683,
-      "matchNum": 81
-    },
-    "84": {
-      "low": 991,
-      "high": 19116,
-      "name": "Spain vs 2J - World Cup - Match 84",
-      "sample": 812,
-      "matchNum": 84
-    },
-    "83": {
-      "low": 3417,
-      "high": 39485,
-      "name": "Portugal vs Croatia - World Cup - Match 83",
-      "sample": 59,
-      "matchNum": 83
+    "97": {
+      "low": 2375,
+      "high": 61376,
+      "name": "2026 World Cup - Match 97 (W89 vs W90) (Quarter-Final)",
+      "sample": 726,
+      "matchNum": 97
     },
     "85": {
       "low": 628,
@@ -610,40 +612,19 @@
       "sample": 416,
       "matchNum": 85
     },
-    "88": {
-      "low": 688,
-      "high": 55238,
-      "name": "Australia vs Egypt - World Cup - Match 88",
-      "sample": 834,
-      "matchNum": 88
+    "96": {
+      "low": 1560,
+      "high": 39485,
+      "name": "2026 World Cup - Match 96 (W85 vs W87)",
+      "sample": 264,
+      "matchNum": 96
     },
-    "86": {
-      "low": 2599,
-      "high": 60983,
-      "name": "Argentina vs Cabo Verde - World Cup - Match 86",
-      "sample": 570,
-      "matchNum": 86
-    },
-    "87": {
-      "low": 1606,
-      "high": 14237,
-      "name": "Colombia vs TBD - World Cup - Match 87",
-      "sample": 870,
-      "matchNum": 87
-    },
-    "90": {
-      "low": 1486,
-      "high": 61376,
-      "name": "2026 World Cup - Match 90 (W73 vs W75)",
-      "sample": 639,
-      "matchNum": 90
-    },
-    "89": {
-      "low": 1852,
-      "high": 20837,
-      "name": "2026 World Cup - Match 89 (W74 vs W77)",
-      "sample": 801,
-      "matchNum": 89
+    "77": {
+      "low": 892,
+      "high": 110476,
+      "name": "France vs Sweden - World Cup - Match 77",
+      "sample": 840,
+      "matchNum": 77
     },
     "91": {
       "low": 2005,
@@ -652,6 +633,62 @@
       "sample": 733,
       "matchNum": 91
     },
+    "104": {
+      "low": 11194,
+      "high": 99669,
+      "name": "2026 World Cup - Match 104 (W101 vs W102) (Final)",
+      "sample": 427,
+      "matchNum": 104
+    },
+    "81": {
+      "low": 1513,
+      "high": 19383,
+      "name": "USA vs Bosnia-Herzegovina - World Cup - Match 81",
+      "sample": 683,
+      "matchNum": 81
+    },
+    "89": {
+      "low": 1852,
+      "high": 20837,
+      "name": "2026 World Cup - Match 89 (W74 vs W77)",
+      "sample": 801,
+      "matchNum": 89
+    },
+    "76": {
+      "low": 1254,
+      "high": 12751,
+      "name": "Brazil vs Japan - World Cup - Match 76",
+      "sample": 504,
+      "matchNum": 76
+    },
+    "90": {
+      "low": 1486,
+      "high": 61376,
+      "name": "2026 World Cup - Match 90 (W73 vs W75)",
+      "sample": 639,
+      "matchNum": 90
+    },
+    "70": {
+      "low": 0,
+      "high": 0,
+      "name": "Jordan vs Argentina - World Cup - Match 70 (Group J)",
+      "sample": 0,
+      "matchNum": 70
+    },
+    "78": {
+      "low": 682,
+      "high": 9043,
+      "name": "Cote d'Ivoire vs Norway - World Cup - Match 78",
+      "sample": 692,
+      "matchNum": 78
+    },
+    "88": {
+      "low": 688,
+      "high": 55238,
+      "name": "Australia vs Egypt - World Cup - Match 88",
+      "sample": 834,
+      "matchNum": 88
+    },
     "93": {
       "low": 2419,
       "high": 61376,
@@ -659,12 +696,40 @@
       "sample": 597,
       "matchNum": 93
     },
-    "94": {
-      "low": 2293,
+    "101": {
+      "low": 4151,
       "high": 32553,
-      "name": "2026 World Cup - Match 94 (W81 vs W82)",
-      "sample": 609,
-      "matchNum": 94
+      "name": "2026 World Cup - Match 101 (W97 vs W98) (Semi-Final)",
+      "sample": 751,
+      "matchNum": 101
+    },
+    "86": {
+      "low": 2599,
+      "high": 60983,
+      "name": "Argentina vs Cabo Verde - World Cup - Match 86",
+      "sample": 570,
+      "matchNum": 86
+    },
+    "99": {
+      "low": 3449,
+      "high": 93034,
+      "name": "2026 World Cup - Match 99 (W91 vs W92) (Quarter-Final)",
+      "sample": 625,
+      "matchNum": 99
+    },
+    "103": {
+      "low": 2335,
+      "high": 38279,
+      "name": "2026 World Cup - Match 103 (RU101 vs RU102) (Bronze Final)",
+      "sample": 351,
+      "matchNum": 103
+    },
+    "80": {
+      "low": 978,
+      "high": 75759,
+      "name": "England vs TBD - World Cup - Match 80",
+      "sample": 770,
+      "matchNum": 80
     },
     "95": {
       "low": 2441,
@@ -673,26 +738,47 @@
       "sample": 777,
       "matchNum": 95
     },
-    "96": {
-      "low": 1560,
-      "high": 39485,
-      "name": "2026 World Cup - Match 96 (W85 vs W87)",
-      "sample": 264,
-      "matchNum": 96
+    "102": {
+      "low": 4139,
+      "high": 80371,
+      "name": "2026 World Cup - Match 102 (W99 vs W100) (Semi-Final)",
+      "sample": 578,
+      "matchNum": 102
     },
-    "97": {
-      "low": 2375,
-      "high": 61376,
-      "name": "2026 World Cup - Match 97 (W89 vs W90) (Quarter-Final)",
-      "sample": 726,
-      "matchNum": 97
+    "82": {
+      "low": 670,
+      "high": 18215,
+      "name": "Belgium vs TBD - World Cup - Match 82",
+      "sample": 657,
+      "matchNum": 82
     },
-    "98": {
-      "low": 3087,
+    "94": {
+      "low": 2293,
       "high": 32553,
-      "name": "2026 World Cup - Match 98 (W93 vs W94) (Quarter-Final)",
-      "sample": 694,
-      "matchNum": 98
+      "name": "2026 World Cup - Match 94 (W81 vs W82)",
+      "sample": 609,
+      "matchNum": 94
+    },
+    "69": {
+      "low": 0,
+      "high": 0,
+      "name": "Algeria vs Austria - World Cup - Match 69 (Group J)",
+      "sample": 0,
+      "matchNum": 69
+    },
+    "87": {
+      "low": 1606,
+      "high": 14237,
+      "name": "Colombia vs TBD - World Cup - Match 87",
+      "sample": 870,
+      "matchNum": 87
+    },
+    "100": {
+      "low": 2952,
+      "high": 86999,
+      "name": "2026 World Cup - Match 100 (W95 vs W96) (Quarter-Final)",
+      "sample": 812,
+      "matchNum": 100
     }
   }
 }
