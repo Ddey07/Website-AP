@@ -565,15 +565,16 @@ def fetch_vividseats_prices() -> tuple[dict | None, dict | None, str]:
                 "name":   prod.get("name", ""),
                 "sample": int(prod.get("listingCount") or 0),
             }
-            # Include official match number when available (from venue-based fetch)
-            match_num = prod.get("_match_number")
+            # Official match number: pre-tagged by the venue path, else parse the
+            # event name here (the performer path doesn't pre-tag it).
+            match_num = prod.get("_match_number") or _extract_match_number(prod.get("name", ""))
             if match_num:
                 match_entry["matchNum"] = match_num
             match_prices[match_key] = match_entry
 
         print(f"   {rnd:6s}  ${min_p:.0f}–${max_p:.0f}  "
               f"{(venue_key or '?')[:32]}  [{date_str}]"
-              + (f"  M{prod['_match_number']}" if prod.get("_match_number") else ""))
+              + (f"  M{match_num}" if match_num else ""))
 
     fetched = sum(len(v) for v in round_buckets.values())
     if fetched == 0:
