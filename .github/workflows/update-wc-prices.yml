@@ -32,7 +32,9 @@ jobs:
           python-version: "3.12"
 
       - name: Install dependencies
-        run: pip install apify-client
+        # Pin the client: newer versions drop `timeout_secs` and return a Run
+        # object instead of a dict, which breaks the scraper calls.
+        run: pip install "apify-client==2.5.1"
 
       - name: Fetch prices and commit if changed
         env:
@@ -52,5 +54,6 @@ jobs:
             echo "No price changes."
           else
             git commit -m "data: refresh WC2026 ticket/hotel prices"
-            git push
+            # Resilient push: rebase on top of any concurrent commits, then retry.
+            git push || (git pull --rebase --autostash && git push)
           fi
