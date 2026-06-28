@@ -1,24 +1,28 @@
 {
   "last_updated": "2026-06-28",
   "hotels_fetched_at": "2026-06-28T02:34:00.555254+00:00",
-  "ticket_source": "Placeholder (SeatGeek unavailable)",
+  "ticket_source": "VividSeats",
   "hotel_source": "SerpAPI Google Hotels (partial \u2014 16 fallbacks)",
   "tiers": {
     "group": {
-      "low": 127,
-      "high": 563
+      "low": 0,
+      "high": 0,
+      "sample": 2
     },
     "r32": {
-      "low": 201,
-      "high": 831
+      "low": 527,
+      "high": 110476,
+      "sample": 14
     },
     "r16": {
-      "low": 295,
-      "high": 1206
+      "low": 1486,
+      "high": 61376,
+      "sample": 7
     },
     "qf": {
-      "low": 509,
-      "high": 2412
+      "low": 2375,
+      "high": 61376,
+      "sample": 2
     },
     "sf": {
       "low": 804,
@@ -335,6 +339,146 @@
         "low": 65,
         "high": 200
       }
+    }
+  },
+  "matches": {
+    "2026-06-27|Kansas City (Arrowhead)": {
+      "low": 0,
+      "high": 0,
+      "name": "Algeria vs Austria - World Cup - Match 69 (Group J)",
+      "sample": 0
+    },
+    "2026-06-27|Dallas (AT&T)": {
+      "low": 0,
+      "high": 0,
+      "name": "Jordan vs Argentina - World Cup - Match 70 (Group J)",
+      "sample": 0
+    },
+    "2026-06-28|Inglewood (SoFi)": {
+      "low": 527,
+      "high": 12667,
+      "name": "South Africa vs Canada - World Cup - Match 73",
+      "sample": 445
+    },
+    "2026-06-29|Foxborough (Gillette)": {
+      "low": 702,
+      "high": 14565,
+      "name": "Germany vs Paraguay - World Cup - Match 74",
+      "sample": 757
+    },
+    "2026-06-30|Dallas (AT&T)": {
+      "low": 670,
+      "high": 9043,
+      "name": "Cote d'Ivoire vs Norway - World Cup - Match 78",
+      "sample": 693
+    },
+    "2026-06-30|East Rutherford (MetLife)": {
+      "low": 829,
+      "high": 110476,
+      "name": "France vs Sweden - World Cup - Match 77",
+      "sample": 837
+    },
+    "2026-07-01|Atlanta (Mercedes-Benz)": {
+      "low": 978,
+      "high": 75759,
+      "name": "England vs TBD - World Cup - Match 80",
+      "sample": 790
+    },
+    "2026-07-01|Seattle (Lumen Field)": {
+      "low": 675,
+      "high": 18215,
+      "name": "Belgium vs TBD - World Cup - Match 82",
+      "sample": 650
+    },
+    "2026-07-01|Santa Clara (Levi's)": {
+      "low": 1513,
+      "high": 19383,
+      "name": "USA vs Bosnia-Herzegovina - World Cup - Match 81",
+      "sample": 685
+    },
+    "2026-07-02|Inglewood (SoFi)": {
+      "low": 987,
+      "high": 19116,
+      "name": "Spain vs 2J - World Cup - Match 84",
+      "sample": 816
+    },
+    "2026-07-02|Toronto (BMO Field)": {
+      "low": 3082,
+      "high": 39485,
+      "name": "Portugal vs Croatia - World Cup - Match 83",
+      "sample": 62
+    },
+    "2026-07-02|Vancouver (BC Place)": {
+      "low": 628,
+      "high": 22095,
+      "name": "Switzerland vs TBD - World Cup - Match 85",
+      "sample": 385
+    },
+    "2026-07-03|Dallas (AT&T)": {
+      "low": 688,
+      "high": 55238,
+      "name": "Australia vs Egypt - World Cup - Match 88",
+      "sample": 821
+    },
+    "2026-07-03|Miami (Hard Rock)": {
+      "low": 2599,
+      "high": 60983,
+      "name": "Argentina vs Cabo Verde - World Cup - Match 86",
+      "sample": 570
+    },
+    "2026-07-03|Kansas City (Arrowhead)": {
+      "low": 1519,
+      "high": 14237,
+      "name": "Colombia vs TBD - World Cup - Match 87",
+      "sample": 871
+    },
+    "2026-07-04|Philadelphia (Lincoln Financial)": {
+      "low": 1784,
+      "high": 20837,
+      "name": "2026 World Cup - Match 89 (W74 vs W77)",
+      "sample": 793
+    },
+    "2026-07-05|East Rutherford (MetLife)": {
+      "low": 2005,
+      "high": 32553,
+      "name": "2026 World Cup - Match 91 (W76 vs W78)",
+      "sample": 731
+    },
+    "2026-07-06|Dallas (AT&T)": {
+      "low": 2349,
+      "high": 61376,
+      "name": "2026 World Cup - Match 93 (W83 vs W84)",
+      "sample": 610
+    },
+    "2026-07-06|Seattle (Lumen Field)": {
+      "low": 2293,
+      "high": 32553,
+      "name": "2026 World Cup - Match 94 (W81 vs W82)",
+      "sample": 615
+    },
+    "2026-07-07|Atlanta (Mercedes-Benz)": {
+      "low": 2271,
+      "high": 32553,
+      "name": "2026 World Cup - Match 95 (W86 vs W88)",
+      "sample": 779
+    },
+    "2026-07-07|Vancouver (BC Place)": {
+      "low": 1560,
+      "high": 39485,
+      "name": "2026 World Cup - Match 96 (W85 vs W87)",
+      "sample": 278
+    },
+    "2026-07-09|Foxborough (Gillette)": {
+      "low": 2375,
+      "high": 61376,
+      "name": "2026 World Cup - Match 97 (W89 vs W90) (Quarter-Final)",
+      "sample": 725
+    },
+    "2026-07-10|Inglewood (SoFi)": {
+      "low": 3087,
+      "high": 32553,
+      "name": "2026 World Cup - Match 98 (W93 vs W94) (Quarter-Final)",
+      "sample": 627
     }
   }
 }
