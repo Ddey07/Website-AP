@@ -427,7 +427,6 @@ def _fetch_apify_by_venues() -> list | None:
                     "rows":      200,
                     "start":     0,
                 },
-                timeout_secs=240,
             )
             items = list(client.dataset(run["defaultDatasetId"]).iterate_items())
 
@@ -479,9 +478,8 @@ def _fetch_apify_single() -> list | None:
             run_input={
                 "performerId": "944",
                 "queryType":   "performer",
-                "rows":        25,
+                "rows":        200,
             },
-            timeout_secs=180,
         )
         items = list(client.dataset(run["defaultDatasetId"]).iterate_items())
         print(f"{len(items)} matches")
