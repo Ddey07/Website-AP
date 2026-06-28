@@ -10,7 +10,7 @@
       "sample": 2
     },
     "r32": {
-      "low": 527,
+      "low": 513,
       "high": 110476,
       "sample": 14
     },
@@ -355,25 +355,25 @@
       "sample": 0
     },
     "2026-06-28|Inglewood (SoFi)": {
-      "low": 527,
+      "low": 513,
       "high": 12667,
       "name": "South Africa vs Canada - World Cup - Match 73",
       "sample": 445
     },
     "2026-06-29|Foxborough (Gillette)": {
-      "low": 702,
+      "low": 695,
       "high": 14565,
       "name": "Germany vs Paraguay - World Cup - Match 74",
       "sample": 757
     },
     "2026-06-30|Dallas (AT&T)": {
-      "low": 670,
+      "low": 682,
       "high": 9043,
       "name": "Cote d'Ivoire vs Norway - World Cup - Match 78",
       "sample": 693
     },
     "2026-06-30|East Rutherford (MetLife)": {
-      "low": 829,
+      "low": 892,
       "high": 110476,
       "name": "France vs Sweden - World Cup - Match 77",
       "sample": 837
@@ -385,7 +385,7 @@
       "sample": 790
     },
     "2026-07-01|Seattle (Lumen Field)": {
-      "low": 675,
+      "low": 670,
       "high": 18215,
       "name": "Belgium vs TBD - World Cup - Match 82",
       "sample": 650
@@ -397,7 +397,7 @@
       "sample": 685
     },
     "2026-07-02|Inglewood (SoFi)": {
-      "low": 987,
+      "low": 991,
       "high": 19116,
       "name": "Spain vs 2J - World Cup - Match 84",
       "sample": 816
@@ -427,13 +427,13 @@
       "sample": 570
     },
     "2026-07-03|Kansas City (Arrowhead)": {
-      "low": 1519,
+      "low": 1606,
       "high": 14237,
       "name": "Colombia vs TBD - World Cup - Match 87",
       "sample": 871
     },
     "2026-07-04|Philadelphia (Lincoln Financial)": {
-      "low": 1784,
+      "low": 1852,
       "high": 20837,
       "name": "2026 World Cup - Match 89 (W74 vs W77)",
       "sample": 793
