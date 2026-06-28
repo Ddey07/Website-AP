@@ -8,8 +8,13 @@ name: Update WC2026 prices
 
 on:
   schedule:
-    - cron: "0 9 * * *"   # daily at 09:00 UTC
+    - cron: "0 9 * * *"   # daily at 09:00 UTC — cheap performer query (~25 soonest matches)
   workflow_dispatch:        # manual run from the Actions tab
+    inputs:
+      full_coverage:
+        description: "Full bracket (venue-by-venue incl. QF/SF/Final) — ~13x Apify cost"
+        type: boolean
+        default: false
 
 concurrency:
   group: update-wc-prices
@@ -41,6 +46,7 @@ jobs:
           APIFY_TOKEN: ${{ secrets.APIFY_TOKEN }}
           SERPAPI_KEY: ${{ secrets.SERPAPI_KEY }}
           SEATGEEK_CLIENT_ID: ${{ secrets.SEATGEEK_CLIENT_ID }}
+          FULL_COVERAGE: ${{ inputs.full_coverage }}
         run: |
           if [ -z "$APIFY_TOKEN" ] && [ -z "$SERPAPI_KEY" ]; then
             echo "No APIFY_TOKEN or SERPAPI_KEY secret set — skipping so prices aren't overwritten with placeholders."

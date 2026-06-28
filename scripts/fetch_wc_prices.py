@@ -503,18 +503,29 @@ def fetch_vividseats_prices() -> tuple[dict | None, dict | None, str]:
     """
     print("🎟️  Fetching VividSeats prices via Apify…")
 
-    # The venue-by-venue queries (queryType=venue) currently return 0 results with
-    # the stored VividSeats venue IDs, and each one is a billable pay-per-event
-    # Apify run — so firing ~13 of them just drains a free-plan budget and leaves
-    # nothing for the query that works. Use the performer query directly: it returns
-    # the ~25 soonest WC matches with live prices in a single run.
-    all_prods = _fetch_apify_single()
-    source_tag = "VividSeats via Apify (performer)"
-
-    if not all_prods:
-        print("   Performer run failed — trying venue-by-venue…")
-        all_prods = _fetch_apify_by_venues()
-        source_tag = "VividSeats via Apify (venue-by-venue)"
+    # Strategy depends on FULL_COVERAGE (set on manual on-demand runs only):
+    #   default  → performer query: 1 Apify run, the ~25 SOONEST matches (cheap,
+    #              fine for the daily schedule; the window rolls forward over time).
+    #   full     → venue-by-venue (every US/Canada stadium) + performer, merged —
+    #              covers the whole bracket incl. QF/SF/Final now, but ~13x the
+    #              Apify cost, so it's gated behind a manual trigger.
+    full = os.environ.get("FULL_COVERAGE", "").strip().lower() in ("1", "true", "yes")
+    if full:
+        print("   FULL_COVERAGE — venue-by-venue + performer (manual on-demand run).")
+        prods = (_fetch_apify_by_venues() or []) + (_fetch_apify_single() or [])
+        merged: dict = {}
+        for p in prods:
+            k = _extract_match_number(p.get("name", "")) or (p.get("localDate"), str(p.get("venue")))
+            merged[k] = p   # one entry per match (match number dedupes venue vs performer)
+        all_prods = list(merged.values()) or None
+        source_tag = "VividSeats via Apify (full coverage)"
+    else:
+        all_prods = _fetch_apify_single()
+        source_tag = "VividSeats via Apify (performer)"
+        if not all_prods:
+            print("   Performer run failed — trying venue-by-venue…")
+            all_prods = _fetch_apify_by_venues()
+            source_tag = "VividSeats via Apify (venue-by-venue)"
 
     if not all_prods:
         return None, None, "vividseats-unavailable"
