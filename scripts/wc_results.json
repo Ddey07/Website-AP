@@ -117,6 +117,24 @@
     "stage": "group"
   },
   {
+    "id": "wc26-K-Colombia-Portugal",
+    "teamA": "Colombia",
+    "teamB": "Portugal",
+    "scoreA": 0,
+    "scoreB": 0,
+    "round": "3",
+    "stage": "group"
+  },
+  {
+    "id": "wc26-L-Croatia-Ghana",
+    "teamA": "Croatia",
+    "teamB": "Ghana",
+    "scoreA": 2,
+    "scoreB": 1,
+    "round": "3",
+    "stage": "group"
+  },
+  {
     "id": "wc26-E-Curacao-IvoryCoast",
     "teamA": "Curacao",
     "teamB": "Ivory Coast",
@@ -141,6 +159,15 @@
     "scoreA": 1,
     "scoreB": 1,
     "round": "2",
+    "stage": "group"
+  },
+  {
+    "id": "wc26-K-DRCongo-Uzbekistan",
+    "teamA": "DR Congo",
+    "teamB": "Uzbekistan",
+    "scoreA": 3,
+    "scoreB": 1,
+    "round": "3",
     "stage": "group"
   },
   {
@@ -186,6 +213,15 @@
     "scoreA": 0,
     "scoreB": 0,
     "round": "2",
+    "stage": "group"
+  },
+  {
+    "id": "wc26-L-England-Panama",
+    "teamA": "England",
+    "teamB": "Panama",
+    "scoreA": 2,
+    "scoreB": 0,
+    "round": "3",
     "stage": "group"
   },
   {
