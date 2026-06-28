@@ -1,5 +1,5 @@
 {
-  "updated": "2026-06-28T02:09:50Z",
+  "updated": "2026-06-28T04:03:57Z",
   "source": "eloratings.net/World.tsv + thesportsdb.com",
   "formWeight": 0.33,
   "elo": {
@@ -784,31 +784,43 @@
       ]
     },
     "J": {
-      "md": 2,
+      "md": 3,
       "pts": {
-        "Argentina": 6,
-        "Austria": 3,
-        "Algeria": 3,
+        "Argentina": 9,
+        "Algeria": 4,
+        "Austria": 4,
         "Jordan": 0
       },
       "gd": {
-        "Argentina": 5,
-        "Austria": 0,
+        "Argentina": 7,
         "Algeria": -2,
-        "Jordan": -3
+        "Austria": 0,
+        "Jordan": -5
       },
       "gf": {
-        "Argentina": 5,
-        "Austria": 3,
-        "Algeria": 2,
-        "Jordan": 2
+        "Argentina": 8,
+        "Algeria": 5,
+        "Austria": 6,
+        "Jordan": 3
       },
-      "ranked4th": "Jordan",
-      "lockedFirst": "Argentina",
       "clinched": [
-        "Argentina"
+        "Argentina",
+        "Austria"
+      ],
+      "ranked4th": "Jordan",
+      "order": [
+        "Argentina",
+        "Austria",
+        "Algeria",
+        "Jordan"
       ],
       "matches": [
+        [
+          "Algeria",
+          "Austria",
+          3,
+          3
+        ],
         [
           "Argentina",
           "Algeria",
@@ -820,6 +832,12 @@
           "Austria",
           2,
           0
+        ],
+        [
+          "Argentina",
+          "Jordan",
+          3,
+          1
         ],
         [
           "Austria",

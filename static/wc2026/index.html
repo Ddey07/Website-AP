@@ -230,6 +230,9 @@
     body.light-mode .third-btn.third-btn-sel .third-name { color: #14532d !important; font-weight: 700 !important; }
     body.light-mode .third-btn.third-btn-sel .third-check { color: #16a34a !important; }
 
+    /* Interactive bracket clickable cells */
+    .ib-cell { cursor: pointer; transition: opacity .12s; }
+    .ib-cell:hover { opacity: .80; }
     /* Bracket challenge step tabs */
     .bstep-tab { transition: background 0.15s, border-color 0.15s; }
     body.light-mode .bstep-tab-inactive {
@@ -716,7 +719,7 @@
       G:{md:2,pts:{Egypt:4,Iran:2,Belgium:2,'New Zealand':1},                gd:{Egypt:2,Iran:0,Belgium:0,'New Zealand':-2},                 gf:{Egypt:4,Iran:2,Belgium:1,'New Zealand':3},                       clinched:[]},
       H:{md:2,pts:{Spain:4,Uruguay:2,'Cape Verde':2,'Saudi Arabia':1},       gd:{Spain:4,Uruguay:0,'Cape Verde':0,'Saudi Arabia':-4},        gf:{Spain:4,Uruguay:3,'Cape Verde':2,'Saudi Arabia':1},              clinched:[]},
       I:{md:2,pts:{France:6,Norway:6,Senegal:0,Iraq:0},                      gd:{France:5,Norway:4,Senegal:-3,Iraq:-6},                      gf:{France:6,Norway:7,Senegal:3,Iraq:1},                             clinched:['France','Norway']},
-      J:{md:2,pts:{Argentina:6,Austria:3,Algeria:3,Jordan:0},                gd:{Argentina:5,Austria:0,Algeria:-2,Jordan:-3},                gf:{Argentina:5,Austria:3,Algeria:2,Jordan:2},       ranked4th:'Jordan',  clinched:['Argentina']},
+      J:{md:3,pts:{Argentina:9,Austria:4,Algeria:4,Jordan:0},                gd:{Argentina:7,Austria:0,Algeria:-2,Jordan:-5},                gf:{Argentina:8,Austria:6,Algeria:5,Jordan:3},       ranked4th:'Jordan',  clinched:['Argentina','Austria'],order:['Argentina','Austria','Algeria','Jordan']},
       K:{md:2,pts:{Colombia:6,Portugal:4,'DR Congo':1,Uzbekistan:0},         gd:{Colombia:3,Portugal:5,'DR Congo':-1,Uzbekistan:-7},         gf:{Colombia:4,Portugal:6,'DR Congo':1,Uzbekistan:1},                clinched:['Colombia','Portugal']},
       L:{md:2,pts:{England:4,Ghana:4,Croatia:3,Panama:0},                    gd:{England:2,Ghana:1,Croatia:-1,Panama:-2},                    gf:{England:4,Ghana:1,Croatia:3,Panama:0},           ranked4th:'Panama',  clinched:[]},
     };
@@ -1970,6 +1973,242 @@
       );
     }
 
+    // ── Interactive "fill-it-yourself" butterfly bracket ──────────────
+    // Two Round-of-32 arcs start at the outer edges and converge to the
+    // Final in the centre. Click a team to advance them; downstream rounds
+    // auto-populate. Switzerland's R32 box (M85) is genuinely undecided
+    // until Group J finishes, so it offers two opponents: Iran or Algeria.
+    function InteractiveBracket(){
+      const [ko,setKo]=useState({r32:{},r16:{},qf:{},sf:{},final:{}});
+
+      // Final R32 matchups — fully determined now that every group is complete.
+      // idx order matches KO.r32: 0=M74,1=M77,2=M73,3=M75,4=M83,5=M84,
+      // 6=M81,7=M82,8=M76,9=M78,10=M79,11=M80,12=M86,13=M88,14=M85,15=M87.
+      // M85 resolved to Switzerland vs Algeria (Algeria took the 8th third-place
+      // slot after the Group J finale: Algeria 3-3 Austria, Argentina 3-1 Jordan).
+      const seedR32=useMemo(()=>([
+        ['Germany','Paraguay'], ['France','Sweden'], ['South Africa','Canada'], ['Netherlands','Morocco'],
+        ['Portugal','Croatia'], ['Spain','Austria'], ['USA','Bosnia-Herz.'], ['Belgium','Senegal'],
+        ['Brazil','Japan'], ['Ivory Coast','Norway'], ['Mexico','Ecuador'], ['England','DR Congo'],
+        ['Argentina','Cape Verde'], ['Australia','Egypt'], ['Switzerland','Algeria'], ['Colombia','Ghana'],
+      ]),[]);
+
+      const NEXT={r32:'r16',r16:'qf',qf:'sf',sf:'final'};
+      const PREV={r16:'r32',qf:'r16',sf:'qf',final:'sf'};
+      const COUNT={r32:16,r16:8,qf:4,sf:2,final:1};
+
+      const teamsAt=(rnd,idx,src)=>{
+        const k=src||ko;
+        if(rnd==='r32')return seedR32[idx];
+        const p=PREV[rnd];
+        return [k[p]?.[idx*2]??'TBD', k[p]?.[idx*2+1]??'TBD'];
+      };
+      const clone=o=>({r32:{...o.r32},r16:{...o.r16},qf:{...o.qf},sf:{...o.sf},final:{...o.final}});
+      const clearDown=(next,rnd,idx)=>{
+        let r=rnd,i=idx;
+        while(NEXT[r]){const nr=NEXT[r],ni=Math.floor(i/2); if(next[nr][ni]!==undefined)delete next[nr][ni]; r=nr;i=ni;}
+      };
+      function pick(rnd,idx,team){
+        setKo(prev=>{const next=clone(prev); next[rnd][idx]=team; clearDown(next,rnd,idx); return next;});
+      }
+      function autoFill(){
+        setKo(()=>{
+          const next={r32:{},r16:{},qf:{},sf:{},final:{}};
+          for(const rnd of ['r32','r16','qf','sf','final'])
+            for(let i=0;i<COUNT[rnd];i++){
+              const[a,b]=teamsAt(rnd,i,next);
+              if(a==='TBD'||b==='TBD')continue;
+              next[rnd][i]=wp(a,b)>=0.5?a:b;
+            }
+          return next;
+        });
+      }
+      const reset=()=>setKo({r32:{},r16:{},qf:{},sf:{},final:{}});
+      const champ=ko.final?.[0];
+      const picksMade=['r32','r16','qf','sf','final'].reduce((s,r)=>s+Object.keys(ko[r]).length,0);
+
+      // ── Geometry ──
+      const W=1960,H=820,TOP=74,BOT=18,AVAIL=H-TOP-BOT,GAP=16;
+      const D={r32:{bw:130,bh:78,lh:39,fs:14},r16:{bw:162,bh:112,lh:56,fs:18},
+               qf:{bw:196,bh:150,lh:75,fs:22},sf:{bw:228,bh:188,lh:94,fs:26},
+               fin:{bw:260,bh:196,lh:98,fs:30}};
+      const FIN=W/2-D.fin.bw/2;
+      const SFL=FIN-GAP-D.sf.bw, QFL=SFL-GAP-D.qf.bw, R16L=QFL-GAP-D.r16.bw, R32L=R16L-GAP-D.r32.bw;
+      const SFR=FIN+D.fin.bw+GAP, QFR=SFR+D.sf.bw+GAP, R16R=QFR+D.qf.bw+GAP, R32R=R16R+D.r16.bw+GAP;
+      const mY=(i,n)=>TOP+(i+0.5)*(AVAIL/n);
+      const finCY=mY(0,1);
+      const C={bg:'#f8fafc',strip:['#eef2ff','#fce7f3','#dcfce7','#fef9c3','#fff7ed'],
+        normBg:'#ffffff',bd:'#cbd5e1',txt:'#1f2937',dim:'#9aa6b6',
+        pickBg:'#1d4ed8',finPickBg:'#b45309',pickTxt:'#ffffff',line:'#94a3b8',mNumBg:'#1e40af',gold:'#d97706'};
+      const STRIPS=[[R32L,D.r32.bw,0],[R16L,D.r16.bw,1],[QFL,D.qf.bw,2],[SFL,D.sf.bw,3],[FIN,D.fin.bw,4],
+        [SFR,D.sf.bw,3],[QFR,D.qf.bw,2],[R16R,D.r16.bw,1],[R32R,D.r32.bw,0]];
+
+      const Box=({x,cy,rnd,idx,rtl=false,isFinal=false})=>{
+        const dd=isFinal?D.fin:D[rnd]; const {bw,bh,lh,fs}=dd;
+        const [tA,tB]=teamsAt(rnd,idx);
+        const winner=ko[rnd]?.[idx];
+        const ready=tA!=='TBD'&&tB!=='TBD';
+        const y=cy-bh/2;
+        const slot=(KO[rnd]||[])[idx];
+        const maxCh=Math.max(7,Math.floor(bw/8.2));
+        const lab=t=>{const f=fl(t); return (f!=='⚽'?f+' ':'')+(t||'TBD');};
+        const tr=t=>{const s=lab(t); return s.length>maxCh?s.slice(0,maxCh-1)+'…':s;};
+        const pA=ready?Math.round(wp(tA,tB)*100):null, pB=pA==null?null:100-pA;
+        const cell=(t,top,isW,pct)=>{
+          const clickable=ready&&t!=='TBD';
+          return (
+            <g className={clickable?'ib-cell':undefined} onClick={clickable?()=>pick(rnd,idx,t):undefined}>
+              <rect x={x} y={top} width={bw} height={lh} rx={3}
+                fill={isW?(isFinal?C.finPickBg:C.pickBg):C.normBg} stroke={C.bd} strokeWidth={1}/>
+              <text x={x+bw/2} y={top+lh/2+fs*0.35} textAnchor='middle' fontSize={fs}
+                fontFamily='system-ui,sans-serif' fontWeight={isW?'800':'500'}
+                fill={isW?C.pickTxt:(winner?C.dim:C.txt)}>{tr(t)}</text>
+              {pct!=null&&<text x={rtl?x+6:x+bw-6} y={top+lh/2+fs*0.32} textAnchor={rtl?'start':'end'}
+                fontSize={Math.max(9,Math.round(fs*0.6))} fontFamily='system-ui,sans-serif'
+                fontWeight='700' fill={isW?'#cfe0ff':C.dim}>{pct}</text>}
+            </g>
+          );
+        };
+        const mnW=46,mnH=17,mnX=rtl?x+bw-mnW:x;
+        return (
+          <g>
+            {slot&&(
+              <g><rect x={mnX} y={y-mnH-3} width={mnW} height={mnH} rx={5} fill={C.mNumBg}/>
+                <text x={mnX+mnW/2} y={y-6} textAnchor='middle' fontSize='9.5' fill='#fff' fontWeight='700'
+                  fontFamily='system-ui,sans-serif'>{slot.m}</text>
+                <title>{slot.m} · {slot.date} · {slot.venue}</title></g>
+            )}
+            {cell(tA,y,winner===tA,pA)}
+            <line x1={x} y1={y+lh} x2={x+bw} y2={y+lh} stroke={C.bd} strokeWidth={1}/>
+            {cell(tB,y+lh,winner===tB,pB)}
+          </g>
+        );
+      };
+      const Conn=({fx,fy,tx,ty})=>{const mx=(fx+tx)/2;
+        return <path d={`M${fx},${fy} H${mx} V${ty} H${tx}`} fill='none' stroke={C.line} strokeWidth='1.6'
+          strokeLinecap='round' strokeLinejoin='round'/>;};
+      const ColHdr=({x,label,bw,gold})=>{
+        const cx=x+bw/2, pw=Math.max(96,label.length*9+24);
+        return (<g><rect x={cx-pw/2} y={TOP-28} width={pw} height={21} rx={10} fill={gold?C.gold:'#1d4ed8'}/>
+          <text x={cx} y={TOP-12.5} textAnchor='middle' fontSize='10.5' fill='#fff' fontWeight='800'
+            fontFamily='system-ui,sans-serif' letterSpacing='0.4'>{label}</text></g>);
+      };
+
+      const cbW=360,cbH=86, cbX=W/2-cbW/2, cbY=finCY-D.fin.bh/2-cbH-26;
+      const btn={padding:'7px 14px',borderRadius:8,fontSize:13,fontWeight:700,cursor:'pointer',
+        background:'#1e3a5f',color:'#dbeafe',border:'1px solid #2c4f7c'};
+
+      return (
+        <div style={{maxWidth:1160,margin:'0 auto'}}>
+          <h2 style={{fontSize:18,fontWeight:700,color:'#f1f5f9',marginBottom:4}}>🗺️ Interactive Bracket</h2>
+          <p style={{color:'#7c93b0',fontSize:13,margin:'0 0 14px'}}>
+            Click a team to advance them — the next round fills in automatically, all the way to the
+            champion in the centre. The small grey number on each team is its model win-probability.
+          </p>
+
+          <div style={{display:'flex',gap:10,flexWrap:'wrap',alignItems:'center',marginBottom:12}}>
+            <button onClick={autoFill} style={{...btn,background:'#143d2b',color:'#86efac',border:'1px solid #1f6b46'}}>✨ Fill by model favourites</button>
+            <button onClick={reset} style={btn}>↺ Reset</button>
+            <span style={{color:'#64748b',fontSize:12}}>{picksMade}/31 picks made</span>
+            {champ&&<span style={{marginLeft:'auto',background:'#3b2706',color:'#fbbf24',
+              border:'1px solid #b45309',borderRadius:20,padding:'5px 14px',fontSize:13,fontWeight:800}}>
+              🏆 Your champion: {fl(champ)} {champ}</span>}
+          </div>
+
+          <div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap',background:'#0d1f3c',
+            border:'1px solid #1f6b46',borderRadius:8,padding:'8px 12px',marginBottom:14}}>
+            <span style={{color:'#86efac',fontSize:12.5,fontWeight:700}}>✅ All groups complete — every R32 matchup is now locked.</span>
+            <span style={{color:'#94a3b8',fontSize:12}}>M85 resolved to Switzerland vs Algeria (Algeria took the final third-place spot ahead of Iran).</span>
+          </div>
+
+          <div style={{overflowX:'auto',borderRadius:14}}>
+          <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{display:'block',background:C.bg,borderRadius:14,minWidth:920}}
+            xmlns="http://www.w3.org/2000/svg">
+            <rect width={W} height={H} fill={C.bg}/>
+            {STRIPS.map(([xx,bw,ci],k)=><rect key={k} x={xx-GAP/2} y={0} width={bw+GAP} height={H} fill={C.strip[ci]}/>)}
+
+            <text x={W/2} y={34} textAnchor='middle' fontSize='20' fontWeight='900' fill='#0f172a'
+              fontFamily='system-ui,sans-serif' letterSpacing='1'>FIFA WORLD CUP 2026 — BRACKET</text>
+            <line x1={60} y1={50} x2={W-60} y2={50} stroke='#e2e8f0' strokeWidth='1.5'/>
+
+            <ColHdr x={R32L} label='Round of 32' bw={D.r32.bw}/>
+            <ColHdr x={R16L} label='Round of 16' bw={D.r16.bw}/>
+            <ColHdr x={QFL} label='Quarterfinals' bw={D.qf.bw}/>
+            <ColHdr x={SFL} label='Semifinals' bw={D.sf.bw}/>
+            <ColHdr x={FIN} label='⭐ Final' bw={D.fin.bw} gold/>
+            <ColHdr x={SFR} label='Semifinals' bw={D.sf.bw}/>
+            <ColHdr x={QFR} label='Quarterfinals' bw={D.qf.bw}/>
+            <ColHdr x={R16R} label='Round of 16' bw={D.r16.bw}/>
+            <ColHdr x={R32R} label='Round of 32' bw={D.r32.bw}/>
+
+            {/* LEFT */}
+            {Array.from({length:8},(_,i)=><Box key={`l32${i}`} x={R32L} cy={mY(i,8)} rnd='r32' idx={i} {...D.r32}/>)}
+            {Array.from({length:4},(_,i)=>(
+              <g key={`l16${i}`}>
+                <Box x={R16L} cy={mY(i,4)} rnd='r16' idx={i}/>
+                <Conn fx={R32L+D.r32.bw} fy={mY(i*2,8)} tx={R16L} ty={mY(i,4)}/>
+                <Conn fx={R32L+D.r32.bw} fy={mY(i*2+1,8)} tx={R16L} ty={mY(i,4)}/>
+              </g>
+            ))}
+            {Array.from({length:2},(_,i)=>(
+              <g key={`lqf${i}`}>
+                <Box x={QFL} cy={mY(i,2)} rnd='qf' idx={i}/>
+                <Conn fx={R16L+D.r16.bw} fy={mY(i*2,4)} tx={QFL} ty={mY(i,2)}/>
+                <Conn fx={R16L+D.r16.bw} fy={mY(i*2+1,4)} tx={QFL} ty={mY(i,2)}/>
+              </g>
+            ))}
+            <Box x={SFL} cy={finCY} rnd='sf' idx={0}/>
+            <Conn fx={QFL+D.qf.bw} fy={mY(0,2)} tx={SFL} ty={finCY}/>
+            <Conn fx={QFL+D.qf.bw} fy={mY(1,2)} tx={SFL} ty={finCY}/>
+
+            {/* FINAL */}
+            <line x1={SFL+D.sf.bw} y1={finCY} x2={FIN} y2={finCY} stroke={C.gold} strokeWidth='2.5' strokeDasharray='7,4'/>
+            <line x1={SFR} y1={finCY} x2={FIN+D.fin.bw} y2={finCY} stroke={C.gold} strokeWidth='2.5' strokeDasharray='7,4'/>
+            <Box x={FIN} cy={finCY} rnd='final' idx={0} isFinal/>
+
+            {/* Champion badge */}
+            {champ?(
+              <g>
+                <line x1={W/2} y1={cbY+cbH} x2={W/2} y2={finCY-D.fin.bh/2} stroke={C.gold} strokeWidth='2'/>
+                <rect x={cbX} y={cbY} width={cbW} height={cbH} rx={14} fill='#fffbeb' stroke='#f59e0b' strokeWidth='3'/>
+                <text x={W/2} y={cbY+27} textAnchor='middle' fontSize='13' fontWeight='800' fill='#b45309' letterSpacing='2'>🏆 CHAMPION</text>
+                <text x={W/2} y={cbY+64} textAnchor='middle' fontSize='28' fontWeight='900' fill='#1c1917'>{fl(champ)} {champ}</text>
+              </g>
+            ):(
+              <g>
+                <rect x={cbX} y={cbY} width={cbW} height={cbH} rx={14} fill='#fffbeb' stroke='#f59e0b' strokeWidth='2' opacity='0.55'/>
+                <text x={W/2} y={cbY+cbH/2+5} textAnchor='middle' fontSize='14' fill='#94a3b8'>Pick winners to crown a champion</text>
+              </g>
+            )}
+
+            {/* RIGHT */}
+            <Box x={SFR} cy={finCY} rnd='sf' idx={1} rtl/>
+            <Conn fx={QFR} fy={mY(0,2)} tx={SFR+D.sf.bw} ty={finCY}/>
+            <Conn fx={QFR} fy={mY(1,2)} tx={SFR+D.sf.bw} ty={finCY}/>
+            {Array.from({length:2},(_,i)=>(
+              <g key={`rqf${i}`}>
+                <Box x={QFR} cy={mY(i,2)} rnd='qf' idx={2+i} rtl/>
+                <Conn fx={R16R} fy={mY(i*2,4)} tx={QFR+D.qf.bw} ty={mY(i,2)}/>
+                <Conn fx={R16R} fy={mY(i*2+1,4)} tx={QFR+D.qf.bw} ty={mY(i,2)}/>
+              </g>
+            ))}
+            {Array.from({length:4},(_,i)=>(
+              <g key={`r16${i}`}>
+                <Box x={R16R} cy={mY(i,4)} rnd='r16' idx={4+i} rtl/>
+                <Conn fx={R32R} fy={mY(i*2,8)} tx={R16R+D.r16.bw} ty={mY(i,4)}/>
+                <Conn fx={R32R} fy={mY(i*2+1,8)} tx={R16R+D.r16.bw} ty={mY(i,4)}/>
+              </g>
+            ))}
+            {Array.from({length:8},(_,i)=><Box key={`r32${i}`} x={R32R} cy={mY(i,8)} rnd='r32' idx={8+i} rtl/>)}
+          </svg>
+          </div>
+          <p style={{color:'#475569',fontSize:11.5,marginTop:10,textAlign:'center'}}>
+            All 16 R32 matchups locked from final group standings · numbers show Monte-Carlo win probability
+          </p>
+        </div>
+      );
+    }
+
     function MatchupRow({rank,a,b,count,N}){
       const rankBadge=["#1","#2","#3"];
       const pct=((count/N)*100).toFixed(1);
@@ -2787,6 +3026,7 @@
       const tabs=[
         {id:"guide",label:"📖 How to Use"},
         {id:"challenge",label:"🏆 Bracket Challenge"},
+        {id:"bracket",label:"🗺️ Interactive Bracket"},
         {id:"champion",label:"📊 Champion Odds"},
         {id:"track",label:"🔍 Track a Team"},
         {id:"venue",label:"📍 Venue Finder"},
@@ -3897,6 +4137,8 @@
             })()}
 
             {/* =============== CHAMPION ODDS TAB =============== */}
+            {tab==="bracket"&&<InteractiveBracket/>}
+
             {tab==="champion"&&(
               <div>
                 <h2 style={{fontSize:18,fontWeight:700,color:"#f1f5f9",marginBottom:4}}>🏆 Champion Odds</h2>

@@ -1,5 +1,14 @@
 [
   {
+    "id": "wc26-J-Algeria-Austria",
+    "teamA": "Algeria",
+    "teamB": "Austria",
+    "scoreA": 3,
+    "scoreB": 3,
+    "round": "3",
+    "stage": "group"
+  },
+  {
     "id": "wc26-J-Argentina-Algeria",
     "teamA": "Argentina",
     "teamB": "Algeria",
@@ -15,6 +24,15 @@
     "scoreA": 2,
     "scoreB": 0,
     "round": "2",
+    "stage": "group"
+  },
+  {
+    "id": "wc26-J-Argentina-Jordan",
+    "teamA": "Argentina",
+    "teamB": "Jordan",
+    "scoreA": 3,
+    "scoreB": 1,
+    "round": "3",
     "stage": "group"
   },
   {
