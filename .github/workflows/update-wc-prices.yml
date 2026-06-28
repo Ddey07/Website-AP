@@ -1,15 +1,22 @@
 name: Update WC2026 prices
 
-# Refreshes ticket (VividSeats/Apify) and hotel (SerpAPI) prices once a day and
-# commits static/wc2026/prices.js — which triggers a Netlify rebuild.
+# Refreshes ticket (VividSeats/Apify) and hotel (SerpAPI) prices and commits
+# static/wc2026/prices.js — which triggers a Netlify rebuild.
+#
+# MANUAL ONLY (no schedule). Run it yourself from the Actions tab when you want
+# fresh prices. Two reasons there's no daily cron:
+#   1. A failed daily fetch was what overwrote real prices with placeholders.
+#      (A safety guard in fetch_wc_prices.py now prevents that, but no schedule
+#       means no surprise runs at all.)
+#   2. The cheap daily query only returns the ~25 soonest matches and replaces
+#      the price list wholesale, which would drop the QF/SF/Final prices that a
+#      full-coverage run populates.
 #
 # Requires repo secrets APIFY_TOKEN and/or SERPAPI_KEY. If neither is set the job
 # skips without committing, so it can never overwrite good prices with placeholders.
 
 on:
-  schedule:
-    - cron: "0 9 * * *"   # daily at 09:00 UTC — cheap performer query (~25 soonest matches)
-  workflow_dispatch:        # manual run from the Actions tab
+  workflow_dispatch:        # manual run from the Actions tab only
     inputs:
       full_coverage:
         description: "Full bracket (venue-by-venue incl. QF/SF/Final) — ~13x Apify cost"
