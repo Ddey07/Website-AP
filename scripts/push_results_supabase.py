@@ -148,15 +148,22 @@ def r32_matchups(standings, fifa_rank):
 
 
 def ko_pairs(results):
-    """{ frozenset({a,b}) -> (winner, loser) } for finished KO matches."""
+    """{ frozenset({a,b}) -> (winner, loser) } for finished KO matches.
+
+    Draws are decided on penalties and carry an explicit `winner` field.
+    """
     out = {}
     for m in results:
         if m.get("stage") != "ko":
             continue
         a, b, sa, sb = m["teamA"], m["teamB"], int(m["scoreA"]), int(m["scoreB"])
-        if sa == sb:
+        win = m.get("winner")
+        if sa == sb and not win:
             continue
-        w, l = (a, b) if sa > sb else (b, a)
+        if win:
+            w, l = (win, b if win == a else a)
+        else:
+            w, l = (a, b) if sa > sb else (b, a)
         out[frozenset((a, b))] = (w, l)
     return out
 
