@@ -1979,8 +1979,6 @@
     // auto-populate. Switzerland's R32 box (M85) is genuinely undecided
     // until Group J finishes, so it offers two opponents: Iran or Algeria.
     function InteractiveBracket(){
-      const [ko,setKo]=useState({r32:{},r16:{},qf:{},sf:{},final:{}});
-
       // Final R32 matchups — fully determined now that every group is complete.
       // idx order matches KO.r32: 0=M74,1=M77,2=M73,3=M75,4=M83,5=M84,
       // 6=M81,7=M82,8=M76,9=M78,10=M79,11=M80,12=M86,13=M88,14=M85,15=M87.
@@ -1997,6 +1995,36 @@
       const PREV={r16:'r32',qf:'r16',sf:'qf',final:'sf'};
       const COUNT={r32:16,r16:8,qf:4,sf:2,final:1};
 
+      // Actual finished KO results (winner per matchup) pinned from live data.
+      const KOR=(window.WC_LIVE&&window.WC_LIVE.koResults)||{};
+      const keyOf=(a,b)=>[a,b].slice().sort().join('|');
+      // Cascade real results through the bracket: a match locks once both its
+      // feeder teams are known AND a recorded result exists for that pair.
+      const locked=useMemo(()=>{
+        const L={r32:{},r16:{},qf:{},sf:{},final:{}};
+        const tms=(rnd,idx)=> rnd==='r32'?seedR32[idx]:[L[PREV[rnd]][idx*2],L[PREV[rnd]][idx*2+1]];
+        for(const rnd of ['r32','r16','qf','sf','final'])
+          for(let i=0;i<COUNT[rnd];i++){
+            const[a,b]=tms(rnd,i);
+            if(!a||!b||a==='TBD'||b==='TBD')continue;
+            const w=KOR[keyOf(a,b)]; if(w)L[rnd][i]=w;
+          }
+        return L;
+      },[seedR32]);
+      const isLocked=(rnd,idx)=>locked[rnd][idx]!==undefined;
+      const seedKo=()=>JSON.parse(JSON.stringify(locked));
+
+      const [ko,setKo]=useState(seedKo);
+      // If results arrive/change after mount, re-pin them without wiping user picks.
+      useEffect(()=>{
+        setKo(prev=>{
+          const next=JSON.parse(JSON.stringify(prev));
+          for(const rnd of ['r32','r16','qf','sf','final'])
+            for(const i of Object.keys(locked[rnd])) next[rnd][i]=locked[rnd][i];
+          return next;
+        });
+      },[locked]);
+
       const teamsAt=(rnd,idx,src)=>{
         const k=src||ko;
         if(rnd==='r32')return seedR32[idx];
@@ -2006,16 +2034,18 @@
       const clone=o=>({r32:{...o.r32},r16:{...o.r16},qf:{...o.qf},sf:{...o.sf},final:{...o.final}});
       const clearDown=(next,rnd,idx)=>{
         let r=rnd,i=idx;
-        while(NEXT[r]){const nr=NEXT[r],ni=Math.floor(i/2); if(next[nr][ni]!==undefined)delete next[nr][ni]; r=nr;i=ni;}
+        while(NEXT[r]){const nr=NEXT[r],ni=Math.floor(i/2); if(!isLocked(nr,ni)&&next[nr][ni]!==undefined)delete next[nr][ni]; r=nr;i=ni;}
       };
       function pick(rnd,idx,team){
+        if(isLocked(rnd,idx))return;             // actual results can't be changed
         setKo(prev=>{const next=clone(prev); next[rnd][idx]=team; clearDown(next,rnd,idx); return next;});
       }
       function autoFill(){
         setKo(()=>{
-          const next={r32:{},r16:{},qf:{},sf:{},final:{}};
+          const next=JSON.parse(JSON.stringify(locked));   // keep real results
           for(const rnd of ['r32','r16','qf','sf','final'])
             for(let i=0;i<COUNT[rnd];i++){
+              if(isLocked(rnd,i))continue;
               const[a,b]=teamsAt(rnd,i,next);
               if(a==='TBD'||b==='TBD')continue;
               next[rnd][i]=wp(a,b)>=0.5?a:b;
@@ -2023,8 +2053,9 @@
           return next;
         });
       }
-      const reset=()=>setKo({r32:{},r16:{},qf:{},sf:{},final:{}});
+      const reset=()=>setKo(seedKo());            // back to just the real results
       const champ=ko.final?.[0];
+      const lockedCount=['r32','r16','qf','sf','final'].reduce((s,r)=>s+Object.keys(locked[r]).length,0);
       const picksMade=['r32','r16','qf','sf','final'].reduce((s,r)=>s+Object.keys(ko[r]).length,0);
 
       // ── Geometry ──
@@ -2054,16 +2085,21 @@
         const lab=t=>{const f=fl(t); return (f!=='⚽'?f+' ':'')+(t||'TBD');};
         const tr=t=>{const s=lab(t); return s.length>maxCh?s.slice(0,maxCh-1)+'…':s;};
         const pA=ready?Math.round(wp(tA,tB)*100):null, pB=pA==null?null:100-pA;
+        const lockedHere=isLocked(rnd,idx);          // actual finished result
         const cell=(t,top,isW,pct)=>{
-          const clickable=ready&&t!=='TBD';
+          const clickable=ready&&t!=='TBD'&&!lockedHere;
+          const winFill=isW?(lockedHere?'#15803d':(isFinal?C.finPickBg:C.pickBg)):C.normBg;
           return (
             <g className={clickable?'ib-cell':undefined} onClick={clickable?()=>pick(rnd,idx,t):undefined}>
               <rect x={x} y={top} width={bw} height={lh} rx={3}
-                fill={isW?(isFinal?C.finPickBg:C.pickBg):C.normBg} stroke={C.bd} strokeWidth={1}/>
+                fill={winFill} stroke={C.bd} strokeWidth={1}/>
               <text x={x+bw/2} y={top+lh/2+fs*0.35} textAnchor='middle' fontSize={fs}
                 fontFamily='system-ui,sans-serif' fontWeight={isW?'800':'500'}
                 fill={isW?C.pickTxt:(winner?C.dim:C.txt)}>{tr(t)}</text>
-              {pct!=null&&<text x={rtl?x+6:x+bw-6} y={top+lh/2+fs*0.32} textAnchor={rtl?'start':'end'}
+              {lockedHere&&isW&&<text x={rtl?x+8:x+bw-8} y={top+lh/2+fs*0.36} textAnchor={rtl?'start':'end'}
+                fontSize={Math.max(11,Math.round(fs*0.8))} fontFamily='system-ui,sans-serif'
+                fontWeight='800' fill='#bbf7d0'>✓</text>}
+              {pct!=null&&!lockedHere&&<text x={rtl?x+6:x+bw-6} y={top+lh/2+fs*0.32} textAnchor={rtl?'start':'end'}
                 fontSize={Math.max(9,Math.round(fs*0.6))} fontFamily='system-ui,sans-serif'
                 fontWeight='700' fill={isW?'#cfe0ff':C.dim}>{pct}</text>}
             </g>
@@ -2073,10 +2109,10 @@
         return (
           <g>
             {slot&&(
-              <g><rect x={mnX} y={y-mnH-3} width={mnW} height={mnH} rx={5} fill={C.mNumBg}/>
+              <g><rect x={mnX} y={y-mnH-3} width={mnW} height={mnH} rx={5} fill={lockedHere?'#15803d':C.mNumBg}/>
                 <text x={mnX+mnW/2} y={y-6} textAnchor='middle' fontSize='9.5' fill='#fff' fontWeight='700'
                   fontFamily='system-ui,sans-serif'>{slot.m}</text>
-                <title>{slot.m} · {slot.date} · {slot.venue}</title></g>
+                <title>{slot.m} · {slot.date} · {slot.venue}{lockedHere?' · FINAL':''}</title></g>
             )}
             {cell(tA,y,winner===tA,pA)}
             <line x1={x} y1={y+lh} x2={x+bw} y2={y+lh} stroke={C.bd} strokeWidth={1}/>
@@ -2109,7 +2145,7 @@
           <div style={{display:'flex',gap:10,flexWrap:'wrap',alignItems:'center',marginBottom:12}}>
             <button onClick={autoFill} style={{...btn,background:'#143d2b',color:'#86efac',border:'1px solid #1f6b46'}}>✨ Fill by model favourites</button>
             <button onClick={reset} style={btn}>↺ Reset</button>
-            <span style={{color:'#64748b',fontSize:12}}>{picksMade}/31 picks made</span>
+            <span style={{color:'#64748b',fontSize:12}}>{picksMade}/31 filled{lockedCount>0?` · ${lockedCount} actual result${lockedCount>1?'s':''}`:''}</span>
             {champ&&<span style={{marginLeft:'auto',background:'#3b2706',color:'#fbbf24',
               border:'1px solid #b45309',borderRadius:20,padding:'5px 14px',fontSize:13,fontWeight:800}}>
               🏆 Your champion: {fl(champ)} {champ}</span>}
@@ -2117,8 +2153,8 @@
 
           <div style={{display:'flex',alignItems:'center',gap:8,flexWrap:'wrap',background:'#0d1f3c',
             border:'1px solid #1f6b46',borderRadius:8,padding:'8px 12px',marginBottom:14}}>
-            <span style={{color:'#86efac',fontSize:12.5,fontWeight:700}}>✅ All groups complete — every R32 matchup is now locked.</span>
-            <span style={{color:'#94a3b8',fontSize:12}}>M85 resolved to Switzerland vs Algeria (Algeria took the final third-place spot ahead of Iran).</span>
+            <span style={{color:'#86efac',fontSize:12.5,fontWeight:700}}>🟢 Green boxes (✓) are actual finished results — locked in and not clickable.</span>
+            <span style={{color:'#94a3b8',fontSize:12}}>R32 underway: Canada, Paraguay (pens vs Germany) and Brazil are through. Pick the rest yourself.</span>
           </div>
 
           <div style={{overflowX:'auto',borderRadius:14}}>

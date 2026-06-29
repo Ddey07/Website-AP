@@ -300,16 +300,20 @@ def attach_group_matches(standings, results):
 
 
 def ko_results(results):
-    """{ 'TeamA|TeamB' (sorted) -> winner } for every finished knockout match."""
+    """{ 'TeamA|TeamB' (sorted) -> winner } for every finished knockout match.
+
+    A draw after 90'+ET is decided on penalties; such matches carry an explicit
+    `winner` field (the shootout victor). Decisive matches use the score.
+    """
     out = {}
     for m in results:
         if m.get("stage") != "ko":
             continue
         a, b, sa, sb = m["teamA"], m["teamB"], int(m["scoreA"]), int(m["scoreB"])
-        if sa == sb:
-            continue  # KO draws are decided on penalties; the feed's winner field
-                      # would be needed — skip until scores reflect the decision.
-        out["|".join(sorted([a, b]))] = a if sa > sb else b
+        win = m.get("winner")
+        if sa == sb and not win:
+            continue  # draw with no recorded shootout winner — skip until known
+        out["|".join(sorted([a, b]))] = win if win else (a if sa > sb else b)
     return out
 
 

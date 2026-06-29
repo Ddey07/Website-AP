@@ -646,5 +646,34 @@
     "scoreB": 3,
     "round": "1",
     "stage": "group"
+  },
+  {
+    "id": "wc26-R32-M76-Brazil-Japan",
+    "teamA": "Brazil",
+    "teamB": "Japan",
+    "scoreA": 2,
+    "scoreB": 1,
+    "round": "r32",
+    "stage": "ko"
+  },
+  {
+    "id": "wc26-R32-M73-Canada-SouthAfrica",
+    "teamA": "Canada",
+    "teamB": "South Africa",
+    "scoreA": 1,
+    "scoreB": 0,
+    "round": "r32",
+    "stage": "ko"
+  },
+  {
+    "id": "wc26-R32-M74-Germany-Paraguay",
+    "teamA": "Germany",
+    "teamB": "Paraguay",
+    "scoreA": 1,
+    "scoreB": 1,
+    "round": "r32",
+    "stage": "ko",
+    "winner": "Paraguay",
+    "decidedBy": "penalties"
   }
 ]
