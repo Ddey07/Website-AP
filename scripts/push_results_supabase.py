@@ -329,11 +329,13 @@ def compute_scores(rows, predictions, profiles):
                 continue
             tp, sp, mp = KO_PTS[rnd]
             picks = dict(b[rnd])
+            comp_slots = set()       # slots neutralised by the site-error fix
             if rnd == "r32":  # apply site-error compensation to affected picks
                 for s, t in list(picks.items()):
                     repl = COMPENSATIONS.get((name, s, t))
                     if repl:
                         picks[s] = repl
+                        comp_slots.add(s)
             pset = set(picks.values())
             pts = 0
             for idx, team, opp in rr:
@@ -341,6 +343,11 @@ def compute_scores(rows, predictions, profiles):
                     pts += tp                       # trajectory
                 if picks.get(idx) == team:
                     pts += sp                       # exact slot
+                # Matchup: skip on a compensated slot. "Treated as the group
+                # winner" is a winner-only pick with no opponent claim (we showed
+                # the wrong opponent there), so no pairing credit is due.
+                if rnd == "r32" and idx in comp_slots:
+                    continue
                 if rnd == "r32":
                     pp = {x for x in pairs.get(idx, (None, None)) if x}
                 else:
