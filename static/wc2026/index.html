@@ -1388,9 +1388,9 @@
     };
     // Scoring tiers for KO rounds (all additive):
     //   Trajectory = your pick WON their match (any opponent): TRAJ_PTS
-    //   Matchup    = both predicted teams actually face each other (any slot): MATCH_PTS
+    //   Matchup    = your bracket predicted these two teams to MEET, and they did: MATCH_PTS
     //   Exact slot = correct bracket position (R32–SF only): SLOT_PTS
-    // Group stage: grp1=3, grp2=2, grpT=2. Bonuses: perfectGroup=5, perfectRound=10, champion=10.
+    // Group stage: grp1=3, grp2=2, grpT=2. Bonus: champion=10 (perfect-group/round not awarded).
     const TRAJ_PTS  = {r32:2, r16:3,  qf:4,  sf:6,  final:10};
     const MATCH_PTS = {r32:3, r16:5,  qf:8,  sf:11, final:25};
     const SLOT_PTS  = {r32:5, r16:8,  qf:13, sf:18, final:0 };
@@ -1402,6 +1402,30 @@
     // Score a bracket (same shape as stored predictions) against the live `results`
     // table, mirroring the Supabase calculate_scores() rules exactly. Used to place
     // the Monte Carlo benchmark on the leaderboard without writing to the database.
+    // The R32 pairings a bracket actually stages (winner/runner-up feeders +
+    // the user's own FIFA-495 third assignment). Used for the "matchup" tier:
+    // you only earn it when your bracket predicted those two teams to MEET.
+    // Mirrors _user_r32_pairs() in scripts/push_results_supabase.py exactly.
+    const R32_FEED=[['W','E','T','M74'],['W','I','T','M77'],['R','A','R','B'],['W','F','R','C'],
+      ['R','K','R','L'],['W','H','R','J'],['W','D','T','M81'],['W','G','T','M82'],
+      ['W','C','R','F'],['R','E','R','I'],['W','A','T','M79'],['W','L','T','M80'],
+      ['W','J','R','H'],['R','D','R','G'],['W','B','T','M85'],['W','K','T','M87']];
+    function predictedR32Pairs(bracket){
+      const GI={}; 'ABCDEFGHIJKL'.split('').forEach((c,i)=>GI[c]=i);
+      const thirds=(bracket.grpT||[]).map(e=>{const p=String(e).split(':');return {g:p[0],t:p[1]||e};});
+      const key=[...new Set(thirds.map(x=>x.g))].sort().join('');
+      const enc=COMBO495[key]; const ta={};
+      if(enc) for(let i=0;i<8;i++){const f=thirds.find(x=>x.g===enc[i]); ta[SLOT_ORDER_495[i]]=f?f.t:undefined;}
+      const res=(k,key2)=> k==='W'?bracket.grp1?.[GI[key2]] : k==='R'?bracket.grp2?.[GI[key2]] : ta[key2];
+      return R32_FEED.map(([k1,a1,k2,a2])=>[res(k1,a1),res(k2,a2)]);
+    }
+    // Predicted pairing the bracket stages for a KO match (any round).
+    function predictedKOPair(bracket, rnd, slot, r32pairs){
+      if(rnd==='r32') return r32pairs[slot]||[];
+      const prev=bracket[{r16:'r32',qf:'r16',sf:'qf'}[rnd]]||{};
+      return [prev[slot*2], prev[slot*2+1]];
+    }
+
     function scoreBracketVsResults(bracket, resultsRows){
       const R={grp1:{},grp2:{},grpT:new Set(),r32:[],r16:[],qf:[],sf:[],final:[]};
       for(const r of resultsRows){
@@ -1414,8 +1438,9 @@
       let g1=0; for(const[s,t]of Object.entries(bracket.grp1||{})) if(R.grp1[s]===t) g1+=3; if(Object.keys(R.grp1).length) rounds.grp1=g1;
       let g2=0; for(const[s,t]of Object.entries(bracket.grp2||{})) if(R.grp2[s]===t) g2+=2; if(Object.keys(R.grp2).length) rounds.grp2=g2;
       let gt=0; for(const ent of (bracket.grpT||[])) if(R.grpT.has(ent)) gt+=2; if(R.grpT.size) rounds.grpT=gt;
-      // Knockout rounds: Trajectory + Exact slot + Matchup
+      // Knockout rounds: Trajectory + Exact slot + Matchup (predicted pairing)
       const KO={r32:[2,5,3],r16:[3,8,5],qf:[4,13,8],sf:[6,18,11]};
+      const r32pairs=predictedR32Pairs(bracket);
       for(const rnd of Object.keys(KO)){
         const res=R[rnd]; if(!res.length) continue;
         const [tp,sp,mp]=KO[rnd];
@@ -1425,7 +1450,10 @@
         const pickedTeams=new Set(Object.values(picks));
         let traj=0,slot=0,match=0;
         for(const[s,t]of Object.entries(picks)){ if(winners.has(t))traj++; if(bySlot[s]&&bySlot[s].team===t)slot++; }
-        for(const r of res){ if(pickedTeams.has(r.team)&&pickedTeams.has(r.opp))match++; }
+        for(const r of res){
+          const pp=new Set(predictedKOPair(bracket,rnd,r.slot,r32pairs).filter(Boolean));
+          if(pp.size===2&&pp.has(r.team)&&pp.has(r.opp))match++;
+        }
         rounds[rnd]=traj*tp+slot*sp+match*mp;
       }
       // Final: Trajectory (winner) + Matchup (either finalist) + Champion bonus
@@ -1463,6 +1491,7 @@
       // Knockout: itemise each played match and what the user earned on it.
       const koRounds=[['r32',[2,5,3]],['r16',[3,8,5]],['qf',[4,13,8]],['sf',[6,18,11]]];
       const koMatches=[]; let koPts=0;
+      const r32pairs=predictedR32Pairs(bracket);
       for(const[rnd,[tp,sp,mp]]of koRounds){
         const res=R[rnd]; if(!res.length) continue;
         const picks=bracket[rnd]||{}; const pteams=new Set(Object.values(picks));
@@ -1470,7 +1499,8 @@
           const parts=[]; let p=0;
           if(pteams.has(r.team)){parts.push('advanced +'+tp); p+=tp;}
           if(picks[r.slot]===r.team){parts.push('exact slot +'+sp); p+=sp;}
-          if(pteams.has(r.team)&&pteams.has(r.opp)){parts.push('matchup +'+mp); p+=mp;}
+          const pp=new Set(predictedKOPair(bracket,rnd,r.slot,r32pairs).filter(Boolean));
+          if(pp.size===2&&pp.has(r.team)&&pp.has(r.opp)){parts.push('matchup +'+mp); p+=mp;}
           koPts+=p; koMatches.push({label:`${r.team} def. ${r.opp}`, pts:p, parts});
         }
       }
@@ -3487,7 +3517,6 @@
                             {row('Correct group winner (1st)','3 pts')}
                             {row('Correct group runner-up (2nd)','2 pts')}
                             {row('Correct 3rd-place qualifier','2 pts')}
-                            {row('Perfect group — both 1st & 2nd correct','＋5 bonus')}
 
                             {/* Knockout table */}
                             <div style={{color:'#64748b',fontSize:11,fontWeight:700,marginBottom:6,marginTop:18,textTransform:'uppercase',letterSpacing:'0.05em'}}>Knockout rounds</div>
@@ -3576,7 +3605,6 @@
                             <div style={{color:'#64748b',fontSize:11,fontWeight:700,marginBottom:6,marginTop:14,textTransform:'uppercase',letterSpacing:'0.05em'}}>Bonuses</div>
                             <div style={{background:'#052e16',border:'1px solid #16a34a',borderRadius:8,padding:'10px 12px'}}>
                               {row('Champion correctly predicted','＋10 pts')}
-                              <div style={{marginTop:4}}>{row('Perfect round — every KO round winner correct','＋10 pts')}</div>
                             </div>
                           </div>
                         )}

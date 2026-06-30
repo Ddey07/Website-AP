@@ -37,6 +37,7 @@ import json
 import os
 import sys
 import urllib.request
+from collections import defaultdict
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -229,6 +230,135 @@ def rpc(name, body):
         return resp.read().decode()
 
 
+# ── Leaderboard scoring (computed here, then written via replace_scores) ──────
+# Rules mirror static/wc2026/index.html and the published "How scoring works":
+#   Group: winner 3, runner-up 2, third 2.
+#   KO   : trajectory (your pick won its match), exact slot (right winner in the
+#          right bracket position), matchup (you PREDICTED these two teams to
+#          face each other — i.e. your bracket pairs them — and they did).
+#   Final: winner 10, either finalist 25.  Champion bonus: +10.
+# The matchup tier is the "predicted the pairing" definition (your group/KO
+# picks actually stage that fixture), NOT merely having both teams alive.
+KO_PTS = {"r32": (2, 5, 3), "r16": (3, 8, 5), "qf": (4, 13, 8), "sf": (6, 18, 11)}
+PREV_ROUND = {"r16": "r32", "qf": "r16", "sf": "qf"}
+# Site-error compensations (mirror score_compensations / SCORE_COMPENSATIONS):
+# (display_name, r32 slot, wrongly-shown pick) -> team to score instead (group winner).
+COMPENSATIONS = {
+    ("Rokkekoro", 10, "Sweden"): "South Korea",
+    ("Tetsu", 6, "Senegal"): "Turkey",
+    ("raeesbhai", 10, "Senegal"): "Mexico",
+    ("Yellowstone", 10, "Ecuador"): "Mexico",
+}
+
+
+def _get(table, select="*"):
+    req = urllib.request.Request(
+        f"{SUPABASE_URL}/rest/v1/{table}?select={select}&limit=100000",
+        headers={"apikey": SUPABASE_ANON_KEY,
+                 "Authorization": f"Bearer {SUPABASE_ANON_KEY}"},
+    )
+    with urllib.request.urlopen(req, timeout=30) as resp:
+        return json.loads(resp.read().decode())
+
+
+def _user_third_slots(grpt_list):
+    """A user's predicted thirds ("G:Team") assigned to R32 third-slots via the
+    official FIFA 495 table — exactly how their own bracket places them."""
+    thirds = [(e.split(":", 1)[0], e.split(":", 1)[1]) for e in grpt_list if ":" in e]
+    enc = COMBO495.get("".join(sorted(set(g for g, _ in thirds))))
+    out = {}
+    if enc:
+        for i in range(8):
+            out[SLOT_ORDER_495[i]] = next((tm for g, tm in thirds if g == enc[i]), None)
+    return out
+
+
+def _user_r32_pairs(b):
+    """{slot_idx: (teamA, teamB)} the user predicted to meet in each R32 match."""
+    ta = _user_third_slots(b["grpT"])
+
+    def resolve(spec):
+        kind, key = spec.split(":")
+        if kind == "W":
+            return b["grp1"].get(GROUP_IDX[key])
+        if kind == "R":
+            return b["grp2"].get(GROUP_IDX[key])
+        return ta.get(key)  # "T:M74" -> the third assigned to M74
+
+    return {i: (resolve(f1), resolve(f2)) for i, (f1, f2) in enumerate(R32_FEEDERS)}
+
+
+def compute_scores(rows, predictions, profiles):
+    """Return [{user_id, round, points}] from result rows + everyone's picks."""
+    id2name = {p["id"]: p.get("display_name") for p in profiles}
+    Rg = {"grp1": {}, "grp2": {}, "grpT": set()}
+    Rk = {"r32": [], "r16": [], "qf": [], "sf": [], "final": []}
+    for rnd, idx, team, opp in rows:
+        if rnd in ("grp1", "grp2"):
+            Rg[rnd][idx] = team
+        elif rnd == "grpT":
+            Rg["grpT"].add(team)
+        elif rnd in Rk:
+            Rk[rnd].append((idx, team, opp))
+
+    B = defaultdict(lambda: {"grp1": {}, "grp2": {}, "grpT": [],
+                             "r32": {}, "r16": {}, "qf": {}, "sf": {}, "final": {}})
+    for p in predictions:
+        u, rnd = p["user_id"], p["round"]
+        if rnd == "grpT":
+            B[u]["grpT"].append(p["picked_team"])
+        elif rnd in B[u]:
+            B[u][rnd][p["slot_idx"]] = p["picked_team"]
+
+    out = []
+    for u, b in B.items():
+        name = id2name.get(u)
+        if Rg["grp1"]:
+            out.append({"user_id": u, "round": "grp1",
+                        "points": sum(3 for s, t in b["grp1"].items() if Rg["grp1"].get(s) == t)})
+        if Rg["grp2"]:
+            out.append({"user_id": u, "round": "grp2",
+                        "points": sum(2 for s, t in b["grp2"].items() if Rg["grp2"].get(s) == t)})
+        if Rg["grpT"]:
+            out.append({"user_id": u, "round": "grpT",
+                        "points": sum(2 for e in b["grpT"] if e in Rg["grpT"])})
+        pairs = _user_r32_pairs(b)
+        for rnd in ("r32", "r16", "qf", "sf"):
+            rr = Rk[rnd]
+            if not rr:
+                continue
+            tp, sp, mp = KO_PTS[rnd]
+            picks = dict(b[rnd])
+            if rnd == "r32":  # apply site-error compensation to affected picks
+                for s, t in list(picks.items()):
+                    repl = COMPENSATIONS.get((name, s, t))
+                    if repl:
+                        picks[s] = repl
+            pset = set(picks.values())
+            pts = 0
+            for idx, team, opp in rr:
+                if team in pset:
+                    pts += tp                       # trajectory
+                if picks.get(idx) == team:
+                    pts += sp                       # exact slot
+                if rnd == "r32":
+                    pp = {x for x in pairs.get(idx, (None, None)) if x}
+                else:
+                    prev = b[PREV_ROUND[rnd]]
+                    pp = {x for x in (prev.get(idx * 2), prev.get(idx * 2 + 1)) if x}
+                if pp == {team, opp}:
+                    pts += mp                        # matchup (predicted the pairing)
+            out.append({"user_id": u, "round": rnd, "points": pts})
+        if Rk["final"]:
+            _, team, opp = Rk["final"][0]
+            fp = b["final"].get(0)
+            fpts = (10 if fp == team else 0) + (25 if fp in (team, opp) else 0)
+            out.append({"user_id": u, "round": "final", "points": fpts})
+            if fp == team:
+                out.append({"user_id": u, "round": "champion", "points": 10})
+    return out
+
+
 def main():
     push = "--push" in sys.argv or os.environ.get("SUPABASE_PUSH") == "1"
     standings, fifa_rank = load_standings()
@@ -241,14 +371,26 @@ def main():
     for rnd, idx, team, opp in rows:
         print(f"  {rnd:6} slot {idx:2}  {team}" + (f"  def. {opp}" if opp else ""))
 
+    # Score everyone from the canonical result rows + their saved predictions.
+    preds = _get("predictions", "user_id,round,slot_idx,picked_team")
+    profiles = _get("profiles", "id,display_name")
+    score_rows = compute_scores(rows, preds, profiles)
+    by_user = defaultdict(int)
+    for s in score_rows:
+        by_user[s["user_id"]] += s["points"]
+    id2name = {p["id"]: p.get("display_name") or p["id"][:8] for p in profiles}
+    print(f"\nLeaderboard ({len(by_user)} scored, total {sum(by_user.values())} pts):")
+    for uid, tot in sorted(by_user.items(), key=lambda x: -x[1]):
+        print(f"  {tot:4d}  {id2name.get(uid, uid[:8])}")
+
     if not push:
         print("\nDry run — pass --push (or SUPABASE_PUSH=1) to write and rescore.")
         return
     for rnd, idx, team, opp in rows:
         rpc("upsert_result", {"p_round": rnd, "p_slot_idx": idx,
                               "p_team": team, "p_opponent": opp})
-    print("Pushed results. Rescoring…")
-    print(rpc("calculate_scores", {}))
+    print("Pushed results. Writing tightened scores…")
+    print(rpc("replace_scores", {"p_rows": score_rows}))
 
 
 if __name__ == "__main__":
