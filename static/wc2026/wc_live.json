@@ -1,5 +1,5 @@
 {
-  "updated": "2026-06-30T03:58:26Z",
+  "updated": "2026-06-30T20:43:54Z",
   "source": "eloratings.net/World.tsv + thesportsdb.com",
   "formWeight": 0.33,
   "elo": {
@@ -10,7 +10,7 @@
     "Brazil": 2031,
     "Colombia": 2004,
     "Portugal": 1990,
-    "Netherlands": 1980,
+    "Netherlands": 1971,
     "Norway": 1918,
     "Switzerland": 1914,
     "Mexico": 1912,
@@ -18,8 +18,8 @@
     "Croatia": 1905,
     "Ecuador": 1902,
     "Japan": 1888,
+    "Morocco": 1886,
     "Belgium": 1884,
-    "Morocco": 1877,
     "Turkey": 1852,
     "Senegal": 1842,
     "Uruguay": 1841,
@@ -60,7 +60,7 @@
     "Brazil": 30,
     "Colombia": 54,
     "Portugal": -40,
-    "Netherlands": 5,
+    "Netherlands": -4,
     "Norway": 52,
     "Switzerland": 70,
     "Mexico": 85,
@@ -68,8 +68,8 @@
     "Croatia": -22,
     "Ecuador": -3,
     "Japan": 31,
+    "Morocco": 74,
     "Belgium": 37,
-    "Morocco": 65,
     "Turkey": 16,
     "Senegal": 57,
     "Uruguay": -60,
@@ -110,7 +110,7 @@
     "Brazil": 2041,
     "Colombia": 2022,
     "Portugal": 1977,
-    "Netherlands": 1982,
+    "Netherlands": 1970,
     "Norway": 1935,
     "Switzerland": 1937,
     "Mexico": 1940,
@@ -118,8 +118,8 @@
     "Croatia": 1898,
     "Ecuador": 1901,
     "Japan": 1898,
+    "Morocco": 1910,
     "Belgium": 1896,
-    "Morocco": 1898,
     "Turkey": 1857,
     "Senegal": 1861,
     "Uruguay": 1821,
@@ -1048,6 +1048,7 @@
     "Brazil|Japan": "Brazil",
     "Canada|South Africa": "Canada",
     "Germany|Paraguay": "Paraguay",
-    "Morocco|Netherlands": "Morocco"
+    "Morocco|Netherlands": "Morocco",
+    "Ivory Coast|Norway": "Norway"
   }
 }

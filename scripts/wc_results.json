@@ -686,5 +686,14 @@
     "stage": "ko",
     "winner": "Morocco",
     "decidedBy": "penalties"
+  },
+  {
+    "id": "wc26-R32-M78-Norway-IvoryCoast",
+    "teamA": "Norway",
+    "teamB": "Ivory Coast",
+    "scoreA": 2,
+    "scoreB": 1,
+    "round": "r32",
+    "stage": "ko"
   }
 ]
