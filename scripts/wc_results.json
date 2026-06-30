@@ -675,5 +675,16 @@
     "stage": "ko",
     "winner": "Paraguay",
     "decidedBy": "penalties"
+  },
+  {
+    "id": "wc26-R32-M75-Netherlands-Morocco",
+    "teamA": "Netherlands",
+    "teamB": "Morocco",
+    "scoreA": 1,
+    "scoreB": 1,
+    "round": "r32",
+    "stage": "ko",
+    "winner": "Morocco",
+    "decidedBy": "penalties"
   }
 ]

@@ -1,5 +1,5 @@
 {
-  "updated": "2026-06-29T23:44:52Z",
+  "updated": "2026-06-30T03:58:26Z",
   "source": "eloratings.net/World.tsv + thesportsdb.com",
   "formWeight": 0.33,
   "elo": {
@@ -1047,6 +1047,7 @@
   "koResults": {
     "Brazil|Japan": "Brazil",
     "Canada|South Africa": "Canada",
-    "Germany|Paraguay": "Paraguay"
+    "Germany|Paraguay": "Paraguay",
+    "Morocco|Netherlands": "Morocco"
   }
 }
