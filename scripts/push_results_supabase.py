@@ -241,6 +241,11 @@ def rpc(name, body):
 # picks actually stage that fixture), NOT merely having both teams alive.
 KO_PTS = {"r32": (2, 5, 3), "r16": (3, 8, 5), "qf": (4, 13, 8), "sf": (6, 18, 11)}
 PREV_ROUND = {"r16": "r32", "qf": "r16", "sf": "qf"}
+# R32 slots fed by a 3rd-place team (W-vs-3rd). The matchup tier is NOT scored
+# here: the third's slot is algorithmically assigned (and was mis-displayed
+# during the submission window), so a pairing prediction can't be judged fairly.
+R32_THIRD_SLOTS = {i for i, (f1, f2) in enumerate(R32_FEEDERS)
+                   if f1.startswith("T") or f2.startswith("T")}
 # Site-error compensations (mirror score_compensations / SCORE_COMPENSATIONS):
 # (display_name, r32 slot, wrongly-shown pick) -> team to score instead (group winner).
 COMPENSATIONS = {
@@ -329,13 +334,11 @@ def compute_scores(rows, predictions, profiles):
                 continue
             tp, sp, mp = KO_PTS[rnd]
             picks = dict(b[rnd])
-            comp_slots = set()       # slots neutralised by the site-error fix
             if rnd == "r32":  # apply site-error compensation to affected picks
                 for s, t in list(picks.items()):
                     repl = COMPENSATIONS.get((name, s, t))
                     if repl:
                         picks[s] = repl
-                        comp_slots.add(s)
             pset = set(picks.values())
             pts = 0
             for idx, team, opp in rr:
@@ -343,10 +346,8 @@ def compute_scores(rows, predictions, profiles):
                     pts += tp                       # trajectory
                 if picks.get(idx) == team:
                     pts += sp                       # exact slot
-                # Matchup: skip on a compensated slot. "Treated as the group
-                # winner" is a winner-only pick with no opponent claim (we showed
-                # the wrong opponent there), so no pairing credit is due.
-                if rnd == "r32" and idx in comp_slots:
+                # Matchup: clean (winner/runner-up) slots only — never W-vs-3rd.
+                if rnd == "r32" and idx in R32_THIRD_SLOTS:
                     continue
                 if rnd == "r32":
                     pp = {x for x in pairs.get(idx, (None, None)) if x}

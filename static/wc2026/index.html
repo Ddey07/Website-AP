@@ -1410,6 +1410,9 @@
       ['R','K','R','L'],['W','H','R','J'],['W','D','T','M81'],['W','G','T','M82'],
       ['W','C','R','F'],['R','E','R','I'],['W','A','T','M79'],['W','L','T','M80'],
       ['W','J','R','H'],['R','D','R','G'],['W','B','T','M85'],['W','K','T','M87']];
+    // R32 slots fed by a 3rd-place team — matchup tier is NOT scored here (the
+    // third's slot is algorithmic and was mis-shown during submission).
+    const R32_THIRD_SLOTS=new Set(R32_FEED.map((f,i)=>(f[0]==='T'||f[2]==='T')?i:-1).filter(i=>i>=0));
     function predictedR32Pairs(bracket){
       const GI={}; 'ABCDEFGHIJKL'.split('').forEach((c,i)=>GI[c]=i);
       const thirds=(bracket.grpT||[]).map(e=>{const p=String(e).split(':');return {g:p[0],t:p[1]||e};});
@@ -1451,6 +1454,7 @@
         let traj=0,slot=0,match=0;
         for(const[s,t]of Object.entries(picks)){ if(winners.has(t))traj++; if(bySlot[s]&&bySlot[s].team===t)slot++; }
         for(const r of res){
+          if(rnd==='r32'&&R32_THIRD_SLOTS.has(r.slot)) continue; // no matchup on W-vs-3rd slots
           const pp=new Set(predictedKOPair(bracket,rnd,r.slot,r32pairs).filter(Boolean));
           if(pp.size===2&&pp.has(r.team)&&pp.has(r.opp))match++;
         }
@@ -1499,7 +1503,8 @@
           const parts=[]; let p=0;
           if(pteams.has(r.team)){parts.push('advanced +'+tp); p+=tp;}
           if(picks[r.slot]===r.team){parts.push('exact slot +'+sp); p+=sp;}
-          const pp=new Set(predictedKOPair(bracket,rnd,r.slot,r32pairs).filter(Boolean));
+          const isThird=(rnd==='r32'&&R32_THIRD_SLOTS.has(r.slot));
+          const pp=isThird?new Set():new Set(predictedKOPair(bracket,rnd,r.slot,r32pairs).filter(Boolean));
           if(pp.size===2&&pp.has(r.team)&&pp.has(r.opp)){parts.push('matchup +'+mp); p+=mp;}
           koPts+=p; koMatches.push({label:`${r.team} def. ${r.opp}`, pts:p, parts});
         }
@@ -3550,7 +3555,7 @@
                               </div>
                               <div style={{marginBottom:5}}>
                                 <span style={{color:'#93c5fd',fontWeight:700,fontSize:11}}>Matchup: </span>
-                                <span style={{color:'#64748b',fontSize:11}}>Both teams you predicted to face each other actually meet — any slot.</span>
+                                <span style={{color:'#64748b',fontSize:11}}>Your bracket predicted these two teams to face each other, and they did. Scored on fixed winner/runner-up matchups only — not on slots that depend on a 3rd-place team.</span>
                               </div>
                               <div>
                                 <span style={{color:'#60a5fa',fontWeight:700,fontSize:11}}>Exact slot: </span>
