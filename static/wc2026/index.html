@@ -2162,8 +2162,14 @@
         const y=cy-bh/2;
         const slot=(KO[rnd]||[])[idx];
         const maxCh=Math.max(7,Math.floor(bw/8.2));
-        const lab=t=>{const f=fl(t); return (f!=='⚽'?f+' ':'')+(t||'TBD');};
-        const tr=t=>{const s=lab(t); return s.length>maxCh?s.slice(0,maxCh-1)+'…':s;};
+        // Truncate on the NAME only. Flag emojis (esp. England/Scotland tag
+        // sequences) count as many code units in .length, which would wrongly
+        // clip short names — so measure the name and prepend the flag whole.
+        const tr=t=>{
+          const f=fl(t), name=t||'TBD', nmax=Math.max(5,maxCh-2);
+          const nm=name.length>nmax?name.slice(0,nmax-1)+'…':name;
+          return (f!=='⚽'?f+' ':'')+nm;
+        };
         const pA=ready?Math.round(wp(tA,tB)*100):null, pB=pA==null?null:100-pA;
         const lockedHere=isLocked(rnd,idx);          // actual finished result
         const cell=(t,top,isW,pct)=>{
