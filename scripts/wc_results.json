@@ -686,6 +686,15 @@
     "decidedBy": "penalties"
   },
   {
+    "id": "wc26-R32-M79-Mexico-Ecuador",
+    "teamA": "Mexico",
+    "teamB": "Ecuador",
+    "scoreA": 2,
+    "scoreB": 0,
+    "round": "r32",
+    "stage": "ko"
+  },
+  {
     "id": "wc26-R32-M75-Netherlands-Morocco",
     "teamA": "Netherlands",
     "teamB": "Morocco",
