@@ -666,6 +666,15 @@
     "stage": "ko"
   },
   {
+    "id": "wc26-R32-M80-England-DRCongo",
+    "teamA": "England",
+    "teamB": "DR Congo",
+    "scoreA": 2,
+    "scoreB": 1,
+    "round": "r32",
+    "stage": "ko"
+  },
+  {
     "id": "wc26-R32-M77-France-Sweden",
     "teamA": "France",
     "teamB": "Sweden",
