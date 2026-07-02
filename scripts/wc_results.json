@@ -648,6 +648,15 @@
     "stage": "group"
   },
   {
+    "id": "wc26-R32-M82-Belgium-Senegal",
+    "teamA": "Belgium",
+    "teamB": "Senegal",
+    "scoreA": 3,
+    "scoreB": 2,
+    "round": "r32",
+    "stage": "ko"
+  },
+  {
     "id": "wc26-R32-M76-Brazil-Japan",
     "teamA": "Brazil",
     "teamB": "Japan",
