@@ -731,5 +731,14 @@
     "scoreB": 1,
     "round": "r32",
     "stage": "ko"
+  },
+  {
+    "id": "wc26-R32-M81-USA-Bosnia",
+    "teamA": "USA",
+    "teamB": "Bosnia-Herz.",
+    "scoreA": 2,
+    "scoreB": 0,
+    "round": "r32",
+    "stage": "ko"
   }
 ]

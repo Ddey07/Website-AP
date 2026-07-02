@@ -1,5 +1,5 @@
 {
-  "updated": "2026-07-02T00:08:35Z",
+  "updated": "2026-07-02T02:07:10Z",
   "source": "eloratings.net/World.tsv + thesportsdb.com",
   "formWeight": 0.33,
   "elo": {
@@ -1053,6 +1053,7 @@
     "Germany|Paraguay": "Paraguay",
     "Ecuador|Mexico": "Mexico",
     "Morocco|Netherlands": "Morocco",
-    "Ivory Coast|Norway": "Norway"
+    "Ivory Coast|Norway": "Norway",
+    "Bosnia-Herz.|USA": "USA"
   }
 }
