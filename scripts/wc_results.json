@@ -675,6 +675,17 @@
     "stage": "ko"
   },
   {
+    "id": "wc26-R32-M88-Egypt-Australia",
+    "teamA": "Egypt",
+    "teamB": "Australia",
+    "scoreA": 1,
+    "scoreB": 1,
+    "round": "r32",
+    "stage": "ko",
+    "winner": "Egypt",
+    "decidedBy": "penalties"
+  },
+  {
     "id": "wc26-R32-M80-England-DRCongo",
     "teamA": "England",
     "teamB": "DR Congo",
