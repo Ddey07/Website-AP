@@ -751,6 +751,15 @@
     "stage": "ko"
   },
   {
+    "id": "wc26-R32-M85-Switzerland-Algeria",
+    "teamA": "Switzerland",
+    "teamB": "Algeria",
+    "scoreA": 2,
+    "scoreB": 0,
+    "round": "r32",
+    "stage": "ko"
+  },
+  {
     "id": "wc26-R32-M81-USA-Bosnia",
     "teamA": "USA",
     "teamB": "Bosnia-Herz.",
