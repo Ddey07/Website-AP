@@ -733,6 +733,24 @@
     "stage": "ko"
   },
   {
+    "id": "wc26-R32-M83-Portugal-Croatia",
+    "teamA": "Portugal",
+    "teamB": "Croatia",
+    "scoreA": 2,
+    "scoreB": 1,
+    "round": "r32",
+    "stage": "ko"
+  },
+  {
+    "id": "wc26-R32-M84-Spain-Austria",
+    "teamA": "Spain",
+    "teamB": "Austria",
+    "scoreA": 3,
+    "scoreB": 0,
+    "round": "r32",
+    "stage": "ko"
+  },
+  {
     "id": "wc26-R32-M81-USA-Bosnia",
     "teamA": "USA",
     "teamB": "Bosnia-Herz.",
