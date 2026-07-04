@@ -713,6 +713,15 @@
     "stage": "ko"
   },
   {
+    "id": "wc26-R16-M89-France-Paraguay",
+    "teamA": "France",
+    "teamB": "Paraguay",
+    "scoreA": 1,
+    "scoreB": 0,
+    "round": "r16",
+    "stage": "ko"
+  },
+  {
     "id": "wc26-R32-M77-France-Sweden",
     "teamA": "France",
     "teamB": "Sweden",
@@ -739,6 +748,15 @@
     "scoreA": 2,
     "scoreB": 0,
     "round": "r32",
+    "stage": "ko"
+  },
+  {
+    "id": "wc26-R16-M90-Morocco-Canada",
+    "teamA": "Morocco",
+    "teamB": "Canada",
+    "scoreA": 3,
+    "scoreB": 0,
+    "round": "r16",
     "stage": "ko"
   },
   {
