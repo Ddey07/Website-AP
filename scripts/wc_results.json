@@ -648,6 +648,15 @@
     "stage": "group"
   },
   {
+    "id": "wc26-R32-M86-Argentina-CapeVerde",
+    "teamA": "Argentina",
+    "teamB": "Cape Verde",
+    "scoreA": 3,
+    "scoreB": 2,
+    "round": "r32",
+    "stage": "ko"
+  },
+  {
     "id": "wc26-R32-M82-Belgium-Senegal",
     "teamA": "Belgium",
     "teamB": "Senegal",
@@ -669,6 +678,15 @@
     "id": "wc26-R32-M73-Canada-SouthAfrica",
     "teamA": "Canada",
     "teamB": "South Africa",
+    "scoreA": 1,
+    "scoreB": 0,
+    "round": "r32",
+    "stage": "ko"
+  },
+  {
+    "id": "wc26-R32-M87-Colombia-Ghana",
+    "teamA": "Colombia",
+    "teamB": "Ghana",
     "scoreA": 1,
     "scoreB": 0,
     "round": "r32",
