@@ -722,6 +722,15 @@
     "stage": "ko"
   },
   {
+    "id": "wc26-R16-M92-England-Mexico",
+    "teamA": "England",
+    "teamB": "Mexico",
+    "scoreA": 3,
+    "scoreB": 2,
+    "round": "r16",
+    "stage": "ko"
+  },
+  {
     "id": "wc26-R16-M89-France-Paraguay",
     "teamA": "France",
     "teamB": "Paraguay",

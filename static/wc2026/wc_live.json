@@ -1,5 +1,5 @@
 {
-  "updated": "2026-07-05T22:13:38Z",
+  "updated": "2026-07-06T03:39:28Z",
   "source": "eloratings.net/World.tsv + thesportsdb.com",
   "formWeight": 0.33,
   "elo": {
@@ -1053,6 +1053,7 @@
     "Colombia|Ghana": "Colombia",
     "Australia|Egypt": "Egypt",
     "DR Congo|England": "England",
+    "England|Mexico": "England",
     "France|Paraguay": "France",
     "France|Sweden": "France",
     "Germany|Paraguay": "Paraguay",
