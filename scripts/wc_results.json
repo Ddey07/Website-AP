@@ -666,6 +666,15 @@
     "stage": "ko"
   },
   {
+    "id": "wc26-R16-M94-Belgium-USA",
+    "teamA": "Belgium",
+    "teamB": "USA",
+    "scoreA": 4,
+    "scoreB": 1,
+    "round": "r16",
+    "stage": "ko"
+  },
+  {
     "id": "wc26-R32-M76-Brazil-Japan",
     "teamA": "Brazil",
     "teamB": "Japan",
@@ -813,6 +822,15 @@
     "scoreA": 3,
     "scoreB": 0,
     "round": "r32",
+    "stage": "ko"
+  },
+  {
+    "id": "wc26-R16-M93-Spain-Portugal",
+    "teamA": "Spain",
+    "teamB": "Portugal",
+    "scoreA": 1,
+    "scoreB": 0,
+    "round": "r16",
     "stage": "ko"
   },
   {
