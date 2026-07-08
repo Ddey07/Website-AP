@@ -657,6 +657,15 @@
     "stage": "ko"
   },
   {
+    "id": "wc26-R16-M95-Argentina-Egypt",
+    "teamA": "Argentina",
+    "teamB": "Egypt",
+    "scoreA": 3,
+    "scoreB": 2,
+    "round": "r16",
+    "stage": "ko"
+  },
+  {
     "id": "wc26-R32-M82-Belgium-Senegal",
     "teamA": "Belgium",
     "teamB": "Senegal",
@@ -841,6 +850,17 @@
     "scoreB": 0,
     "round": "r32",
     "stage": "ko"
+  },
+  {
+    "id": "wc26-R16-M96-Switzerland-Colombia",
+    "teamA": "Switzerland",
+    "teamB": "Colombia",
+    "scoreA": 0,
+    "scoreB": 0,
+    "round": "r16",
+    "stage": "ko",
+    "winner": "Switzerland",
+    "decidedBy": "penalties"
   },
   {
     "id": "wc26-R32-M81-USA-Bosnia",
