@@ -1,5 +1,5 @@
 {
-  "updated": "2026-07-10T19:26:03Z",
+  "updated": "2026-07-10T21:01:15Z",
   "source": "eloratings.net/World.tsv + thesportsdb.com",
   "formWeight": 0.33,
   "elo": {
@@ -1066,6 +1066,7 @@
     "Ivory Coast|Norway": "Norway",
     "Croatia|Portugal": "Portugal",
     "Austria|Spain": "Spain",
+    "Belgium|Spain": "Spain",
     "Portugal|Spain": "Spain",
     "Algeria|Switzerland": "Switzerland",
     "Colombia|Switzerland": "Switzerland",
