@@ -749,6 +749,15 @@
     "stage": "ko"
   },
   {
+    "id": "wc26-QF-M99-England-Norway",
+    "teamA": "England",
+    "teamB": "Norway",
+    "scoreA": 2,
+    "scoreB": 1,
+    "round": "qf",
+    "stage": "ko"
+  },
+  {
     "id": "2515305",
     "teamA": "France",
     "teamB": "Morocco",
