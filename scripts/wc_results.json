@@ -666,6 +666,15 @@
     "stage": "ko"
   },
   {
+    "id": "wc26-QF-M100-Argentina-Switzerland",
+    "teamA": "Argentina",
+    "teamB": "Switzerland",
+    "scoreA": 3,
+    "scoreB": 1,
+    "round": "qf",
+    "stage": "ko"
+  },
+  {
     "id": "wc26-R32-M82-Belgium-Senegal",
     "teamA": "Belgium",
     "teamB": "Senegal",

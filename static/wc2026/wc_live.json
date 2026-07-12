@@ -1,5 +1,5 @@
 {
-  "updated": "2026-07-12T00:40:30Z",
+  "updated": "2026-07-12T03:45:49Z",
   "source": "eloratings.net/World.tsv + thesportsdb.com",
   "formWeight": 0.33,
   "elo": {
@@ -1047,6 +1047,7 @@
   "koResults": {
     "Argentina|Cape Verde": "Argentina",
     "Argentina|Egypt": "Argentina",
+    "Argentina|Switzerland": "Argentina",
     "Belgium|Senegal": "Belgium",
     "Belgium|USA": "Belgium",
     "Brazil|Japan": "Brazil",
