@@ -870,6 +870,15 @@
     "stage": "ko"
   },
   {
+    "id": "wc26-SF-M101-Spain-France",
+    "teamA": "Spain",
+    "teamB": "France",
+    "scoreA": 2,
+    "scoreB": 0,
+    "round": "sf",
+    "stage": "ko"
+  },
+  {
     "id": "wc26-R16-M93-Spain-Portugal",
     "teamA": "Spain",
     "teamB": "Portugal",
