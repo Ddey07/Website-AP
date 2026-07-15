@@ -740,6 +740,15 @@
     "decidedBy": "penalties"
   },
   {
+    "id": "2528727",
+    "teamA": "England",
+    "teamB": "Argentina",
+    "scoreA": 1,
+    "scoreB": 2,
+    "round": "150",
+    "stage": "ko"
+  },
+  {
     "id": "wc26-R32-M80-England-DRCongo",
     "teamA": "England",
     "teamB": "DR Congo",
@@ -782,6 +791,15 @@
     "scoreA": 1,
     "scoreB": 0,
     "round": "r16",
+    "stage": "ko"
+  },
+  {
+    "id": "2528031",
+    "teamA": "France",
+    "teamB": "Spain",
+    "scoreA": 0,
+    "scoreB": 2,
+    "round": "150",
     "stage": "ko"
   },
   {
@@ -867,15 +885,6 @@
     "scoreA": 2,
     "scoreB": 1,
     "round": "125",
-    "stage": "ko"
-  },
-  {
-    "id": "wc26-SF-M101-Spain-France",
-    "teamA": "Spain",
-    "teamB": "France",
-    "scoreA": 2,
-    "scoreB": 0,
-    "round": "sf",
     "stage": "ko"
   },
   {
