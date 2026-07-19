@@ -3220,6 +3220,24 @@
             </div>
           </div>
 
+          {/* ===== CHAMPION BANNER — tournament complete ===== */}
+          <div style={{
+            background:'linear-gradient(90deg,#7f1d1d 0%,#b45309 45%,#d97706 70%,#7f1d1d 100%)',
+            borderBottom:'2px solid #fbbf24',flexShrink:0,padding:'10px 20px',
+            display:'flex',alignItems:'center',justifyContent:'center',gap:16,flexWrap:'wrap',
+          }}>
+            <span style={{fontSize:26,lineHeight:1}}>🏆</span>
+            <div style={{textAlign:'center'}}>
+              <div style={{color:'#fffbeb',fontWeight:900,fontSize:'clamp(14px,3.2vw,19px)',letterSpacing:0.6}}>
+                🇪🇸 SPAIN — FIFA WORLD CUP 2026 CHAMPIONS
+              </div>
+              <div style={{color:'#fde68a',fontSize:'clamp(10px,2.2vw,12.5px)',fontWeight:600,marginTop:2}}>
+                Beat 🇦🇷 Argentina 1–0 in the final · Tournament complete — all 104 matches played
+              </div>
+            </div>
+            <span style={{fontSize:26,lineHeight:1}}>🏆</span>
+          </div>
+
           {/* MOBILE DROPDOWN NAV */}
           <div className="mobile-tab-dropdown">
             <select value={tab} onChange={e=>setTab(e.target.value)}>
@@ -4015,8 +4033,19 @@
 
                   {/* ---- LEADERBOARD ---- */}
                   <div style={{marginTop:8}}>
-                    <div style={{fontWeight:700,fontSize:15,color:'#f1f5f9',marginBottom:12,
-                      borderBottom:'1px solid #1e3a5f',paddingBottom:8}}>🏅 Leaderboard</div>
+                    <div style={{fontWeight:700,fontSize:15,color:'#f1f5f9',marginBottom:8,
+                      borderBottom:'1px solid #1e3a5f',paddingBottom:8}}>🏅 Final standings</div>
+                    {/* Challenge complete */}
+                    <div style={{background:'#3b2706',border:'1px solid #b45309',borderRadius:10,
+                      padding:'10px 14px',marginBottom:12}}>
+                      <div style={{color:'#fbbf24',fontWeight:800,fontSize:13,marginBottom:3}}>
+                        🏁 Bracket Challenge complete — Spain won the World Cup
+                      </div>
+                      <div style={{color:'#fde68a',fontSize:12,lineHeight:1.6}}>
+                        All 104 matches scored. Congratulations to our joint winners — <strong>BFAstream</strong> and{' '}
+                        <strong>westhamno19</strong>, tied on 364 points. Thanks to everyone who entered!
+                      </div>
+                    </div>
                     {leaderboard.length===0?(
                       <div style={{background:'#061228',border:'1px solid #1e3a5f',borderRadius:10,
                         padding:'20px',textAlign:'center',color:'#475569',fontSize:13}}>

@@ -776,6 +776,15 @@
     "stage": "ko"
   },
   {
+    "id": "2533360",
+    "teamA": "France",
+    "teamB": "England",
+    "scoreA": 4,
+    "scoreB": 6,
+    "round": "160",
+    "stage": "ko"
+  },
+  {
     "id": "2515305",
     "teamA": "France",
     "teamB": "Morocco",
@@ -867,6 +876,15 @@
     "scoreA": 2,
     "scoreB": 1,
     "round": "r32",
+    "stage": "ko"
+  },
+  {
+    "id": "wc26-FINAL-M104-Spain-Argentina",
+    "teamA": "Spain",
+    "teamB": "Argentina",
+    "scoreA": 1,
+    "scoreB": 0,
+    "round": "final",
     "stage": "ko"
   },
   {
