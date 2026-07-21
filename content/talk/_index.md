@@ -12,6 +12,10 @@ image:
   filename: ''
 ---
 
+- **Digital Phenotyping for Mixed-Type mHealth Data**  
+  _International Biometric Conference (IBC), 2026, Seoul, Korea — Invited Session_  
+  [Slides (PDF)](/uploads/slides/IBC_2026_DD.pdf)
+
 - **Multivariate Principal Component Analysis for Mixed-Type Functional Data with application to mHealth**  
   _Joint Statistical Meetings (JSM), 2024_  
   [Slides (PDF)](/uploads/slides/JSM_2024_DD.pdf)
