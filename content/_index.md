@@ -84,6 +84,7 @@ sections:
       title: News
       text: |
         - **🚨 Looking for motivated students to work on statistical and machine learning methods for analyzing data from wearables ⌚️, smartphones 📱, with contextual location information📍!**
+        - ⚽ **2026**: New preprint — *Do In-Match Hydration Breaks Alter Match Momentum? A Within-Match Case-Crossover Analysis of the 2026 FIFA World Cup*. [arXiv](https://arxiv.org/abs/2607.19783) · [GitHub](https://github.com/Ddey07/wc2026-hydration-momentum).
         - 🏆 **2026**: Awarded the **NIH Director's Challenge Innovation Award** — *Biologic Rhythms and Environmental Contexts in Human Health: Integrating Epidemiology and Circadian Science* (PI: K. Merikangas, NIMH). Role: Biostatistician Consultant, leading data management and analytic strategies for multilevel circadian and metabolic data integration.
         - ⚽ **2026**: Built a *[FIFA World Cup 2026 Bracket Predictor](https://debangandey.rbind.io/wc2026/)* with Claude — Monte Carlo bracket odds, live ticket & hotel prices, and a trip planner that ranks your 3 cheapest venues (with day-trip detection and Google Flights links) so you can finally settle the "go or not go" debate.
         - 💻 **2026**: Released *[M²FPCA](https://github.com/Ddey07/M2FPCA)* — an R package for Multivariate Functional Principal Component Analysis of mixed-type functional data (continuous, truncated, ordinal, and binary) via a latent Gaussian copula. Companion to *[SGCTools](https://github.com/Ddey07/SGCTools)*.

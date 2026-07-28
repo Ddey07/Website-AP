@@ -47,6 +47,7 @@ banner:
 
 #### Soccer Analytics
 
+- **Dey D**. 2026. Do In-Match Hydration Breaks Alter Match Momentum? A Within-Match Case-Crossover Analysis of the 2026 FIFA World Cup. *arXiv:2607.19783* https://arxiv.org/abs/2607.19783 https://github.com/Ddey07/wc2026-hydration-momentum
 - Deb S, **Dey D**. 2019. Spatial modeling of shot conversion in soccer to single out goalscoring ability. *Journal of Sports Analytics.* 5(4):281–297.  
 - **Dey D**, Pita A. 2018. The Good, The Bad, and The Ugly of the Beautiful Game — Analyzing FIFA World Cup 2018 data. *GitHub Pages.* https://ddey07.github.io/open-data/  
 
