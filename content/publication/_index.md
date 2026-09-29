@@ -14,6 +14,7 @@ banner:
 
 ### Theory and Methods
 
+- **Dey D**, Manna A, Geoga CJ. 2026. Bigraphical Matérn–Whittle (BMW) Processes for Fast Inference of Big Multivariate Spatial Data on General Domains. *arXiv:2609.01950* https://arxiv.org/abs/2609.01950
 -  Burman A, Choudhury S, **Dey D**. 2026. Doubly-Unlinked Regression for Dependent Data. *arXiv:2603.19506* https://arxiv.org/abs/2603.19506
 - **Dey D**, Ghosal R, Merikangas KR, Zipunnikov V. 2026. Multivariate Functional Principal Component Analysis for Mixed-Type mHealth Data: An Application to Mood Disorders. *arXiv:2603.11385* https://arxiv.org/abs/2603.11385
 - **Dey D**, Zipunnikov V. 2026. Regression and Dimension Reduction for Multivariate Mixed-Type Data via Semiparametric Gaussian Copula. *arXiv:2205.06868* https://arxiv.org/abs/2205.06868

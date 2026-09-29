@@ -14,10 +14,10 @@ stylesheets:
 # SEO
 marketing:
   seo:
-    site_type: Person
+    site_type: Organization
     local_business_type: ''
-    org_name: ''
-    description: 'Debangan Dey | Assistant Professor in Statistics | Digital Health, Wearables, EMA and Spatial Data'
+    org_name: 'CADENCE Lab, Department of Statistics, Texas A&M University'
+    description: 'CADENCE Lab — Contextual Analytics of Digital & Environmental data for Neurobehavioral, Circadian & Emotional health (PI: Debangan Dey), Department of Statistics, Texas A&M University. Statistics for the rhythms of health across space and time: wearables, EMA, environment, sleep, circadian rhythms and mental health.'
     twitter: 'debangan07'
   analytics:
     google_analytics: 'CXHH8ELK0W'
@@ -38,12 +38,12 @@ header:
     show_search: true
     show_theme_chooser: true
     logo:
-      text: "Debangan Dey"
+      text: "CADENCE Lab"
 
 # Site footer
 footer:
   copyright:
-    notice: '© {year} Me. This work is licensed under {license}'
+    notice: '© {year} CADENCE Lab · Department of Statistics, Texas A&M University. This work is licensed under {license}'
     license:
       enable: true
       allow_derivatives: false

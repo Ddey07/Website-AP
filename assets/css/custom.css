@@ -16,3 +16,102 @@
   margin-left: auto;
   margin-right: auto;
 }
+/* ---------- CADENCE Lab additions ---------- */
+
+/* Hero: the theme's default hero padding is very tall; keep it moderate */
+.blox-hero.lab-hero .mx-auto.max-w-2xl {
+  max-width: 48rem;
+  padding-top: 3rem;
+  padding-bottom: 2rem;
+}
+.blox-hero.lab-hero .lab-fullform {
+  display: inline-block;
+  font-size: 0.95rem;
+  letter-spacing: 0.01em;
+  color: rgb(107 114 128);
+  margin-bottom: 0.9rem;
+}
+.dark .blox-hero.lab-hero .lab-fullform { color: rgb(156 163 175); }
+.blox-hero.lab-hero .lab-fullform b {
+  color: rgb(79 70 229);
+  font-weight: 700;
+}
+.dark .blox-hero.lab-hero .lab-fullform b { color: rgb(165 180 252); }
+.blox-hero.lab-hero h1 {
+  letter-spacing: -0.02em;
+}
+.blox-hero.lab-hero p a {
+  text-decoration: underline;
+  text-decoration-color: rgb(99 102 241 / 0.4);
+  text-underline-offset: 3px;
+}
+
+/* People block (custom blox: layouts/partials/blox/people.html) */
+.people-block .people-group { width: 100%; margin-top: 1.5rem; }
+.people-block .people-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 1.5rem;
+  row-gap: 2.5rem;
+  justify-items: center;
+}
+@media (min-width: 640px)  { .people-block .people-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (min-width: 1024px) {
+  .people-block .people-grid--cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .people-block .people-grid--cols-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+}
+.people-block .people-grid--single { grid-template-columns: minmax(0, 20rem) !important; justify-content: center; }
+/* Compact strip (homepage): one centered, wrapping row */
+.people-block .people-grid--compact {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2rem 1.5rem;
+}
+.people-block .people-grid--compact .person-card { width: 11rem; }
+.people-block .person-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-width: 18rem;
+}
+.people-block .person-avatar-img {
+  width: 8.5rem;
+  height: 8.5rem;
+  object-fit: cover;
+  border: 3px solid #fff;
+  transition: transform 0.15s ease-in-out;
+}
+.dark .people-block .person-avatar-img { border-color: #1f2937; }
+.people-block .people-grid--compact .person-avatar-img { width: 6.5rem; height: 6.5rem; }
+.people-block .person-card:hover .person-avatar-img { transform: scale(1.03); }
+.people-block .person-avatar-initials {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+}
+.people-block .person-links {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+  padding: 0;
+  list-style: none;
+}
+.people-block .person-links svg { height: 1.25rem; width: 1.25rem; }
+.people-block .person-interests { max-width: 16rem; }
+
+/* Features block: allow links inside descriptions to look like links */
+.blox-features p a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Keep long markdown lists (News, Publications) comfortably readable */
+.blox-markdown-wide .prose li {
+  margin-top: 0.35em;
+  margin-bottom: 0.35em;
+}

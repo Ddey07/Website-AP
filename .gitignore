@@ -33,3 +33,6 @@ static/uploads/resume*AM.pdf
 # Python
 __pycache__/
 *.pyc
+
+# Claude desktop app session outputs
+Claude outputs/

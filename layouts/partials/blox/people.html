@@ -1,0 +1,155 @@
+{{/* CADENCE Lab custom block: People */}}
+{{/* Lists author pages from `content/authors/` grouped by their `user_groups` front matter. */}}
+{{/*
+  Usage (in a landing page):
+    - block: people
+      content:
+        title: People
+        user_groups: [Principal Investigator, PhD Students, Undergraduate Students, Collaborators]
+      design:
+        show_interests: true      # show `interests` list under each card
+        show_role: true           # show `role`
+        show_organizations: true  # show `organizations`
+        show_education: true      # show first `education` entry (e.g. prior degree)
+        show_social: true         # show `profiles` icons
+        compact: false            # avatar + name + role only (for a homepage strip)
+        columns: 4                # 3 or 4 columns on large screens
+*/}}
+
+{{ $page := .wcPage }}
+{{ $block := .wcBlock }}
+
+{{ $title := $block.content.title | emojify | $page.RenderString }}
+{{ $text := $block.content.text | emojify | $page.RenderString | safeHTML }}
+{{ $show_interests := $block.design.show_interests | default true }}
+{{ $show_role := $block.design.show_role | default true }}
+{{ $show_org := $block.design.show_organizations | default true }}
+{{ $show_edu := $block.design.show_education | default true }}
+{{ $show_social := $block.design.show_social | default true }}
+{{ $compact := $block.design.compact | default false }}
+{{ $columns := $block.design.columns | default 4 }}
+{{ $avatar_px := cond $compact "160x160" "270x270" }}
+
+{{ $grid := printf "people-grid people-grid--cols-%d" (int $columns) }}
+{{ if $compact }}{{ $grid = "people-grid people-grid--compact" }}{{ end }}
+
+{{ $authors_section := site.GetPage "/authors" }}
+{{ $people := slice }}
+{{ with $authors_section }}{{ $people = .Pages }}{{ end }}
+
+<div class="people-block flex flex-col items-center w-full max-w-6xl mx-auto gap-3 justify-center px-4 md:px-8">
+
+  {{ with $title }}
+  <div class="mb-2 text-3xl font-bold text-gray-900 dark:text-white">{{ . }}</div>
+  {{ end }}
+  {{ with $text }}
+  <div class="prose prose-slate dark:prose-invert w-full max-w-3xl text-center mb-4">{{ . }}</div>
+  {{ end }}
+
+  {{/* In compact mode, all groups are merged into a single centered row (in group order). */}}
+  {{ $groups := $block.content.user_groups }}
+  {{ if $compact }}{{ $groups = slice "__all__" }}{{ end }}
+
+  {{ range $group := $groups }}
+    {{ $members := slice }}
+    {{ if eq $group "__all__" }}
+      {{ range $g := $block.content.user_groups }}
+        {{ $gm := slice }}
+        {{ range $people }}{{ if in (.Params.user_groups | default slice) $g }}{{ $gm = $gm | append . }}{{ end }}{{ end }}
+        {{ $members = $members | append (sort $gm "Params.weight" "asc") }}
+      {{ end }}
+    {{ else }}
+      {{ range $people }}
+        {{ if in (.Params.user_groups | default slice) $group }}
+          {{ $members = $members | append . }}
+        {{ end }}
+      {{ end }}
+      {{ $members = sort $members "Params.weight" "asc" }}
+    {{ end }}
+
+    {{ if gt (len $members) 0 }}
+    <section class="people-group">
+      {{ if not $compact }}
+      <h2 class="people-group-title text-xl font-semibold tracking-tight text-gray-800 dark:text-gray-100 border-b border-gray-200 dark:border-gray-700 pb-2 mb-6">{{ $group }}</h2>
+      {{ end }}
+
+      <div class="{{ $grid }}{{ if eq (len $members) 1 }} people-grid--single{{ end }}">
+        {{ range $person := $members }}
+          {{ $avatar := ($person.Resources.ByType "image").GetMatch "*avatar*" }}
+          {{ $link := "" }}
+          {{ with index $person.Params.profiles 0 }}{{ $link = .url }}{{ end }}
+          {{/* Prefer a website/scholar link over e-mail for the card link */}}
+          {{ range $person.Params.profiles }}
+            {{ if in (slice "link" "academicons/google-scholar" "brands/linkedin" "brands/github") .icon }}{{ if not (hasPrefix $link "http") }}{{ $link = .url }}{{ end }}{{ end }}
+          {{ end }}
+
+          <div class="person-card">
+            <div class="person-avatar mb-3">
+              {{ if $avatar }}
+                {{ $img := $avatar.Fill (printf "%s q90 center" $avatar_px) }}
+                {{ if hasPrefix $link "http" }}<a href="{{ $link }}" target="_blank" rel="noopener">{{ end }}
+                <img class="person-avatar-img rounded-full shadow-md"
+                     src="{{ $img.RelPermalink }}" width="{{ $img.Width }}" height="{{ $img.Height }}" alt="{{ $person.Title }}" loading="lazy">
+                {{ if hasPrefix $link "http" }}</a>{{ end }}
+              {{ else }}
+                <div class="person-avatar-img person-avatar-initials rounded-full bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-200 font-bold shadow-md" aria-label="{{ $person.Title }}">
+                  {{ substr $person.Params.first_name 0 1 }}{{ substr $person.Params.last_name 0 1 }}
+                </div>
+              {{ end }}
+            </div>
+
+            <div class="person-name text-lg font-semibold text-gray-900 dark:text-white leading-tight">
+              {{ if hasPrefix $link "http" }}<a class="hover:text-primary-600 dark:hover:text-primary-300" href="{{ $link }}" target="_blank" rel="noopener">{{ $person.Title }}</a>{{ else }}{{ $person.Title }}{{ end }}
+            </div>
+
+            {{ if and $show_role $person.Params.role }}
+            <div class="person-role text-sm text-primary-700 dark:text-primary-300 font-medium mt-1">{{ $person.Params.role | markdownify }}</div>
+            {{ end }}
+
+            {{ if and $show_org (not $compact) }}
+              {{ range $person.Params.organizations }}
+              <div class="person-org text-sm text-gray-600 dark:text-gray-400 mt-1">
+                {{ with .url }}<a class="hover:underline" href="{{ . }}" target="_blank" rel="noopener">{{ end }}{{ .name }}{{ if .url }}</a>{{ end }}
+              </div>
+              {{ end }}
+            {{ end }}
+
+            {{ if and $show_edu (not $compact) }}
+              {{ with index $person.Params.education 0 }}
+              <div class="person-edu text-xs text-gray-500 dark:text-gray-400 mt-1">{{ .area }}{{ with .institution }}, {{ . }}{{ end }}</div>
+              {{ end }}
+            {{ end }}
+
+            {{ if and (not $compact) $person.Params.note }}
+            <div class="person-note text-xs text-gray-600 dark:text-gray-300 italic mt-1">{{ $person.Params.note | markdownify }}</div>
+            {{ end }}
+
+            {{ if and $show_interests (not $compact) $person.Params.interests }}
+            <div class="person-interests text-xs text-gray-500 dark:text-gray-400 mt-2 leading-snug">
+              {{ delimit $person.Params.interests " · " }}
+            </div>
+            {{ end }}
+
+            {{ if and $show_social $person.Params.profiles }}
+            <ul class="network-icon person-links text-gray-600 dark:text-gray-300">
+              {{ range $person.Params.profiles }}
+                {{ $url := .url | default .link }}
+                {{ $scheme := (urls.Parse $url).Scheme }}
+                {{ $target := "" }}
+                {{ if in (slice "http" "https") $scheme }}{{ $target = "target=\"_blank\" rel=\"noopener\"" }}{{ end }}
+                <li>
+                  <a href="{{ $url | safeURL }}" {{ $target | safeHTMLAttr }} aria-label="{{ .label | default .icon }}" title="{{ .label | default .icon }}" class="hover:text-primary-600 dark:hover:text-primary-300">
+                    {{ partial "functions/get_icon" (dict "name" .icon "attributes" "style=\"height: 1.25rem; width: 1.25rem;\"") }}
+                  </a>
+                </li>
+              {{ end }}
+            </ul>
+            {{ end }}
+          </div>
+        {{ end }}
+      </div>
+    </section>
+    {{ end }}
+  {{ end }}
+
+</div>
