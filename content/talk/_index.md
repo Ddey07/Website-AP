@@ -12,6 +12,12 @@ image:
   filename: ''
 ---
 
+- **Doubly-Unlinked Regression for Dependent Data**  
+  _International Indian Statistical Association (IISA) 2026 Conference, Banaras Hindu University, Varanasi, India, December 2026 — Invited Session_
+
+- **Bigraphical Matérn–Whittle (BMW) Processes for Fast Inference of Big Multivariate Spatial Data on General Domains**  
+  _Statistics Seminar Series, Department of Mathematics and Statistics, University of Maryland, Baltimore County (UMBC), October 30, 2026 — Invited Seminar_
+
 - **Digital Phenotyping for Mixed-Type mHealth Data**  
   _International Biometric Conference (IBC), 2026, Seoul, Korea — Invited Session_  
   [Slides (PDF)](/uploads/slides/IBC_2026_DD.pdf)
